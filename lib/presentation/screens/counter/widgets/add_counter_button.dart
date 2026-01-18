@@ -3,13 +3,16 @@ import '../../../../core/constants/app_colors.dart';
 
 /// 보조 카운터 추가 버튼
 /// - 점선 테두리 + "+" 아이콘
+/// - isFullWidth: true면 전체 너비로 표시 (보조 카운터가 없을 때)
 /// - 부모(IntrinsicHeight)에 의해 높이가 SecondaryCounter와 동일하게 맞춰짐
 class AddCounterButton extends StatelessWidget {
   final VoidCallback onTap;
+  final bool isFullWidth;
 
   const AddCounterButton({
     super.key,
     required this.onTap,
+    this.isFullWidth = false,
   });
 
   @override
@@ -19,15 +22,22 @@ class AddCounterButton extends StatelessWidget {
     final textSecondary =
         isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
 
+    // 전체 너비일 때는 높이를 고정, 아닐 때는 부모에 맞춤
+    final minHeight = isFullWidth ? 72.0 : 0.0;
+
     return GestureDetector(
       onTap: onTap,
-      child: CustomPaint(
-        painter: _DashedBorderPainter(color: borderColor),
-        child: Center(
-          child: Icon(
-            Icons.add_rounded,
-            size: 40,
-            color: textSecondary.withAlpha(150),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(minHeight: minHeight),
+        child: CustomPaint(
+          painter: _DashedBorderPainter(color: borderColor),
+          child: Center(
+            // 전체 너비(72px): 36px 아이콘, 그리드(SecondaryCounter 높이 맞춤): 40px 아이콘
+            child: Icon(
+              Icons.add_rounded,
+              size: isFullWidth ? 36 : 40,
+              color: textSecondary.withAlpha(150),
+            ),
           ),
         ),
       ),

@@ -15,20 +15,29 @@ class MemoCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    // 더 부드러운 베이지/크림 톤 배경
+    // 배경과 구분되는 메모 카드 배경 (좀 더 진한 톤)
     final backgroundColor = isDark
-        ? const Color(0xFF3A3526).withOpacity(0.6)
-        : const Color(0xFFFFF8E7);
+        ? const Color(0xFF3A3526)
+        : const Color(0xFFFFF3D4);
     final borderColor = isDark
         ? const Color(0xFFD4A84B)
-        : const Color(0xFFE8D4A8);
+        : const Color(0xFFDCC99A);
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: borderColor),
+        border: Border.all(color: borderColor, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: isDark
+                ? Colors.black.withValues(alpha: 0.3)
+                : const Color(0xFFD4C4A8).withValues(alpha: 0.4),
+            offset: const Offset(0, 2),
+            blurRadius: 8,
+          ),
+        ],
       ),
       child: Row(
         children: [

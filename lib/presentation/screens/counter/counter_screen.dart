@@ -213,7 +213,7 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
                     // 메모 카드 (있을 때만)
                     if (counterState.currentMemo != null)
                       Padding(
-                        padding: const EdgeInsets.only(top: 16),
+                        padding: const EdgeInsets.only(top: 16, bottom: 20),
                         child: MemoCard(memo: counterState.currentMemo!),
                       ),
 
@@ -261,6 +261,14 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
                                 final isPremium = ref.watch(premiumStatusProvider);
                                 final canAddMore = isPremium ||
                                     counterState.secondaryCounters.length < 2;
+
+                                // 보조 카운터가 없을 때: 전체 너비 추가 버튼
+                                if (counterState.secondaryCounters.isEmpty && canAddMore) {
+                                  return AddCounterButton(
+                                    onTap: () => _showAddSecondaryCounterSheet(project),
+                                    isFullWidth: true,
+                                  );
+                                }
 
                                 // 아이템 목록 (카운터 + 추가버튼)
                                 final items = <Widget>[
