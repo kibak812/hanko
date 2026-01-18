@@ -1,0 +1,160 @@
+{
+  "_note1": "KEEP THIS FILE! Check it into a version control system (VCS) like git.",
+  "_note2": "ObjectBox manages crucial IDs for your object model. See docs for details.",
+  "_note3": "If you have VCS merge conflicts, you must resolve them according to ObjectBox docs.",
+  "entities": [
+    {
+      "id": "1:3632591137761859193",
+      "lastPropertyId": "7:8865628590794396191",
+      "name": "Counter",
+      "properties": [
+        {
+          "id": "1:3843947805124358332",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:8467932943443224579",
+          "name": "typeIndex",
+          "type": 6
+        },
+        {
+          "id": "3:9119971216465766496",
+          "name": "label",
+          "type": 9
+        },
+        {
+          "id": "4:3538912508785734446",
+          "name": "value",
+          "type": 6
+        },
+        {
+          "id": "5:4220632627261938184",
+          "name": "targetValue",
+          "type": 6
+        },
+        {
+          "id": "6:6409311255122076137",
+          "name": "resetAt",
+          "type": 6
+        },
+        {
+          "id": "7:8865628590794396191",
+          "name": "autoResetEnabled",
+          "type": 1
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "2:56912154864965339",
+      "lastPropertyId": "9:2873116436902126093",
+      "name": "Project",
+      "properties": [
+        {
+          "id": "1:3421344968959532459",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:5829215009481612731",
+          "name": "name",
+          "type": 9
+        },
+        {
+          "id": "3:5780905897124313539",
+          "name": "statusIndex",
+          "type": 6
+        },
+        {
+          "id": "4:5495095001332320242",
+          "name": "createdAt",
+          "type": 10
+        },
+        {
+          "id": "5:1304204245350020806",
+          "name": "updatedAt",
+          "type": 10
+        },
+        {
+          "id": "6:4468402353214468101",
+          "name": "rowHistoryJson",
+          "type": 9
+        },
+        {
+          "id": "7:2440378411404313604",
+          "name": "rowCounterId",
+          "indexId": "1:9052168395293233465",
+          "type": 11,
+          "flags": 520,
+          "relationTarget": "Counter"
+        },
+        {
+          "id": "8:5356494094493269155",
+          "name": "stitchCounterId",
+          "indexId": "2:8487913203956185323",
+          "type": 11,
+          "flags": 520,
+          "relationTarget": "Counter"
+        },
+        {
+          "id": "9:2873116436902126093",
+          "name": "patternCounterId",
+          "indexId": "3:5656448226333148380",
+          "type": 11,
+          "flags": 520,
+          "relationTarget": "Counter"
+        }
+      ],
+      "relations": [
+        {
+          "id": "1:3282312659816922589",
+          "name": "memos",
+          "targetId": "3:1189483727074397873"
+        }
+      ]
+    },
+    {
+      "id": "3:1189483727074397873",
+      "lastPropertyId": "4:5138494895117851400",
+      "name": "RowMemo",
+      "properties": [
+        {
+          "id": "1:582216784625109091",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:6656833361144199392",
+          "name": "rowNumber",
+          "type": 6
+        },
+        {
+          "id": "3:6057109510414876280",
+          "name": "content",
+          "type": 9
+        },
+        {
+          "id": "4:5138494895117851400",
+          "name": "notified",
+          "type": 1
+        }
+      ],
+      "relations": []
+    }
+  ],
+  "lastEntityId": "3:1189483727074397873",
+  "lastIndexId": "3:5656448226333148380",
+  "lastRelationId": "1:3282312659816922589",
+  "lastSequenceId": "0:0",
+  "modelVersion": 5,
+  "modelVersionParserMinimum": 5,
+  "retiredEntityUids": [],
+  "retiredIndexUids": [],
+  "retiredPropertyUids": [],
+  "retiredRelationUids": [],
+  "version": 1
+}
