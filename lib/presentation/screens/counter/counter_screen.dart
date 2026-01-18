@@ -6,21 +6,23 @@ import 'package:go_router/go_router.dart';
 import 'package:vibration/vibration.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_icons.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../data/datasources/local_storage.dart';
 import '../../../router/app_router.dart';
 import '../../providers/app_providers.dart';
 import '../../providers/project_provider.dart';
 import '../../providers/voice_provider.dart';
-import '../../../core/constants/app_icons.dart';
 import '../../../data/models/counter.dart';
 import '../../../data/models/project.dart';
 import 'widgets/counter_display.dart';
 import 'widgets/memo_card.dart';
 import 'widgets/secondary_counter.dart';
-import 'widgets/counter_settings_sheet.dart';
 import 'widgets/action_buttons.dart';
 import 'widgets/progress_header.dart';
+import 'widgets/add_counter_button.dart';
+import 'widgets/inline_counter_editor.dart';
+import '../settings/widgets/add_secondary_counter_sheet.dart';
 
 /// 메인 카운터 화면
 class CounterScreen extends ConsumerStatefulWidget {
@@ -227,7 +229,7 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
                                       if (_flashAnimation.value > 0)
                                         BoxShadow(
                                           color: AppColors.primary
-                                              .withOpacity(0.3 * _flashAnimation.value),
+                                              .withValues(alpha: 0.3 * _flashAnimation.value),
                                           blurRadius: 30,
                                           spreadRadius: 10,
                                         ),
@@ -246,73 +248,84 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
 
                             const SizedBox(height: 16),
 
-                            // 동적 보조 카운터 (2x2 그리드)
-                            if (counterState.secondaryCounters.isNotEmpty)
-                              LayoutBuilder(
-                                builder: (context, constraints) {
-                                  // 메인 카운터와 동일한 너비 사용
-                                  final totalWidth = constraints.maxWidth;
-                                  const spacing = 8.0;
-                                  final itemWidth = (totalWidth - spacing) / 2;
+                            // 동적 보조 카운터 (2x2 그리드) + 추가 버튼
+                            LayoutBuilder(
+                              builder: (context, constraints) {
+                                const spacing = 8.0;
 
-                                  return Wrap(
-                                    spacing: spacing,
-                                    runSpacing: spacing,
-                                    children: [
-                                      for (final counter
-                                          in counterState.secondaryCounters)
-                                        SizedBox(
-                                          width: itemWidth,
-                                          child: SecondaryCounter(
-                                            id: counter.id,
-                                            value: counter.value,
-                                            label: counter.label,
-                                            type: counter.type,
-                                            targetValue: counter.type ==
-                                                    SecondaryCounterType.goal
-                                                ? counter.targetValue
-                                                : null,
-                                            resetAt: counter.type ==
-                                                    SecondaryCounterType.repetition
-                                                ? counter.resetAt
-                                                : null,
-                                            isLinked: counter.isLinked,
-                                            onIncrement: () {
-                                              _triggerHaptic(
-                                                  duration: 15, amplitude: 50);
-                                              ref
-                                                  .read(activeProjectCounterProvider
-                                                      .notifier)
-                                                  .incrementSecondaryCounter(
-                                                      counter.id);
-                                            },
-                                            onDecrement: () {
-                                              _triggerHaptic(
-                                                  duration: 15, amplitude: 50);
-                                              ref
-                                                  .read(activeProjectCounterProvider
-                                                      .notifier)
-                                                  .decrementSecondaryCounter(
-                                                      counter.id);
-                                            },
-                                            onLongPress: () =>
-                                                _showSecondaryCounterSettings(
-                                                    project, counter.id),
-                                            onLinkToggle: () {
-                                              _triggerHaptic(
-                                                  duration: 10, amplitude: 40);
-                                              ref
-                                                  .read(activeProjectCounterProvider
-                                                      .notifier)
-                                                  .toggleSecondaryCounterLink(
-                                                      counter.id);
-                                            },
-                                          ),
+                                // 프리미엄 사용자 또는 보조 카운터 2개 미만이면 추가 가능
+                                final isPremium = ref.watch(premiumStatusProvider);
+                                final canAddMore = isPremium ||
+                                    counterState.secondaryCounters.length < 2;
+
+                                // 아이템 목록 (카운터 + 추가버튼)
+                                final items = <Widget>[
+                                  for (final counter in counterState.secondaryCounters)
+                                    SecondaryCounter(
+                                      id: counter.id,
+                                      value: counter.value,
+                                      label: counter.label,
+                                      type: counter.type,
+                                      targetValue: counter.type == SecondaryCounterType.goal
+                                          ? counter.targetValue
+                                          : null,
+                                      resetAt: counter.type == SecondaryCounterType.repetition
+                                          ? counter.resetAt
+                                          : null,
+                                      isLinked: counter.isLinked,
+                                      onIncrement: () {
+                                        _triggerHaptic(duration: 15, amplitude: 50);
+                                        ref
+                                            .read(activeProjectCounterProvider.notifier)
+                                            .incrementSecondaryCounter(counter.id);
+                                      },
+                                      onDecrement: () {
+                                        _triggerHaptic(duration: 15, amplitude: 50);
+                                        ref
+                                            .read(activeProjectCounterProvider.notifier)
+                                            .decrementSecondaryCounter(counter.id);
+                                      },
+                                      onLongPress: (sourceRect) =>
+                                          _showInlineCounterEditor(project, counter, sourceRect),
+                                      onLinkToggle: () {
+                                        _triggerHaptic(duration: 10, amplitude: 40);
+                                        ref
+                                            .read(activeProjectCounterProvider.notifier)
+                                            .toggleSecondaryCounterLink(counter.id);
+                                      },
+                                    ),
+                                  if (canAddMore)
+                                    AddCounterButton(
+                                      onTap: () => _showAddSecondaryCounterSheet(project),
+                                    ),
+                                ];
+
+                                // 2열 그리드로 배치 (IntrinsicHeight로 높이 맞춤)
+                                final rows = <Widget>[];
+                                for (var i = 0; i < items.length; i += 2) {
+                                  final hasSecond = i + 1 < items.length;
+                                  rows.add(
+                                    Padding(
+                                      padding: EdgeInsets.only(top: i > 0 ? spacing : 0),
+                                      child: IntrinsicHeight(
+                                        child: Row(
+                                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                                          children: [
+                                            Expanded(child: items[i]),
+                                            SizedBox(width: spacing),
+                                            Expanded(
+                                              child: hasSecond ? items[i + 1] : const SizedBox(),
+                                            ),
+                                          ],
                                         ),
-                                    ],
+                                      ),
+                                    ),
                                   );
-                                },
-                              ),
+                                }
+
+                                return Column(children: rows);
+                              },
+                            ),
                           ],
                         ),
                       ),
@@ -321,6 +334,10 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
                     // 보조 액션 버튼
                     ActionButtons(
                       onUndo: counterState.canUndo ? _onUndo : null,
+                      onMemo: () {
+                        _triggerHaptic(duration: 10, amplitude: 40);
+                        context.push(AppRoutes.memos, extra: project.id);
+                      },
                       onVoice: () async {
                         _triggerHaptic(duration: 10, amplitude: 40);
 
@@ -362,8 +379,15 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
                             .startVoiceCommand();
                       },
                       isListening: voiceState == VoiceState.listening,
-                      onMore: () {
-                        _showMoreOptions(context);
+                      onMenuAction: (action) {
+                        switch (action) {
+                          case MoreMenuAction.edit:
+                            context.push(AppRoutes.projectSettings, extra: project.id);
+                          case MoreMenuAction.projects:
+                            context.push(AppRoutes.projects);
+                          case MoreMenuAction.settings:
+                            context.push(AppRoutes.settings);
+                        }
                       },
                     ),
 
@@ -416,60 +440,6 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
                 ),
               ],
             ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showMoreOptions(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.list),
-                title: const Text(AppStrings.myProjects),
-                onTap: () {
-                  Navigator.pop(context);
-                  context.push(AppRoutes.projects);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.edit),
-                title: const Text(AppStrings.edit),
-                onTap: () {
-                  Navigator.pop(context);
-                  final project = ref.read(activeProjectProvider);
-                  if (project != null) {
-                    context.push(AppRoutes.projectSettings, extra: project.id);
-                  }
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.note_alt_outlined),
-                title: const Text(AppStrings.memo),
-                onTap: () {
-                  Navigator.pop(context);
-                  final project = ref.read(activeProjectProvider);
-                  if (project != null) {
-                    context.push(AppRoutes.memos, extra: project.id);
-                  }
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.settings),
-                title: const Text(AppStrings.settings),
-                onTap: () {
-                  Navigator.pop(context);
-                  context.push(AppRoutes.settings);
-                },
-              ),
-            ],
           ),
         ),
       ),
@@ -561,43 +531,71 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
     );
   }
 
-  /// 동적 보조 카운터 설정 바텀시트
-  void _showSecondaryCounterSettings(Project project, int counterId) {
-    final counterState = ref.read(activeProjectCounterProvider);
-    final counter = counterState.secondaryCounters.firstWhere(
-      (c) => c.id == counterId,
-    );
+  /// 보조 카운터 추가 바텀시트
+  void _showAddSecondaryCounterSheet(Project project) {
+    final isPremium = ref.read(premiumStatusProvider);
+    final counterCount = ref.read(activeProjectCounterProvider).secondaryCounters.length;
+    final canAdd = isPremium || counterCount < 2;
 
-    showSecondaryCounterSettingsSheet(
+    showAddSecondaryCounterSheet(
       context: context,
-      counterId: counterId,
+      canAdd: canAdd,
+      onAdd: (label, type, value) {
+        final notifier = ref.read(projectsProvider.notifier);
+        if (type == SecondaryCounterType.goal) {
+          notifier.addSecondaryGoalCounter(
+            project,
+            label: label,
+            targetValue: value,
+          );
+        } else {
+          notifier.addSecondaryRepetitionCounter(
+            project,
+            label: label,
+            resetAt: value,
+          );
+        }
+        // ToMany 변경 감지를 위해 강제 리빌드
+        ref.invalidate(activeProjectCounterProvider);
+      },
+    );
+  }
+
+  /// 인라인 카운터 편집기 표시
+  void _showInlineCounterEditor(
+    Project project,
+    SecondaryCounterState counter,
+    Rect sourceRect,
+  ) {
+    _triggerHaptic(duration: 25, amplitude: 80);
+
+    showInlineCounterEditor(
+      context: context,
       label: counter.label,
       type: counter.type,
       currentValue: counter.value,
       targetValue: counter.targetValue,
       resetAt: counter.resetAt,
+      sourceRect: sourceRect,
       onReset: () {
-        ref.read(activeProjectCounterProvider.notifier).resetSecondaryCounter(counterId);
+        ref.read(activeProjectCounterProvider.notifier).resetSecondaryCounter(counter.id);
       },
-      onSave: (newLabel, newTarget) {
-        if (counter.type == SecondaryCounterType.goal) {
-          ref.read(projectsProvider.notifier).updateSecondaryCounter(
-            project,
-            counterId,
-            label: newLabel,
-            targetValue: newTarget,
-          );
-        } else {
-          ref.read(projectsProvider.notifier).updateSecondaryCounter(
-            project,
-            counterId,
-            label: newLabel,
-            resetAt: newTarget,
-          );
-        }
+      onSave: (newLabel, newTarget, newType) {
+        // 새 타입 또는 기존 타입 사용
+        final effectiveType = newType ?? counter.type;
+        ref.read(projectsProvider.notifier).updateSecondaryCounter(
+          project,
+          counter.id,
+          label: newLabel,
+          targetValue: effectiveType == SecondaryCounterType.goal ? newTarget : null,
+          resetAt: effectiveType == SecondaryCounterType.repetition ? newTarget : null,
+          type: newType,
+        );
+        // 강제 리빌드
+        ref.invalidate(activeProjectCounterProvider);
       },
       onRemove: () {
-        ref.read(projectsProvider.notifier).removeSecondaryCounter(project, counterId);
+        ref.read(projectsProvider.notifier).removeSecondaryCounter(project, counter.id);
         // ToMany 변경 감지를 위해 강제 리빌드
         ref.invalidate(activeProjectCounterProvider);
       },

@@ -169,6 +169,7 @@ class ProjectsNotifier extends StateNotifier<List<Project>> {
     String? label,
     int? targetValue,
     int? resetAt,
+    SecondaryCounterType? type,
   }) {
     _repository.updateSecondaryCounter(
       project,
@@ -176,6 +177,7 @@ class ProjectsNotifier extends StateNotifier<List<Project>> {
       label: label,
       targetValue: targetValue,
       resetAt: resetAt,
+      type: type,
     );
     refresh();
   }

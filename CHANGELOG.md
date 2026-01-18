@@ -5,6 +5,9 @@
 ## [Unreleased]
 
 ### Added
+- 보조 카운터 추가 버튼 (`AddCounterButton`) - 메인 화면 그리드에 "+" 버튼 통합
+- 인라인 카운터 편집기 (`InlineCounterEditor`) - 롱프레스 시 화면 중앙에 편집 카드 표시
+- 메모 버튼 액션바에 추가 - 빠른 메모 접근
 - 보조 카운터 메인 연동 기능 (`isLinked` 필드) - 메인 카운터 증감 시 연동된 보조 카운터도 함께 변경
 - 보조 카운터 타입 아이콘 - Goal(깃발), Repetition(회전 화살표)
 - 보조 카운터 연동 토글 UI - 우상단 링크 아이콘 탭으로 연동 on/off
@@ -38,6 +41,9 @@
 - 메모 목록 화면 (`MemoListScreen`) 및 `/memos` 라우트
 
 ### Changed
+- 더보기 메뉴 PopupMenuButton으로 변경 (바텀시트 → 팝업 메뉴)
+- 보조 카운터 그리드 레이아웃 개선 (IntrinsicHeight로 높이 매칭)
+- 보조 카운터 편집 방식 변경: 바텀시트 → 인라인 확대 편집
 - 보조 카운터 진행률 표시 위치 변경: 우상단 텍스트 → 숫자 오른쪽 하단 (`2 /4` 형태)
 - 햅틱 피드백 로직 리팩토링: `_triggerHaptic`, `_triggerDoubleHaptic` 헬퍼 메서드
 - 코드 중복 142줄 제거 (LargeAreaButton, 다이얼로그, 햅틱 피드백)

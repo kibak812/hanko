@@ -247,15 +247,38 @@ class ProjectRepository {
     String? label,
     int? targetValue,
     int? resetAt,
+    SecondaryCounterType? type,
   }) {
     final counter = project.getSecondaryCounter(counterId);
     if (counter == null) return;
     if (label != null) counter.label = label;
-    if (targetValue != null) counter.targetValue = targetValue;
-    if (resetAt != null) {
-      counter.resetAt = resetAt;
-      counter.autoResetEnabled = true;
+
+    // 타입 변경 처리
+    if (type != null && counter.secondaryType != type) {
+      counter.secondaryType = type;
+      // 타입 변경 시 해당 타입에 맞게 필드 정리
+      if (type == SecondaryCounterType.goal) {
+        // goal 타입: resetAt 비우고 targetValue 설정
+        counter.resetAt = null;
+        counter.autoResetEnabled = false;
+        if (targetValue != null) counter.targetValue = targetValue;
+      } else {
+        // repetition 타입: targetValue 비우고 resetAt 설정
+        counter.targetValue = null;
+        if (resetAt != null) {
+          counter.resetAt = resetAt;
+          counter.autoResetEnabled = true;
+        }
+      }
+    } else {
+      // 타입 변경 없이 값만 업데이트
+      if (targetValue != null) counter.targetValue = targetValue;
+      if (resetAt != null) {
+        counter.resetAt = resetAt;
+        counter.autoResetEnabled = true;
+      }
     }
+
     _db.saveCounter(counter);
   }
 

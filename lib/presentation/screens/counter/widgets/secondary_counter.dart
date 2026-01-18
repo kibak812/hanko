@@ -5,7 +5,7 @@ import '../../../widgets/large_area_button.dart';
 
 /// 보조 카운터 (동적)
 /// - 인라인 +/- 버튼으로 조작
-/// - 롱프레스: 설정 바텀시트 열기
+/// - 롱프레스: 인라인 편집기 열기
 class SecondaryCounter extends StatelessWidget {
   final int id;
   final int value;
@@ -16,7 +16,8 @@ class SecondaryCounter extends StatelessWidget {
   final bool isLinked;
   final VoidCallback onIncrement;
   final VoidCallback onDecrement;
-  final VoidCallback onLongPress;
+  /// 롱프레스 콜백 - 위젯의 Rect 정보를 함께 전달
+  final void Function(Rect sourceRect) onLongPress;
   final VoidCallback? onLinkToggle;
 
   const SecondaryCounter({
@@ -57,6 +58,19 @@ class SecondaryCounter extends StatelessWidget {
     return type == SecondaryCounterType.goal ? Icons.flag : Icons.refresh;
   }
 
+  /// 위젯의 Rect 가져오기
+  Rect _getWidgetRect(BuildContext context) {
+    final renderBox = context.findRenderObject() as RenderBox?;
+    if (renderBox == null) return Rect.zero;
+    final position = renderBox.localToGlobal(Offset.zero);
+    return Rect.fromLTWH(
+      position.dx,
+      position.dy,
+      renderBox.size.width,
+      renderBox.size.height,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -65,7 +79,7 @@ class SecondaryCounter extends StatelessWidget {
         isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
 
     return GestureDetector(
-      onLongPress: onLongPress,
+      onLongPress: () => onLongPress(_getWidgetRect(context)),
       child: Container(
         decoration: BoxDecoration(
           color: isDark ? AppColors.surfaceDark : Colors.white,

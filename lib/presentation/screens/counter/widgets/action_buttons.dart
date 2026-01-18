@@ -1,19 +1,29 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_strings.dart';
+
+/// 더보기 메뉴 항목
+enum MoreMenuAction {
+  edit,
+  projects,
+  settings,
+}
 
 /// 보조 액션 버튼 행
-/// 되돌리기, 음성, 더보기
+/// 되돌리기, 메모, 음성, 더보기
 class ActionButtons extends StatelessWidget {
   final VoidCallback? onUndo;
+  final VoidCallback? onMemo;
   final VoidCallback onVoice;
-  final VoidCallback onMore;
+  final void Function(MoreMenuAction action) onMenuAction;
   final bool isListening;
 
   const ActionButtons({
     super.key,
     this.onUndo,
+    this.onMemo,
     required this.onVoice,
-    required this.onMore,
+    required this.onMenuAction,
     this.isListening = false,
   });
 
@@ -31,16 +41,22 @@ class ActionButtons extends StatelessWidget {
           enabled: onUndo != null,
         ),
         const SizedBox(width: 12),
+        _ActionButton(
+          icon: Icons.note_alt_outlined,
+          onPressed: onMemo,
+          isDark: isDark,
+          enabled: onMemo != null,
+        ),
+        const SizedBox(width: 12),
         _VoiceButton(
           onPressed: onVoice,
           isListening: isListening,
           isDark: isDark,
         ),
         const SizedBox(width: 12),
-        _ActionButton(
-          icon: Icons.more_horiz,
-          onPressed: onMore,
+        _MoreButton(
           isDark: isDark,
+          onAction: onMenuAction,
         ),
       ],
     );
@@ -120,6 +136,79 @@ class _VoiceButton extends StatelessWidget {
           color: isListening
               ? Colors.white
               : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
+          size: 24,
+        ),
+      ),
+    );
+  }
+}
+
+class _MoreButton extends StatelessWidget {
+  final bool isDark;
+  final void Function(MoreMenuAction action) onAction;
+
+  const _MoreButton({
+    required this.isDark,
+    required this.onAction,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final textColor =
+        isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+
+    return PopupMenuButton<MoreMenuAction>(
+      onSelected: onAction,
+      offset: const Offset(0, -160),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      color: isDark ? AppColors.surfaceDark : Colors.white,
+      itemBuilder: (context) => [
+        PopupMenuItem<MoreMenuAction>(
+          value: MoreMenuAction.edit,
+          child: Row(
+            children: [
+              Icon(Icons.edit, size: 20, color: textColor),
+              const SizedBox(width: 12),
+              Text(AppStrings.edit),
+            ],
+          ),
+        ),
+        PopupMenuItem<MoreMenuAction>(
+          value: MoreMenuAction.projects,
+          child: Row(
+            children: [
+              Icon(Icons.list, size: 20, color: textColor),
+              const SizedBox(width: 12),
+              Text(AppStrings.myProjects),
+            ],
+          ),
+        ),
+        PopupMenuItem<MoreMenuAction>(
+          value: MoreMenuAction.settings,
+          child: Row(
+            children: [
+              Icon(Icons.settings, size: 20, color: textColor),
+              const SizedBox(width: 12),
+              Text(AppStrings.settings),
+            ],
+          ),
+        ),
+      ],
+      child: Container(
+        width: 56,
+        height: 56,
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.surfaceDark : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isDark ? AppColors.borderDark : AppColors.border,
+          ),
+        ),
+        child: Icon(
+          Icons.more_horiz,
+          color: textColor,
           size: 24,
         ),
       ),
