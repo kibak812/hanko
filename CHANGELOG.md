@@ -5,6 +5,9 @@
 ## [Unreleased]
 
 ### Added
+- `LargeAreaButton` 공통 위젯 - 카운터 하단 +/- 버튼 통합
+- `showRemoveCounterDialog` 공통 함수 - 카운터 제거 확인 다이얼로그
+- `AppColorsExtension` - 다크 모드 색상 접근용 BuildContext extension
 - **동적 보조 카운터 시스템** - 반복(주기) / 횟수(목표) 두 가지 유형
 - 보조 카운터 추가 바텀시트 (`AddSecondaryCounterSheet`)
 - 보조 카운터 마이그레이션 유틸 (`migration_utils.dart`) - 기존 코/패턴 카운터 자동 변환
@@ -32,6 +35,9 @@
 - 메모 목록 화면 (`MemoListScreen`) 및 `/memos` 라우트
 
 ### Changed
+- 햅틱 피드백 로직 리팩토링: `_triggerHaptic`, `_triggerDoubleHaptic` 헬퍼 메서드
+- 코드 중복 142줄 제거 (LargeAreaButton, 다이얼로그, 햅틱 피드백)
+- VoidCallback 재정의 제거 → Flutter 내장 타입 사용
 - **메인 카운터 UI 리디자인**: 상단 70% 숫자영역, 하단 30% -/+ 버튼 분리
 - **보조 카운터 UI 리디자인**: 상단 라벨 + 진행률 바, 하단 -/+ 버튼
 - 카운터 히스토리 JSON 파서를 `dart:convert` 표준 라이브러리로 교체 (되돌리기 버그 수정)

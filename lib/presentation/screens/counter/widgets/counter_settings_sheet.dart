@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_icons.dart';
 import '../../../../data/models/counter.dart';
+import '../../../widgets/dialogs.dart';
 
 /// 카운터 설정 바텀시트
 class CounterSettingsSheet extends StatefulWidget {
@@ -80,31 +81,12 @@ class _CounterSettingsSheetState extends State<CounterSettingsSheet> {
     Navigator.pop(context);
   }
 
-  void _onRemove() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('카운터 제거'),
-        content: const Text('이 카운터를 제거할까요?\n현재 값은 사라집니다.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('취소'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context); // 다이얼로그 닫기
-              Navigator.pop(context); // 바텀시트 닫기
-              widget.onRemove?.call();
-            },
-            style: TextButton.styleFrom(
-              foregroundColor: AppColors.error,
-            ),
-            child: const Text('제거'),
-          ),
-        ],
-      ),
-    );
+  Future<void> _onRemove() async {
+    final confirmed = await showRemoveCounterDialog(context);
+    if (confirmed && mounted) {
+      Navigator.pop(context); // 바텀시트 닫기
+      widget.onRemove?.call();
+    }
   }
 
   @override
@@ -570,31 +552,12 @@ class _SecondaryCounterSettingsSheetState
     Navigator.pop(context);
   }
 
-  void _onRemove() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('카운터 제거'),
-        content: const Text('이 카운터를 제거할까요?\n현재 값은 사라집니다.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('취소'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.pop(context);
-              widget.onRemove?.call();
-            },
-            style: TextButton.styleFrom(
-              foregroundColor: AppColors.error,
-            ),
-            child: const Text('제거'),
-          ),
-        ],
-      ),
-    );
+  Future<void> _onRemove() async {
+    final confirmed = await showRemoveCounterDialog(context);
+    if (confirmed && mounted) {
+      Navigator.pop(context); // 바텀시트 닫기
+      widget.onRemove?.call();
+    }
   }
 
   @override

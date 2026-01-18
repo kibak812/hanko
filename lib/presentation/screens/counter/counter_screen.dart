@@ -67,7 +67,7 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
     super.dispose();
   }
 
-  /// 플랫폼별 햅틱 피드백
+  /// 플랫폼별 햅틱 피드백 (내부용)
   Future<void> _hapticFeedback({
     int duration = 20,
     int amplitude = 60,
@@ -94,34 +94,36 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
     }
   }
 
-  void _onIncrement() {
-    final settings = ref.read(appSettingsProvider);
-
-    // 햅틱 피드백 (medium)
-    if (settings.hapticFeedback) {
-      _hapticFeedback(duration: 25, amplitude: 80);
+  /// 설정 확인 후 햅틱 피드백 실행
+  void _triggerHaptic({int duration = 20, int amplitude = 60}) {
+    if (ref.read(appSettingsProvider).hapticFeedback) {
+      _hapticFeedback(duration: duration, amplitude: amplitude);
     }
+  }
 
-    // 플래시 애니메이션
+  /// 더블탭 패턴 햅틱 (리셋 알림용)
+  void _triggerDoubleHaptic() {
+    if (ref.read(appSettingsProvider).hapticFeedback) {
+      _hapticFeedback(duration: 15, amplitude: 60);
+      Future.delayed(const Duration(milliseconds: 100), () {
+        _hapticFeedback(duration: 15, amplitude: 60);
+      });
+    }
+  }
+
+  void _onIncrement() {
+    _triggerHaptic(duration: 25, amplitude: 80);
     _flashController.forward().then((_) => _flashController.reverse());
-
-    // 카운터 증가
     ref.read(activeProjectCounterProvider.notifier).incrementRow();
   }
 
   void _onDecrement() {
-    final settings = ref.read(appSettingsProvider);
-    if (settings.hapticFeedback) {
-      _hapticFeedback(duration: 15, amplitude: 50);
-    }
+    _triggerHaptic(duration: 15, amplitude: 50);
     ref.read(activeProjectCounterProvider.notifier).decrementRow();
   }
 
   void _onUndo() {
-    final settings = ref.read(appSettingsProvider);
-    if (settings.hapticFeedback) {
-      _hapticFeedback(duration: 10, amplitude: 40);
-    }
+    _triggerHaptic(duration: 10, amplitude: 40);
     ref.read(activeProjectCounterProvider.notifier).undo();
   }
 
@@ -274,12 +276,8 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
                                                 ? counter.resetAt
                                                 : null,
                                             onIncrement: () {
-                                              final settings =
-                                                  ref.read(appSettingsProvider);
-                                              if (settings.hapticFeedback) {
-                                                _hapticFeedback(
-                                                    duration: 15, amplitude: 50);
-                                              }
+                                              _triggerHaptic(
+                                                  duration: 15, amplitude: 50);
                                               ref
                                                   .read(activeProjectCounterProvider
                                                       .notifier)
@@ -287,12 +285,8 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
                                                       counter.id);
                                             },
                                             onDecrement: () {
-                                              final settings =
-                                                  ref.read(appSettingsProvider);
-                                              if (settings.hapticFeedback) {
-                                                _hapticFeedback(
-                                                    duration: 15, amplitude: 50);
-                                              }
+                                              _triggerHaptic(
+                                                  duration: 15, amplitude: 50);
                                               ref
                                                   .read(activeProjectCounterProvider
                                                       .notifier)
@@ -317,10 +311,7 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
                     ActionButtons(
                       onUndo: counterState.canUndo ? _onUndo : null,
                       onVoice: () async {
-                        final settings = ref.read(appSettingsProvider);
-                        if (settings.hapticFeedback) {
-                          _hapticFeedback(duration: 10, amplitude: 40);
-                        }
+                        _triggerHaptic(duration: 10, amplitude: 40);
 
                         // 토글: 이미 듣고 있으면 중지
                         final currentState = ref.read(voiceStateProvider);
@@ -476,10 +467,7 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
 
   /// 코 카운터 목표 달성 다이얼로그
   void _showGoalCompletedDialog(int target) {
-    final settings = ref.read(appSettingsProvider);
-    if (settings.hapticFeedback) {
-      _hapticFeedback(duration: 40, amplitude: 100);
-    }
+    _triggerHaptic(duration: 40, amplitude: 100);
 
     showDialog(
       context: context,
@@ -506,15 +494,7 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
 
   /// 패턴 자동 리셋 토스트
   void _showAutoResetToast(int resetAt) {
-    final settings = ref.read(appSettingsProvider);
-    if (settings.hapticFeedback) {
-      // 더블탭 패턴 햅틱
-      _hapticFeedback(duration: 15, amplitude: 60);
-      Future.delayed(const Duration(milliseconds: 100), () {
-        _hapticFeedback(duration: 15, amplitude: 60);
-      });
-    }
-
+    _triggerDoubleHaptic();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -533,10 +513,7 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
 
   /// 동적 보조 카운터 목표 달성 다이얼로그
   void _showSecondaryGoalCompletedDialog(String label, int target) {
-    final settings = ref.read(appSettingsProvider);
-    if (settings.hapticFeedback) {
-      _hapticFeedback(duration: 40, amplitude: 100);
-    }
+    _triggerHaptic(duration: 40, amplitude: 100);
 
     showDialog(
       context: context,
@@ -556,14 +533,7 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
 
   /// 동적 보조 카운터 자동 리셋 토스트
   void _showSecondaryAutoResetToast(String label, int resetAt) {
-    final settings = ref.read(appSettingsProvider);
-    if (settings.hapticFeedback) {
-      _hapticFeedback(duration: 15, amplitude: 60);
-      Future.delayed(const Duration(milliseconds: 100), () {
-        _hapticFeedback(duration: 15, amplitude: 60);
-      });
-    }
-
+    _triggerDoubleHaptic();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(

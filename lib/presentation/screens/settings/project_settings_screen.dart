@@ -7,6 +7,7 @@ import '../../../core/constants/app_strings.dart';
 import '../../../data/models/counter.dart';
 import '../../providers/app_providers.dart';
 import '../../providers/project_provider.dart';
+import '../../widgets/dialogs.dart';
 import '../../widgets/expandable_counter_option.dart';
 import 'widgets/add_secondary_counter_sheet.dart';
 
@@ -446,30 +447,11 @@ class _SecondaryCounterListItem extends StatelessWidget {
               size: 20,
               color: AppColors.error,
             ),
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('카운터 제거'),
-                  content: const Text('이 카운터를 제거할까요?\n현재 값은 사라집니다.'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('취소'),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        onRemove();
-                        Navigator.pop(context);
-                      },
-                      style: TextButton.styleFrom(
-                        foregroundColor: AppColors.error,
-                      ),
-                      child: const Text('제거'),
-                    ),
-                  ],
-                ),
-              );
+            onPressed: () async {
+              final confirmed = await showRemoveCounterDialog(context);
+              if (confirmed) {
+                onRemove();
+              }
             },
           ),
         ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../data/models/counter.dart';
+import '../../../widgets/large_area_button.dart';
 
 /// 보조 카운터 (동적)
 /// - 인라인 +/- 버튼으로 조작
@@ -168,7 +169,7 @@ class SecondaryCounter extends StatelessWidget {
                 children: [
                   // - 버튼 (왼쪽 절반)
                   Expanded(
-                    child: _LargeAreaButton(
+                    child: LargeAreaButton(
                       icon: Icons.remove,
                       onPressed: value > 0 ? onDecrement : null,
                       color: textSecondary,
@@ -187,7 +188,7 @@ class SecondaryCounter extends StatelessWidget {
 
                   // + 버튼 (오른쪽 절반)
                   Expanded(
-                    child: _LargeAreaButton(
+                    child: LargeAreaButton(
                       icon: Icons.add,
                       onPressed: onIncrement,
                       color: textSecondary,
@@ -200,43 +201,6 @@ class SecondaryCounter extends StatelessWidget {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-/// 보조 카운터용 넓은 터치 영역 버튼
-class _LargeAreaButton extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback? onPressed;
-  final Color color;
-  final BorderRadius borderRadius;
-
-  const _LargeAreaButton({
-    required this.icon,
-    required this.onPressed,
-    required this.color,
-    required this.borderRadius,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final enabled = onPressed != null;
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: borderRadius,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          alignment: Alignment.center,
-          child: Icon(
-            icon,
-            size: 20,
-            color: enabled ? color.withAlpha(180) : color.withAlpha(77),
-          ),
         ),
       ),
     );

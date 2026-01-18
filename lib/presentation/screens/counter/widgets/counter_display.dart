@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../widgets/large_area_button.dart';
 
 /// 메인 카운터 숫자 표시 위젯
 /// 96px 거대한 숫자로 3m 거리에서도 읽기 가능
@@ -112,10 +113,10 @@ class CounterDisplay extends StatelessWidget {
               children: [
                 // - 버튼 (왼쪽 절반)
                 Expanded(
-                  child: _LargeAreaButton(
+                  child: LargeAreaButton.large(
                     icon: Icons.remove,
                     onPressed: value > 0 ? onDecrement : null,
-                    isDark: isDark,
+                    color: textSecondary,
                     borderRadius: const BorderRadius.only(
                       bottomLeft: Radius.circular(32),
                     ),
@@ -131,10 +132,10 @@ class CounterDisplay extends StatelessWidget {
 
                 // + 버튼 (오른쪽 절반)
                 Expanded(
-                  child: _LargeAreaButton(
+                  child: LargeAreaButton.large(
                     icon: Icons.add,
                     onPressed: onIncrement,
-                    isDark: isDark,
+                    color: textSecondary,
                     borderRadius: const BorderRadius.only(
                       bottomRight: Radius.circular(32),
                     ),
@@ -144,47 +145,6 @@ class CounterDisplay extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-/// 메인 카운터 하단 영역 버튼 (넓은 터치 영역)
-class _LargeAreaButton extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback? onPressed;
-  final bool isDark;
-  final BorderRadius borderRadius;
-
-  const _LargeAreaButton({
-    required this.icon,
-    required this.onPressed,
-    required this.isDark,
-    required this.borderRadius,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final enabled = onPressed != null;
-    final textSecondary =
-        isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: borderRadius,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 20),
-          alignment: Alignment.center,
-          child: Icon(
-            icon,
-            size: 32,
-            color: enabled
-                ? textSecondary.withAlpha(180)
-                : textSecondary.withAlpha(77),
-          ),
-        ),
       ),
     );
   }

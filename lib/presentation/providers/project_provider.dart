@@ -1,3 +1,4 @@
+import 'dart:ui' show VoidCallback;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/counter.dart';
 import '../../data/models/models.dart';
@@ -548,5 +549,3 @@ class ActiveProjectCounterNotifier extends StateNotifier<ProjectCounterState> {
     _updateState();
   }
 }
-
-typedef VoidCallback = void Function();

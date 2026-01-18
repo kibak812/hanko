@@ -8,6 +8,8 @@
 | 파일 | 역할 |
 |------|------|
 | `expandable_counter_option.dart` | 확장형 토글 카드 (프로젝트 설정용) |
+| `large_area_button.dart` | 카운터 하단 +/- 버튼 (넓은 터치 영역) |
+| `dialogs.dart` | 공통 다이얼로그 유틸리티 함수 |
 
 ## expandable_counter_option.dart
 
@@ -24,6 +26,40 @@ ExpandableCounterOption(
   selectedValue: 20,
   onValueChanged: (value) {},
 )
+```
+
+## large_area_button.dart
+
+넓은 터치 영역을 가진 아이콘 버튼. 메인/보조 카운터 하단의 +/- 버튼에 사용.
+
+```dart
+// 기본 (보조 카운터용)
+LargeAreaButton(
+  icon: Icons.add,
+  onPressed: () {},
+  color: textSecondary,
+  borderRadius: BorderRadius.circular(15),
+)
+
+// 큰 버튼 (메인 카운터용)
+LargeAreaButton.large(
+  icon: Icons.remove,
+  onPressed: () {},
+  color: textSecondary,
+  borderRadius: BorderRadius.only(bottomLeft: Radius.circular(32)),
+)
+```
+
+## dialogs.dart
+
+공통 다이얼로그 유틸리티 함수.
+
+```dart
+// 카운터 제거 확인 다이얼로그
+final confirmed = await showRemoveCounterDialog(context);
+if (confirmed) {
+  // 제거 로직
+}
 ```
 
 ## Subdirectories

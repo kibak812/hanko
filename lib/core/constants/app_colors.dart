@@ -85,3 +85,23 @@ class AppColors {
   /// 투명도가 적용된 warning 색상 (메모 배경용)
   static Color warningBackground = warning.withOpacity(0.2);
 }
+
+/// 다크 모드 색상을 쉽게 가져오기 위한 BuildContext extension
+extension AppColorsExtension on BuildContext {
+  bool get _isDark => Theme.of(this).brightness == Brightness.dark;
+
+  Color get textPrimary =>
+      _isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+
+  Color get textSecondary =>
+      _isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+
+  Color get surface => _isDark ? AppColors.surfaceDark : AppColors.surface;
+
+  Color get background =>
+      _isDark ? AppColors.backgroundDark : AppColors.background;
+
+  Color get border => _isDark ? AppColors.borderDark : AppColors.border;
+
+  Color get primary => _isDark ? AppColors.primaryDark : AppColors.primary;
+}
