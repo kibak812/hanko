@@ -103,4 +103,22 @@ class AppStrings {
   static const String error = '오류';
   static const String errorOccurred = '오류가 발생했어요';
   static const String tryAgain = '다시 시도해주세요';
+
+  // ============ 보조 카운터 설정 ============
+  static const String stitchCounterSettings = '코 카운터 설정';
+  static const String patternCounterSettings = '패턴 카운터 설정';
+  static const String targetStitch = '목표 코 수';
+  static const String autoResetAt = '자동 리셋';
+  static const String goalReached = '완료!';
+  static const String resetAndContinue = '리셋하고 계속';
+  static const String counterSettings = '카운터 설정';
+  static const String removeCounter = '카운터 제거';
+  static const String removeCounterConfirm = '이 카운터를 제거할까요? 현재 값은 사라집니다.';
+  static const String customValue = '직접 입력';
+  static const String stitchGoalTip = '목표에 도달하면 알려드려요';
+  static const String patternResetTip = '설정한 횟수에 도달하면 자동으로 0으로 리셋';
+  static const String patternAutoResetToast = '패턴 완료 → 리셋됨';
+  static const String changeTarget = '목표 변경';
+  static const String current = '현재';
+  static const String none = '없음';
 }

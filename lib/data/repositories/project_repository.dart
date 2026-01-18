@@ -26,6 +26,7 @@ class ProjectRepository {
     int? targetRow,
     bool includeStitchCounter = false,
     bool includePatternCounter = false,
+    int? stitchTarget,
     int? patternResetAt,
   }) {
     final project = Project(name: name);
@@ -37,7 +38,7 @@ class ProjectRepository {
 
     // 보조 코 카운터 (선택적)
     if (includeStitchCounter) {
-      final stitchCounter = Counter.stitch();
+      final stitchCounter = Counter.stitch(targetValue: stitchTarget);
       _db.counterBox.put(stitchCounter);
       project.stitchCounter.target = stitchCounter;
     }
@@ -117,6 +118,64 @@ class ProjectRepository {
   void resetPattern(Project project) {
     project.resetPattern();
     _saveProjectAndCounters(project);
+  }
+
+  // ============ 보조 카운터 관리 ============
+
+  /// 코 카운터 추가
+  void addStitchCounter(Project project, {int? targetValue}) {
+    if (project.stitchCounter.target != null) return; // 이미 있음
+    final stitchCounter = Counter.stitch(targetValue: targetValue);
+    _db.counterBox.put(stitchCounter);
+    project.stitchCounter.target = stitchCounter;
+    _db.saveProject(project);
+  }
+
+  /// 패턴 카운터 추가
+  void addPatternCounter(Project project, {int? resetAt}) {
+    if (project.patternCounter.target != null) return; // 이미 있음
+    final patternCounter = Counter.pattern(
+      resetAt: resetAt,
+      autoReset: resetAt != null,
+    );
+    _db.counterBox.put(patternCounter);
+    project.patternCounter.target = patternCounter;
+    _db.saveProject(project);
+  }
+
+  /// 코 카운터 제거
+  void removeStitchCounter(Project project) {
+    final counter = project.stitchCounter.target;
+    if (counter == null) return;
+    project.stitchCounter.target = null;
+    _db.counterBox.remove(counter.id);
+    _db.saveProject(project);
+  }
+
+  /// 패턴 카운터 제거
+  void removePatternCounter(Project project) {
+    final counter = project.patternCounter.target;
+    if (counter == null) return;
+    project.patternCounter.target = null;
+    _db.counterBox.remove(counter.id);
+    _db.saveProject(project);
+  }
+
+  /// 코 카운터 설정 업데이트
+  void updateStitchCounter(Project project, {int? targetValue}) {
+    final counter = project.stitchCounter.target;
+    if (counter == null) return;
+    counter.targetValue = targetValue;
+    _db.saveCounter(counter);
+  }
+
+  /// 패턴 카운터 설정 업데이트
+  void updatePatternCounter(Project project, {int? resetAt}) {
+    final counter = project.patternCounter.target;
+    if (counter == null) return;
+    counter.resetAt = resetAt;
+    counter.autoResetEnabled = resetAt != null;
+    _db.saveCounter(counter);
   }
 
   void _saveProjectAndCounters(Project project) {

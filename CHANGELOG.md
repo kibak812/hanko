@@ -5,6 +5,13 @@
 ## [Unreleased]
 
 ### Added
+- 보조 카운터 기능 완성: 코 카운터 목표값, 패턴 자동 리셋
+- 카운터 설정 바텀시트 (`CounterSettingsSheet`) - 롱프레스로 열기
+- 확장형 카운터 옵션 위젯 (`ExpandableCounterOption`)
+- SVG 아이콘 시스템 (`AppIcons`) - 코/패턴/목표 아이콘
+- 목표 달성 다이얼로그 및 자동 리셋 토스트 알림
+- 프로젝트 편집 시 보조 카운터 추가/제거 기능
+- `flutter_svg` 의존성 추가
 - 설정 화면 (`AppSettingsScreen`) - 햅틱/음성 피드백, 화면 유지, 테마 선택
 - `/settings` 라우트 추가
 - `package_info_plus` 의존성 추가 (버전 정보 표시)
@@ -15,6 +22,9 @@
 - 메모 목록 화면 (`MemoListScreen`) 및 `/memos` 라우트
 
 ### Changed
+- 보조 카운터 터치 반응 즉시 반응으로 개선 (더블탭 감지 대기 제거)
+- 보조 카운터 제스처: 탭(+1), 롱프레스(설정)
+- 보조 카운터 UI: 진행률 바, 목표값 표시 추가
 - 터치 영역에서 ProgressHeader 제외 (실수로 카운터 증가 방지)
 - 기본 테마를 라이트 모드로 변경 (`system` → `light`)
 - Secondary 색상: 민트(#4ECDC4) → 테라코타(#E07A5F)

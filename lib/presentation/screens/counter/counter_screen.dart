@@ -12,9 +12,12 @@ import '../../../router/app_router.dart';
 import '../../providers/app_providers.dart';
 import '../../providers/project_provider.dart';
 import '../../providers/voice_provider.dart';
+import '../../../core/constants/app_icons.dart';
+import '../../../data/models/counter.dart';
 import 'widgets/counter_display.dart';
 import 'widgets/memo_card.dart';
 import 'widgets/secondary_counter.dart';
+import 'widgets/counter_settings_sheet.dart';
 import 'widgets/action_buttons.dart';
 import 'widgets/progress_header.dart';
 
@@ -139,6 +142,20 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
       }
     });
 
+    // 코 카운터 목표 달성 감지
+    ref.listen<ProjectCounterState>(activeProjectCounterProvider, (previous, next) {
+      // 코 카운터 목표 달성
+      if (next.stitchGoalReached && !(previous?.stitchGoalReached ?? false)) {
+        _showGoalCompletedDialog(next.stitchTarget!);
+        ref.read(activeProjectCounterProvider.notifier).clearEventFlags();
+      }
+      // 패턴 자동 리셋
+      if (next.patternWasReset && !(previous?.patternWasReset ?? false)) {
+        _showAutoResetToast(next.patternResetAt!);
+        ref.read(activeProjectCounterProvider.notifier).clearEventFlags();
+      }
+    });
+
     // 프로젝트가 없으면 생성 유도
     if (project == null) {
       return _buildNoProjectScreen(context);
@@ -211,6 +228,7 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
                             SecondaryCounter(
                               value: counterState.currentStitch,
                               label: AppStrings.stitch,
+                              targetValue: counterState.stitchTarget,
                               onIncrement: () {
                                 final settings = ref.read(appSettingsProvider);
                                 if (settings.hapticFeedback) {
@@ -220,19 +238,16 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
                                     .read(activeProjectCounterProvider.notifier)
                                     .incrementStitch();
                               },
-                              onReset: () {
-                                ref
-                                    .read(activeProjectCounterProvider.notifier)
-                                    .resetStitch();
-                              },
+                              onLongPress: () => _showStitchSettings(project),
                             ),
                           if (project.stitchCounter.target != null &&
                               project.patternCounter.target != null)
-                            const SizedBox(width: 24),
+                            const SizedBox(width: 16),
                           if (project.patternCounter.target != null)
                             SecondaryCounter(
                               value: counterState.currentPattern,
                               label: AppStrings.pattern,
+                              resetAt: counterState.patternResetAt,
                               onIncrement: () {
                                 final settings = ref.read(appSettingsProvider);
                                 if (settings.hapticFeedback) {
@@ -242,11 +257,7 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
                                     .read(activeProjectCounterProvider.notifier)
                                     .incrementPattern();
                               },
-                              onReset: () {
-                                ref
-                                    .read(activeProjectCounterProvider.notifier)
-                                    .resetPattern();
-                              },
+                              onLongPress: () => _showPatternSettings(project),
                             ),
                         ],
                       ),
@@ -416,4 +427,108 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
     );
   }
 
+  /// 코 카운터 목표 달성 다이얼로그
+  void _showGoalCompletedDialog(int target) {
+    final settings = ref.read(appSettingsProvider);
+    if (settings.hapticFeedback) {
+      _hapticFeedback(duration: 40, amplitude: 100);
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        icon: AppIcons.goalIcon(size: 48, color: AppColors.success),
+        title: Text('$target코 완료!'),
+        content: const Text('목표에 도달했어요. 계속하시겠어요?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('확인'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              ref.read(activeProjectCounterProvider.notifier).resetStitch();
+            },
+            child: const Text('리셋하고 계속'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 패턴 자동 리셋 토스트
+  void _showAutoResetToast(int resetAt) {
+    final settings = ref.read(appSettingsProvider);
+    if (settings.hapticFeedback) {
+      // 더블탭 패턴 햅틱
+      _hapticFeedback(duration: 15, amplitude: 60);
+      Future.delayed(const Duration(milliseconds: 100), () {
+        _hapticFeedback(duration: 15, amplitude: 60);
+      });
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            AppIcons.patternIcon(size: 20, color: Colors.white),
+            const SizedBox(width: 8),
+            Text('패턴 $resetAt회 완료 → 리셋됨'),
+          ],
+        ),
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: AppColors.primary,
+      ),
+    );
+  }
+
+  /// 코 카운터 설정 바텀시트
+  void _showStitchSettings(dynamic project) {
+    final counterState = ref.read(activeProjectCounterProvider);
+
+    showCounterSettingsSheet(
+      context: context,
+      type: CounterType.stitch,
+      currentValue: counterState.currentStitch,
+      targetValue: counterState.stitchTarget,
+      onReset: () {
+        ref.read(activeProjectCounterProvider.notifier).resetStitch();
+      },
+      onTargetChanged: (value) {
+        ref.read(projectsProvider.notifier).updateStitchCounter(
+          project,
+          targetValue: value,
+        );
+      },
+      onRemove: () {
+        ref.read(projectsProvider.notifier).removeStitchCounter(project);
+      },
+    );
+  }
+
+  /// 패턴 카운터 설정 바텀시트
+  void _showPatternSettings(dynamic project) {
+    final counterState = ref.read(activeProjectCounterProvider);
+
+    showCounterSettingsSheet(
+      context: context,
+      type: CounterType.pattern,
+      currentValue: counterState.currentPattern,
+      resetAt: counterState.patternResetAt,
+      onReset: () {
+        ref.read(activeProjectCounterProvider.notifier).resetPattern();
+      },
+      onTargetChanged: (value) {
+        ref.read(projectsProvider.notifier).updatePatternCounter(
+          project,
+          resetAt: value,
+        );
+      },
+      onRemove: () {
+        ref.read(projectsProvider.notifier).removePatternCounter(project);
+      },
+    );
+  }
 }

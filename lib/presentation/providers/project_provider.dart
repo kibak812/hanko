@@ -24,15 +24,55 @@ class ProjectsNotifier extends StateNotifier<List<Project>> {
     int? targetRow,
     bool includeStitchCounter = false,
     bool includePatternCounter = false,
+    int? stitchTarget,
+    int? patternResetAt,
   }) {
     final project = _repository.createProject(
       name: name,
       targetRow: targetRow,
       includeStitchCounter: includeStitchCounter,
       includePatternCounter: includePatternCounter,
+      stitchTarget: stitchTarget,
+      patternResetAt: patternResetAt,
     );
     refresh();
     return project;
+  }
+
+  /// 코 카운터 추가
+  void addStitchCounter(Project project, {int? targetValue}) {
+    _repository.addStitchCounter(project, targetValue: targetValue);
+    refresh();
+  }
+
+  /// 패턴 카운터 추가
+  void addPatternCounter(Project project, {int? resetAt}) {
+    _repository.addPatternCounter(project, resetAt: resetAt);
+    refresh();
+  }
+
+  /// 코 카운터 제거
+  void removeStitchCounter(Project project) {
+    _repository.removeStitchCounter(project);
+    refresh();
+  }
+
+  /// 패턴 카운터 제거
+  void removePatternCounter(Project project) {
+    _repository.removePatternCounter(project);
+    refresh();
+  }
+
+  /// 코 카운터 설정 업데이트
+  void updateStitchCounter(Project project, {int? targetValue}) {
+    _repository.updateStitchCounter(project, targetValue: targetValue);
+    refresh();
+  }
+
+  /// 패턴 카운터 설정 업데이트
+  void updatePatternCounter(Project project, {int? resetAt}) {
+    _repository.updatePatternCounter(project, resetAt: resetAt);
+    refresh();
   }
 
   void deleteProject(int id) {
@@ -110,6 +150,17 @@ class ProjectCounterState {
   final RowMemo? currentMemo;
   final double progress;
 
+  // 보조 카운터 상태
+  final int? stitchTarget;
+  final int? patternResetAt;
+  final double stitchProgress;
+  final bool hasStitchCounter;
+  final bool hasPatternCounter;
+
+  // 이벤트 플래그 (피드백용)
+  final bool stitchGoalReached;
+  final bool patternWasReset;
+
   ProjectCounterState({
     this.currentRow = 0,
     this.targetRow,
@@ -118,6 +169,13 @@ class ProjectCounterState {
     this.canUndo = false,
     this.currentMemo,
     this.progress = 0.0,
+    this.stitchTarget,
+    this.patternResetAt,
+    this.stitchProgress = 0.0,
+    this.hasStitchCounter = false,
+    this.hasPatternCounter = false,
+    this.stitchGoalReached = false,
+    this.patternWasReset = false,
   });
 
   ProjectCounterState copyWith({
@@ -128,6 +186,13 @@ class ProjectCounterState {
     bool? canUndo,
     RowMemo? currentMemo,
     double? progress,
+    int? stitchTarget,
+    int? patternResetAt,
+    double? stitchProgress,
+    bool? hasStitchCounter,
+    bool? hasPatternCounter,
+    bool? stitchGoalReached,
+    bool? patternWasReset,
   }) {
     return ProjectCounterState(
       currentRow: currentRow ?? this.currentRow,
@@ -137,6 +202,13 @@ class ProjectCounterState {
       canUndo: canUndo ?? this.canUndo,
       currentMemo: currentMemo,
       progress: progress ?? this.progress,
+      stitchTarget: stitchTarget ?? this.stitchTarget,
+      patternResetAt: patternResetAt ?? this.patternResetAt,
+      stitchProgress: stitchProgress ?? this.stitchProgress,
+      hasStitchCounter: hasStitchCounter ?? this.hasStitchCounter,
+      hasPatternCounter: hasPatternCounter ?? this.hasPatternCounter,
+      stitchGoalReached: stitchGoalReached ?? this.stitchGoalReached,
+      patternWasReset: patternWasReset ?? this.patternWasReset,
     );
   }
 }
@@ -152,25 +224,55 @@ class ActiveProjectCounterNotifier extends StateNotifier<ProjectCounterState> {
     this._refreshProjects,
   ) : super(_buildState(_project));
 
-  static ProjectCounterState _buildState(Project? project) {
+  static ProjectCounterState _buildState(Project? project, {
+    bool stitchGoalReached = false,
+    bool patternWasReset = false,
+  }) {
     if (project == null) {
       return ProjectCounterState();
     }
 
+    final stitchCounter = project.stitchCounter.target;
+    final patternCounter = project.patternCounter.target;
+
     return ProjectCounterState(
       currentRow: project.currentRow,
       targetRow: project.targetRow,
-      currentStitch: project.stitchCounter.target?.value ?? 0,
-      currentPattern: project.patternCounter.target?.value ?? 0,
+      currentStitch: stitchCounter?.value ?? 0,
+      currentPattern: patternCounter?.value ?? 0,
       canUndo: project.canUndo,
       currentMemo: project.currentMemo,
       progress: project.progress,
+      stitchTarget: stitchCounter?.targetValue,
+      patternResetAt: patternCounter?.resetAt,
+      stitchProgress: stitchCounter?.progress ?? 0.0,
+      hasStitchCounter: stitchCounter != null,
+      hasPatternCounter: patternCounter != null,
+      stitchGoalReached: stitchGoalReached,
+      patternWasReset: patternWasReset,
     );
   }
 
-  void _updateState() {
-    state = _buildState(_project);
+  void _updateState({
+    bool stitchGoalReached = false,
+    bool patternWasReset = false,
+  }) {
+    state = _buildState(
+      _project,
+      stitchGoalReached: stitchGoalReached,
+      patternWasReset: patternWasReset,
+    );
     _refreshProjects();
+  }
+
+  /// 이벤트 플래그 초기화 (피드백 표시 후 호출)
+  void clearEventFlags() {
+    if (state.stitchGoalReached || state.patternWasReset) {
+      state = state.copyWith(
+        stitchGoalReached: false,
+        patternWasReset: false,
+      );
+    }
   }
 
   /// 단 증가
@@ -198,8 +300,19 @@ class ActiveProjectCounterNotifier extends StateNotifier<ProjectCounterState> {
   /// 코 증가
   void incrementStitch() {
     if (_project == null) return;
+    final stitchCounter = _project.stitchCounter.target;
+    final previousValue = stitchCounter?.value ?? 0;
+
     _repository.incrementStitch(_project);
-    _updateState();
+
+    // 목표 달성 체크
+    final newValue = stitchCounter?.value ?? 0;
+    final target = stitchCounter?.targetValue;
+    final goalReached = target != null &&
+        previousValue < target &&
+        newValue >= target;
+
+    _updateState(stitchGoalReached: goalReached);
   }
 
   /// 코 감소
@@ -219,8 +332,16 @@ class ActiveProjectCounterNotifier extends StateNotifier<ProjectCounterState> {
   /// 패턴 증가
   void incrementPattern() {
     if (_project == null) return;
+    final patternCounter = _project.patternCounter.target;
+    final previousValue = patternCounter?.value ?? 0;
+
     _repository.incrementPattern(_project);
-    _updateState();
+
+    // 자동 리셋 발생 체크 (값이 0으로 돌아갔으면 리셋됨)
+    final newValue = patternCounter?.value ?? 0;
+    final wasReset = previousValue > 0 && newValue == 0;
+
+    _updateState(patternWasReset: wasReset);
   }
 
   /// 패턴 리셋

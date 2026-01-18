@@ -1,0 +1,7 @@
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 패턴 반복: 부드러운 순환 화살표 -->
+  <path d="M12 4C7.58 4 4 7.58 4 12C4 14.52 5.1 16.77 6.86 18.32" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <path d="M12 20C16.42 20 20 16.42 20 12C20 9.48 18.9 7.23 17.14 5.68" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <path d="M9 4L12 4L12 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M15 20L12 20L12 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

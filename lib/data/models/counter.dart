@@ -96,12 +96,14 @@ class Counter {
   factory Counter.stitch({
     int id = 0,
     int initialValue = 0,
+    int? targetValue,
   }) {
     return Counter(
       id: id,
       typeIndex: CounterType.stitch.index,
       label: '코',
       value: initialValue,
+      targetValue: targetValue,
     );
   }
 
