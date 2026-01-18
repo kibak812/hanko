@@ -17,6 +17,7 @@ class SecondaryCounterState {
   final double progress;
   final bool isCompleted;
   final int orderIndex;
+  final bool isLinked; // 메인 카운터 연동 여부
 
   SecondaryCounterState({
     required this.id,
@@ -28,6 +29,7 @@ class SecondaryCounterState {
     this.progress = 0.0,
     this.isCompleted = false,
     this.orderIndex = 0,
+    this.isLinked = false,
   });
 
   factory SecondaryCounterState.fromCounter(Counter counter) {
@@ -41,6 +43,7 @@ class SecondaryCounterState {
       progress: counter.progress,
       isCompleted: counter.isCompleted,
       orderIndex: counter.orderIndex,
+      isLinked: counter.isLinked,
     );
   }
 }
@@ -174,6 +177,12 @@ class ProjectsNotifier extends StateNotifier<List<Project>> {
       targetValue: targetValue,
       resetAt: resetAt,
     );
+    refresh();
+  }
+
+  /// 보조 카운터 연동 토글
+  void toggleSecondaryCounterLink(Project project, int counterId) {
+    _repository.toggleSecondaryCounterLink(project, counterId);
     refresh();
   }
 
@@ -546,6 +555,13 @@ class ActiveProjectCounterNotifier extends StateNotifier<ProjectCounterState> {
   void setSecondaryCounterValue(int counterId, int value) {
     if (_project == null) return;
     _repository.setSecondaryCounterValue(_project, counterId, value);
+    _updateState();
+  }
+
+  /// 보조 카운터 연동 토글
+  void toggleSecondaryCounterLink(int counterId) {
+    if (_project == null) return;
+    _repository.toggleSecondaryCounterLink(_project, counterId);
     _updateState();
   }
 }

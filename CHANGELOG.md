@@ -5,6 +5,9 @@
 ## [Unreleased]
 
 ### Added
+- 보조 카운터 메인 연동 기능 (`isLinked` 필드) - 메인 카운터 증감 시 연동된 보조 카운터도 함께 변경
+- 보조 카운터 타입 아이콘 - Goal(깃발), Repetition(회전 화살표)
+- 보조 카운터 연동 토글 UI - 우상단 링크 아이콘 탭으로 연동 on/off
 - `LargeAreaButton` 공통 위젯 - 카운터 하단 +/- 버튼 통합
 - `showRemoveCounterDialog` 공통 함수 - 카운터 제거 확인 다이얼로그
 - `AppColorsExtension` - 다크 모드 색상 접근용 BuildContext extension
@@ -35,6 +38,7 @@
 - 메모 목록 화면 (`MemoListScreen`) 및 `/memos` 라우트
 
 ### Changed
+- 보조 카운터 진행률 표시 위치 변경: 우상단 텍스트 → 숫자 오른쪽 하단 (`2 /4` 형태)
 - 햅틱 피드백 로직 리팩토링: `_triggerHaptic`, `_triggerDoubleHaptic` 헬퍼 메서드
 - 코드 중복 142줄 제거 (LargeAreaButton, 다이얼로그, 햅틱 피드백)
 - VoidCallback 재정의 제거 → Flutter 내장 타입 사용

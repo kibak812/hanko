@@ -14,6 +14,7 @@ import '../../providers/project_provider.dart';
 import '../../providers/voice_provider.dart';
 import '../../../core/constants/app_icons.dart';
 import '../../../data/models/counter.dart';
+import '../../../data/models/project.dart';
 import 'widgets/counter_display.dart';
 import 'widgets/memo_card.dart';
 import 'widgets/secondary_counter.dart';
@@ -251,7 +252,7 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
                                 builder: (context, constraints) {
                                   // 메인 카운터와 동일한 너비 사용
                                   final totalWidth = constraints.maxWidth;
-                                  final spacing = 8.0;
+                                  const spacing = 8.0;
                                   final itemWidth = (totalWidth - spacing) / 2;
 
                                   return Wrap(
@@ -275,6 +276,7 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
                                                     SecondaryCounterType.repetition
                                                 ? counter.resetAt
                                                 : null,
+                                            isLinked: counter.isLinked,
                                             onIncrement: () {
                                               _triggerHaptic(
                                                   duration: 15, amplitude: 50);
@@ -296,6 +298,15 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
                                             onLongPress: () =>
                                                 _showSecondaryCounterSettings(
                                                     project, counter.id),
+                                            onLinkToggle: () {
+                                              _triggerHaptic(
+                                                  duration: 10, amplitude: 40);
+                                              ref
+                                                  .read(activeProjectCounterProvider
+                                                      .notifier)
+                                                  .toggleSecondaryCounterLink(
+                                                      counter.id);
+                                            },
                                           ),
                                         ),
                                     ],
@@ -551,7 +562,7 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
   }
 
   /// 동적 보조 카운터 설정 바텀시트
-  void _showSecondaryCounterSettings(dynamic project, int counterId) {
+  void _showSecondaryCounterSettings(Project project, int counterId) {
     final counterState = ref.read(activeProjectCounterProvider);
     final counter = counterState.secondaryCounters.firstWhere(
       (c) => c.id == counterId,
@@ -587,6 +598,8 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
       },
       onRemove: () {
         ref.read(projectsProvider.notifier).removeSecondaryCounter(project, counterId);
+        // ToMany 변경 감지를 위해 강제 리빌드
+        ref.invalidate(activeProjectCounterProvider);
       },
     );
   }

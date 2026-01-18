@@ -28,6 +28,7 @@ class Counter {
   bool autoResetEnabled; // 자동 리셋 활성화 여부
   int secondaryTypeIndex; // SecondaryCounterType enum index (보조 카운터용)
   int orderIndex; // 정렬 순서 (보조 카운터용)
+  bool isLinked; // 메인 카운터와 연동 여부 (보조 카운터용)
 
   Counter({
     this.id = 0,
@@ -39,6 +40,7 @@ class Counter {
     this.autoResetEnabled = false,
     this.secondaryTypeIndex = 0,
     this.orderIndex = 0,
+    this.isLinked = false,
   });
 
   /// CounterType getter
@@ -85,6 +87,7 @@ class Counter {
     bool? autoResetEnabled,
     SecondaryCounterType? secondaryType,
     int? orderIndex,
+    bool? isLinked,
   }) {
     return Counter(
       id: id ?? this.id,
@@ -96,6 +99,7 @@ class Counter {
       autoResetEnabled: autoResetEnabled ?? this.autoResetEnabled,
       secondaryTypeIndex: secondaryType?.index ?? secondaryTypeIndex,
       orderIndex: orderIndex ?? this.orderIndex,
+      isLinked: isLinked ?? this.isLinked,
     );
   }
 

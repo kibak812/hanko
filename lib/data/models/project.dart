@@ -193,6 +193,11 @@ class Project {
       counter.value++;
       addCounterAction('row', prevValue, counter.value);
       _updateTimestamp();
+
+      // 연동된 보조 카운터도 증가
+      for (final sc in secondaryCounters.where((c) => c.isLinked)) {
+        incrementSecondaryCounter(sc.id);
+      }
     }
   }
 
@@ -204,6 +209,11 @@ class Project {
       counter.value--;
       addCounterAction('row', prevValue, counter.value);
       _updateTimestamp();
+
+      // 연동된 보조 카운터도 감소
+      for (final sc in secondaryCounters.where((c) => c.isLinked)) {
+        decrementSecondaryCounter(sc.id);
+      }
     }
   }
 

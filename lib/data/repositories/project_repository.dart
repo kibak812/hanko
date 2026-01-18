@@ -284,6 +284,14 @@ class ProjectRepository {
     _saveProjectAndCounters(project);
   }
 
+  /// 보조 카운터 연동 토글
+  void toggleSecondaryCounterLink(Project project, int counterId) {
+    final counter = project.getSecondaryCounter(counterId);
+    if (counter == null) return;
+    counter.isLinked = !counter.isLinked;
+    _db.saveCounter(counter);
+  }
+
   void _saveProjectAndCounters(Project project) {
     // 카운터들 저장
     if (project.rowCounter.target != null) {

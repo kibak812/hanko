@@ -5,7 +5,7 @@
   "entities": [
     {
       "id": "1:3632591137761859193",
-      "lastPropertyId": "9:684398579768846715",
+      "lastPropertyId": "10:8928185829964655637",
       "name": "Counter",
       "properties": [
         {
@@ -53,6 +53,11 @@
           "id": "9:684398579768846715",
           "name": "orderIndex",
           "type": 6
+        },
+        {
+          "id": "10:8928185829964655637",
+          "name": "isLinked",
+          "type": 1
         }
       ],
       "relations": []

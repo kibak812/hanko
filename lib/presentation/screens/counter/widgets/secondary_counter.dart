@@ -13,9 +13,11 @@ class SecondaryCounter extends StatelessWidget {
   final SecondaryCounterType type;
   final int? targetValue;
   final int? resetAt;
+  final bool isLinked;
   final VoidCallback onIncrement;
   final VoidCallback onDecrement;
   final VoidCallback onLongPress;
+  final VoidCallback? onLinkToggle;
 
   const SecondaryCounter({
     super.key,
@@ -25,9 +27,11 @@ class SecondaryCounter extends StatelessWidget {
     required this.type,
     this.targetValue,
     this.resetAt,
+    this.isLinked = false,
     required this.onIncrement,
     required this.onDecrement,
     required this.onLongPress,
+    this.onLinkToggle,
   });
 
   /// 진행률 계산 (0.0 ~ 1.0)
@@ -46,6 +50,11 @@ class SecondaryCounter extends StatelessWidget {
       return value >= targetValue!;
     }
     return false;
+  }
+
+  /// 타입에 따른 아이콘
+  IconData get typeIcon {
+    return type == SecondaryCounterType.goal ? Icons.flag : Icons.refresh;
   }
 
   @override
@@ -78,9 +87,16 @@ class SecondaryCounter extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 라벨 (좌상단)
+                  // 라벨 (좌상단) + 연동 아이콘 (우상단)
                   Row(
                     children: [
+                      // 타입 아이콘 + 라벨
+                      Icon(
+                        typeIcon,
+                        size: 12,
+                        color: textSecondary,
+                      ),
+                      const SizedBox(width: 4),
                       Expanded(
                         child: Text(
                           label,
@@ -93,16 +109,20 @@ class SecondaryCounter extends StatelessWidget {
                           maxLines: 1,
                         ),
                       ),
-                      // 목표값 표시 (있을 때만)
-                      if (hasTarget)
-                        Text(
-                          '$value/$displayTarget',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                            color: isCompleted
-                                ? AppColors.success
-                                : textSecondary.withAlpha(150),
+                      // 연동 아이콘 (우상단)
+                      if (onLinkToggle != null)
+                        GestureDetector(
+                          onTap: onLinkToggle,
+                          behavior: HitTestBehavior.opaque,
+                          child: Padding(
+                            padding: const EdgeInsets.all(4),
+                            child: Icon(
+                              isLinked ? Icons.link : Icons.link_off,
+                              size: 16,
+                              color: isLinked
+                                  ? AppColors.primary
+                                  : textSecondary.withAlpha(120),
+                            ),
                           ),
                         ),
                     ],
@@ -127,7 +147,7 @@ class SecondaryCounter extends StatelessWidget {
 
                   const SizedBox(height: 8),
 
-                  // 숫자 (중앙)
+                  // 숫자 (중앙) + 목표값 (우측 하단)
                   Center(
                     child: FittedBox(
                       fit: BoxFit.scaleDown,
@@ -136,18 +156,38 @@ class SecondaryCounter extends StatelessWidget {
                         transitionBuilder: (child, animation) {
                           return ScaleTransition(scale: animation, child: child);
                         },
-                        child: Text(
-                          '$value',
+                        child: Row(
                           key: ValueKey(value),
-                          style: TextStyle(
-                            fontSize: 36,
-                            fontWeight: FontWeight.w700,
-                            color: isCompleted
-                                ? AppColors.success
-                                : (isDark
-                                    ? AppColors.textPrimaryDark
-                                    : AppColors.textPrimary),
-                          ),
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.baseline,
+                          textBaseline: TextBaseline.alphabetic,
+                          children: [
+                            Text(
+                              '$value',
+                              style: TextStyle(
+                                fontSize: 36,
+                                fontWeight: FontWeight.w700,
+                                color: isCompleted
+                                    ? AppColors.success
+                                    : (isDark
+                                        ? AppColors.textPrimaryDark
+                                        : AppColors.textPrimary),
+                              ),
+                            ),
+                            if (hasTarget) ...[
+                              const SizedBox(width: 2),
+                              Text(
+                                '/$displayTarget',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  color: isCompleted
+                                      ? AppColors.success
+                                      : textSecondary.withAlpha(150),
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                       ),
                     ),

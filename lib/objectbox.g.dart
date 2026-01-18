@@ -24,7 +24,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(1, 3632591137761859193),
     name: 'Counter',
-    lastPropertyId: const obx_int.IdUid(9, 684398579768846715),
+    lastPropertyId: const obx_int.IdUid(10, 8928185829964655637),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -79,6 +79,12 @@ final _entities = <obx_int.ModelEntity>[
         id: const obx_int.IdUid(9, 684398579768846715),
         name: 'orderIndex',
         type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(10, 8928185829964655637),
+        name: 'isLinked',
+        type: 1,
         flags: 0,
       ),
     ],
@@ -272,7 +278,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
       },
       objectToFB: (Counter object, fb.Builder fbb) {
         final labelOffset = fbb.writeString(object.label);
-        fbb.startTable(10);
+        fbb.startTable(11);
         fbb.addInt64(0, object.id);
         fbb.addInt64(1, object.typeIndex);
         fbb.addOffset(2, labelOffset);
@@ -282,6 +288,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addBool(6, object.autoResetEnabled);
         fbb.addInt64(7, object.secondaryTypeIndex);
         fbb.addInt64(8, object.orderIndex);
+        fbb.addBool(9, object.isLinked);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -337,6 +344,12 @@ obx_int.ModelDefinition getObjectBoxModel() {
           20,
           0,
         );
+        final isLinkedParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          22,
+          false,
+        );
         final object = Counter(
           id: idParam,
           typeIndex: typeIndexParam,
@@ -347,6 +360,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
           autoResetEnabled: autoResetEnabledParam,
           secondaryTypeIndex: secondaryTypeIndexParam,
           orderIndex: orderIndexParam,
+          isLinked: isLinkedParam,
         );
 
         return object;
@@ -556,6 +570,11 @@ class Counter_ {
   /// See [Counter.orderIndex].
   static final orderIndex = obx.QueryIntegerProperty<Counter>(
     _entities[0].properties[8],
+  );
+
+  /// See [Counter.isLinked].
+  static final isLinked = obx.QueryBooleanProperty<Counter>(
+    _entities[0].properties[9],
   );
 }
 
