@@ -24,6 +24,7 @@ import 'widgets/add_counter_button.dart';
 import 'widgets/inline_counter_editor.dart';
 import 'widgets/project_inline_editor.dart';
 import '../settings/widgets/add_secondary_counter_sheet.dart';
+import '../../widgets/dialogs.dart';
 
 /// 메인 카운터 화면
 class CounterScreen extends ConsumerStatefulWidget {
@@ -591,10 +592,17 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
         // 강제 리빌드
         ref.invalidate(activeProjectCounterProvider);
       },
-      onRemove: () {
-        ref.read(projectsProvider.notifier).removeSecondaryCounter(project, counter.id);
-        // ToMany 변경 감지를 위해 강제 리빌드
-        ref.invalidate(activeProjectCounterProvider);
+      onRemove: () async {
+        final confirmed = await showRemoveCounterDialog(context);
+        if (confirmed && mounted) {
+          // 편집기가 닫힌 후이므로 최신 project 참조 사용
+          final currentProject = ref.read(activeProjectProvider);
+          if (currentProject != null) {
+            ref.read(projectsProvider.notifier).removeSecondaryCounter(currentProject, counter.id);
+            // ToMany 변경 감지를 위해 강제 리빌드
+            ref.invalidate(activeProjectCounterProvider);
+          }
+        }
       },
     );
   }

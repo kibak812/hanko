@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../data/models/counter.dart';
-import '../../../widgets/dialogs.dart';
 
 /// 인라인 카운터 편집기
 /// - 원본 카운터 위치에서 확대되어 중앙으로 이동
@@ -17,7 +16,7 @@ class InlineCounterEditor extends StatefulWidget {
   final VoidCallback onClose;
   final VoidCallback onReset;
   final void Function(String? label, int? targetValue, SecondaryCounterType? newType) onSave;
-  final VoidCallback? onRemove;
+  final Future<void> Function()? onRemove;
 
   const InlineCounterEditor({
     super.key,
@@ -167,13 +166,13 @@ class _InlineCounterEditorState extends State<InlineCounterEditor>
   }
 
   Future<void> _handleRemove() async {
-    final confirmed = await showRemoveCounterDialog(context);
-    if (confirmed && mounted) {
-      _controller.reverse().then((_) {
-        widget.onClose();
-        widget.onRemove?.call();
-      });
-    }
+    final removeCallback = widget.onRemove;
+    if (removeCallback == null) return;
+
+    // 편집기 닫기 후 콜백 호출 (다이얼로그가 Overlay 뒤에 가려지지 않도록)
+    await _controller.reverse();
+    widget.onClose();
+    await removeCallback();
   }
 
   @override
@@ -571,7 +570,7 @@ void showInlineCounterEditor({
   required Rect sourceRect,
   required VoidCallback onReset,
   required void Function(String? label, int? targetValue, SecondaryCounterType? newType) onSave,
-  VoidCallback? onRemove,
+  Future<void> Function()? onRemove,
 }) {
   late OverlayEntry overlayEntry;
 

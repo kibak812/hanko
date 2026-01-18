@@ -236,8 +236,8 @@ class ProjectRepository {
     final counter = project.getSecondaryCounter(counterId);
     if (counter == null) return;
     project.secondaryCounters.removeWhere((c) => c.id == counterId);
-    _db.counterBox.remove(counterId);
-    _db.saveProject(project);
+    _db.saveProject(project); // 먼저 관계 업데이트
+    _db.counterBox.remove(counterId); // 그 다음 counter 삭제
   }
 
   /// 보조 카운터 설정 업데이트
