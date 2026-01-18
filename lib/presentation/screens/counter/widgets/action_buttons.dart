@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_strings.dart';
 
 /// 보조 액션 버튼 행
 /// -1, 리셋, 음성, 더보기
@@ -29,14 +28,12 @@ class ActionButtons extends StatelessWidget {
       children: [
         _ActionButton(
           icon: Icons.remove,
-          label: '-1',
           onPressed: onDecrement,
           isDark: isDark,
         ),
         const SizedBox(width: 12),
         _ActionButton(
           icon: Icons.undo,
-          label: AppStrings.undo,
           onPressed: onUndo,
           isDark: isDark,
           enabled: onUndo != null,
@@ -50,7 +47,6 @@ class ActionButtons extends StatelessWidget {
         const SizedBox(width: 12),
         _ActionButton(
           icon: Icons.more_horiz,
-          label: '',
           onPressed: onMore,
           isDark: isDark,
         ),
@@ -61,14 +57,12 @@ class ActionButtons extends StatelessWidget {
 
 class _ActionButton extends StatelessWidget {
   final IconData icon;
-  final String label;
   final VoidCallback? onPressed;
   final bool isDark;
   final bool enabled;
 
   const _ActionButton({
     required this.icon,
-    required this.label,
     required this.onPressed,
     required this.isDark,
     this.enabled = true,
@@ -79,7 +73,7 @@ class _ActionButton extends StatelessWidget {
     final color = enabled
         ? (isDark ? AppColors.textSecondaryDark : AppColors.textSecondary)
         : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondary)
-            .withOpacity(0.3);
+            .withValues(alpha: 0.3);
 
     return GestureDetector(
       onTap: enabled ? onPressed : null,
@@ -93,22 +87,7 @@ class _ActionButton extends StatelessWidget {
             color: isDark ? AppColors.borderDark : AppColors.border,
           ),
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: color, size: 24),
-            if (label.isNotEmpty) ...[
-              const SizedBox(height: 2),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 10,
-                  color: color,
-                ),
-              ),
-            ],
-          ],
-        ),
+        child: Icon(icon, color: color, size: 24),
       ),
     );
   }

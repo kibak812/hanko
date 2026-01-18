@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../presentation/providers/app_providers.dart';
 import '../presentation/screens/counter/counter_screen.dart';
+import '../presentation/screens/memo/memo_list_screen.dart';
 import '../presentation/screens/projects/project_list_screen.dart';
 import '../presentation/screens/settings/project_settings_screen.dart';
 import '../presentation/screens/settings/app_settings_screen.dart';
@@ -16,6 +17,7 @@ class AppRoutes {
   static const String projectSettings = '/projects/settings';
   static const String newProject = '/projects/new';
   static const String settings = '/settings';
+  static const String memos = '/memos';
 }
 
 /// GoRouter Provider
@@ -51,6 +53,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.settings,
         builder: (context, state) => const AppSettingsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.memos,
+        builder: (context, state) {
+          final projectId = state.extra as int;
+          return MemoListScreen(projectId: projectId);
+        },
       ),
     ],
     errorBuilder: (context, state) => Scaffold(

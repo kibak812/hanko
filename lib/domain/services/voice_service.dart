@@ -1,3 +1,4 @@
+import 'dart:io' show Platform;
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import '../../core/constants/voice_commands.dart';
@@ -11,6 +12,10 @@ class VoiceService {
   bool _isInitialized = false;
   bool _isListening = false;
 
+  // 현재 세션의 콜백 저장 (글로벌 핸들러에서 사용)
+  Function()? _currentOnDone;
+  Function(String)? _currentOnError;
+
   bool get isInitialized => _isInitialized;
   bool get isListening => _isListening;
 
@@ -21,12 +26,23 @@ class VoiceService {
     try {
       // STT 초기화
       final sttAvailable = await _speechToText.initialize(
-        onError: (error) => print('STT Error: $error'),
-        onStatus: (status) => print('STT Status: $status'),
+        onError: (error) {
+          // 에러 발생 시 현재 세션의 onError 콜백 호출
+          if (_isListening && _currentOnError != null) {
+            _isListening = false;
+            _currentOnError!(error.errorMsg);
+          }
+        },
+        onStatus: (status) {
+          // 'done' 상태에서 onDone 콜백 호출
+          if (status == 'done' && _isListening) {
+            _isListening = false;
+            _currentOnDone?.call();
+          }
+        },
       );
 
       if (!sttAvailable) {
-        print('Speech-to-Text is not available on this device');
         return false;
       }
 
@@ -39,14 +55,13 @@ class VoiceService {
       _isInitialized = true;
       return true;
     } catch (e) {
-      print('Voice service initialization failed: $e');
       return false;
     }
   }
 
   /// 음성 인식 시작
   Future<void> startListening({
-    required Function(VoiceCommandType command) onCommand,
+    required Future<void> Function(VoiceCommandType command) onCommand,
     required Function(String text) onPartialResult,
     required Function() onDone,
     required Function(String error) onError,
@@ -63,33 +78,46 @@ class VoiceService {
 
     try {
       _isListening = true;
+      bool _commandProcessed = false;  // 명령어 중복 처리 방지
+
+      // 콜백 저장 (글로벌 핸들러에서 사용)
+      _currentOnDone = onDone;
+      _currentOnError = onError;
 
       await _speechToText.listen(
-        onResult: (result) {
-          final text = result.recognizedWords;
+        onResult: (result) async {
+          if (_commandProcessed) return;  // 이미 처리됨
 
+          final text = result.recognizedWords;
           if (text.isEmpty) return;
 
           // 부분 결과 콜백
           onPartialResult(text);
 
-          // 명령어 파싱
-          if (result.finalResult) {
-            final command = VoiceCommands.parseCommand(text);
-            if (command != null) {
-              onCommand(command);
-            }
-            _isListening = false;
-            onDone();
+          // 명령어 파싱 - 부분 결과에서도 명령어 감지 (iOS 대응)
+          final command = VoiceCommands.parseCommand(text);
+
+          if (command != null) {
+            _commandProcessed = true;
+
+            // 인식 중지 후 명령 처리
+            await _speechToText.stop();
+            _isListening = false;  // stop 후에 false로 설정 (onStatus 'done' 방지)
+            await onCommand(command);
+            onDone();  // 명령 처리 후 직접 호출하여 연속 모드 재시작
           }
+          // finalResult는 무시 - onStatus 'done'에서 처리
         },
         localeId: 'ko-KR',
-        listenMode: ListenMode.confirmation,
-        cancelOnError: true,
+        listenMode: ListenMode.dictation,  // dictation 모드: 더 오래 듣기
+        cancelOnError: false,
         partialResults: true,
+        listenFor: const Duration(seconds: 30),  // 30초간 듣기 (끝나면 연속모드에서 자동 재시작)
       );
     } catch (e) {
       _isListening = false;
+      _currentOnDone = null;
+      _currentOnError = null;
       onError('음성 인식 오류: $e');
     }
   }
@@ -118,16 +146,60 @@ class VoiceService {
 
   /// 카운터 값 음성으로 알려주기
   Future<void> announceCount(int count, String unit) async {
-    await speak('$count$unit');
+    // iOS에서 자연스러운 발음을 위해 한자어 숫자로 변환
+    final koreanNumber = _toKoreanNumber(count);
+    // iOS에서 발음이 씹히지 않도록 마침표로 pause 추가
+    await speak('$koreanNumber. $unit');
+  }
+
+  /// 숫자를 한자어 숫자로 변환 (7 → 칠)
+  String _toKoreanNumber(int number) {
+    if (number == 0) return '영';
+    if (number < 0) return '마이너스 ${_toKoreanNumber(-number)}';
+
+    const units = ['', '십', '백', '천'];
+    const bigUnits = ['', '만', '억'];
+    const digits = ['', '일', '이', '삼', '사', '오', '육', '칠', '팔', '구'];
+
+    if (number < 10) {
+      return digits[number];
+    }
+
+    String result = '';
+    int unitIndex = 0;
+
+    while (number > 0 && unitIndex < bigUnits.length) {
+      int part = number % 10000;
+      if (part > 0) {
+        String partStr = '';
+        int smallUnit = 0;
+        while (part > 0) {
+          int digit = part % 10;
+          if (digit > 0) {
+            // 십, 백, 천 앞의 1은 생략 (일십 → 십)
+            String digitStr = (digit == 1 && smallUnit > 0) ? '' : digits[digit];
+            partStr = '$digitStr${units[smallUnit]}$partStr';
+          }
+          part ~/= 10;
+          smallUnit++;
+        }
+        result = '$partStr${bigUnits[unitIndex]}$result';
+      }
+      number ~/= 10000;
+      unitIndex++;
+    }
+
+    return result;
   }
 
   /// 현재 상태 음성으로 알려주기
   Future<void> announceStatus(int row, int? stitch) async {
-    String message = '현재 $row단';
+    final rowKorean = _toKoreanNumber(row);
+    String message = '현재. $rowKorean. 단';
     if (stitch != null && stitch > 0) {
-      message += ' $stitch코';
+      final stitchKorean = _toKoreanNumber(stitch);
+      message += '. $stitchKorean. 코';
     }
-    message += '입니다';
     await speak(message);
   }
 
@@ -138,7 +210,8 @@ class VoiceService {
 
   /// 목표 달성 축하
   Future<void> announceMilestone(int row) async {
-    await speak('$row단 달성! 잘하고 있어요');
+    final rowKorean = _toKoreanNumber(row);
+    await speak('$rowKorean 단 달성! 잘하고 있어요');
   }
 
   /// 리소스 해제

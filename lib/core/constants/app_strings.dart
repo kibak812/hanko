@@ -34,6 +34,12 @@ class AppStrings {
   static const String addMemo = '메모 추가';
   static const String memoHint = '예: 코 줄이기 2코';
   static const String atRow = '단에서';
+  static const String memo = '메모';
+  static const String memos = '메모 목록';
+  static const String editMemo = '메모 편집';
+  static const String noMemos = '아직 메모가 없어요\n특정 단에 기억해야 할 내용을 추가해보세요';
+  static const String rowNumber = '단 번호';
+  static const String deleteMemoConfirm = '이 메모를 삭제할까요?';
 
   // ============ 진행률 ============
   static const String progress = '진행률';

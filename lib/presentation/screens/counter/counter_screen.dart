@@ -1,9 +1,13 @@
+import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:vibration/vibration.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
+import '../../../data/datasources/local_storage.dart';
 import '../../../router/app_router.dart';
 import '../../providers/app_providers.dart';
 import '../../providers/project_provider.dart';
@@ -26,6 +30,7 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _flashController;
   late Animation<double> _flashAnimation;
+  bool? _hasVibrator;
 
   @override
   void initState() {
@@ -37,20 +42,61 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
     _flashAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _flashController, curve: Curves.easeOut),
     );
+    _initVibration();
+    _applyWakelock();
+  }
+
+  Future<void> _initVibration() async {
+    _hasVibrator = await Vibration.hasVibrator();
+  }
+
+  void _applyWakelock() {
+    final settings = ref.read(appSettingsProvider);
+    if (settings.keepScreenOn) {
+      WakelockPlus.enable();
+    }
   }
 
   @override
   void dispose() {
     _flashController.dispose();
+    WakelockPlus.disable();
     super.dispose();
+  }
+
+  /// 플랫폼별 햅틱 피드백
+  Future<void> _hapticFeedback({
+    int duration = 20,
+    int amplitude = 60,
+  }) async {
+    if (Platform.isAndroid) {
+      // 안드로이드: Vibration 패키지 사용
+      // _hasVibrator 초기화 전이면 직접 체크
+      final hasVibrator = _hasVibrator ?? await Vibration.hasVibrator();
+      if (hasVibrator == true) {
+        final hasAmplitude = await Vibration.hasAmplitudeControl();
+        if (hasAmplitude == true) {
+          await Vibration.vibrate(duration: duration, amplitude: amplitude);
+        } else {
+          await Vibration.vibrate(duration: duration);
+        }
+      }
+    } else {
+      // iOS: 기존 HapticFeedback 사용
+      if (duration >= 40) {
+        HapticFeedback.mediumImpact();
+      } else {
+        HapticFeedback.lightImpact();
+      }
+    }
   }
 
   void _onIncrement() {
     final settings = ref.read(appSettingsProvider);
 
-    // 햅틱 피드백
+    // 햅틱 피드백 (medium)
     if (settings.hapticFeedback) {
-      HapticFeedback.mediumImpact();
+      _hapticFeedback(duration: 25, amplitude: 80);
     }
 
     // 플래시 애니메이션
@@ -58,18 +104,12 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
 
     // 카운터 증가
     ref.read(activeProjectCounterProvider.notifier).incrementRow();
-
-    // 마일스톤 체크 (10단 단위)
-    final newState = ref.read(activeProjectCounterProvider);
-    if (newState.currentRow > 0 && newState.currentRow % 10 == 0) {
-      _showMilestoneSnackBar(newState.currentRow);
-    }
   }
 
   void _onDecrement() {
     final settings = ref.read(appSettingsProvider);
     if (settings.hapticFeedback) {
-      HapticFeedback.lightImpact();
+      _hapticFeedback(duration: 15, amplitude: 50);
     }
     ref.read(activeProjectCounterProvider.notifier).decrementRow();
   }
@@ -77,19 +117,9 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
   void _onUndo() {
     final settings = ref.read(appSettingsProvider);
     if (settings.hapticFeedback) {
-      HapticFeedback.selectionClick();
+      _hapticFeedback(duration: 10, amplitude: 40);
     }
     ref.read(activeProjectCounterProvider.notifier).undo();
-  }
-
-  void _showMilestoneSnackBar(int row) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('🎉 $row${AppStrings.milestoneReached} ${AppStrings.greatJob}'),
-        duration: const Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
   }
 
   @override
@@ -97,6 +127,17 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
     final project = ref.watch(activeProjectProvider);
     final counterState = ref.watch(activeProjectCounterProvider);
     final voiceState = ref.watch(voiceStateProvider);
+
+    // 설정 변경 감지 - 화면 유지 설정
+    ref.listen<AppSettings>(appSettingsProvider, (previous, next) {
+      if (previous?.keepScreenOn != next.keepScreenOn) {
+        if (next.keepScreenOn) {
+          WakelockPlus.enable();
+        } else {
+          WakelockPlus.disable();
+        }
+      }
+    });
 
     // 프로젝트가 없으면 생성 유도
     if (project == null) {
@@ -130,12 +171,7 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
                       if (counterState.currentMemo != null)
                         Padding(
                           padding: const EdgeInsets.only(top: 16),
-                          child: MemoCard(
-                            memo: counterState.currentMemo!,
-                            onDismiss: () {
-                              // 메모 알림 처리
-                            },
-                          ),
+                          child: MemoCard(memo: counterState.currentMemo!),
                         ),
 
                       const Spacer(),
@@ -178,7 +214,7 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
                               onIncrement: () {
                                 final settings = ref.read(appSettingsProvider);
                                 if (settings.hapticFeedback) {
-                                  HapticFeedback.lightImpact();
+                                  _hapticFeedback(duration: 15, amplitude: 50);
                                 }
                                 ref
                                     .read(activeProjectCounterProvider.notifier)
@@ -200,7 +236,7 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
                               onIncrement: () {
                                 final settings = ref.read(appSettingsProvider);
                                 if (settings.hapticFeedback) {
-                                  HapticFeedback.lightImpact();
+                                  _hapticFeedback(duration: 15, amplitude: 50);
                                 }
                                 ref
                                     .read(activeProjectCounterProvider.notifier)
@@ -224,7 +260,16 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
                         onVoice: () async {
                           final settings = ref.read(appSettingsProvider);
                           if (settings.hapticFeedback) {
-                            HapticFeedback.selectionClick();
+                            _hapticFeedback(duration: 10, amplitude: 40);
+                          }
+
+                          // 토글: 이미 듣고 있으면 중지
+                          final currentState = ref.read(voiceStateProvider);
+                          if (currentState == VoiceState.listening) {
+                            await ref
+                                .read(voiceStateProvider.notifier)
+                                .stopVoiceCommand();
+                            return;
                           }
 
                           // 프리미엄이 아닌 경우 사용량 체크
@@ -346,11 +391,14 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.note_add),
-                title: const Text(AppStrings.addMemo),
+                leading: const Icon(Icons.note_alt_outlined),
+                title: const Text(AppStrings.memo),
                 onTap: () {
                   Navigator.pop(context);
-                  _showAddMemoDialog(context);
+                  final project = ref.read(activeProjectProvider);
+                  if (project != null) {
+                    context.push(AppRoutes.memos, extra: project.id);
+                  }
                 },
               ),
               ListTile(
@@ -368,60 +416,4 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
     );
   }
 
-  void _showAddMemoDialog(BuildContext context) {
-    final rowController = TextEditingController();
-    final contentController = TextEditingController();
-    final counterState = ref.read(activeProjectCounterProvider);
-
-    // 기본값으로 현재 단 + 1 설정
-    rowController.text = (counterState.currentRow + 1).toString();
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text(AppStrings.addMemo),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: rowController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: '${AppStrings.row} 번호',
-                hintText: '예: 50',
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: contentController,
-              decoration: const InputDecoration(
-                labelText: AppStrings.memoHint,
-                hintText: '예: 코 줄이기 2코',
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text(AppStrings.cancel),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final row = int.tryParse(rowController.text);
-              final content = contentController.text.trim();
-
-              if (row != null && content.isNotEmpty) {
-                ref
-                    .read(activeProjectCounterProvider.notifier)
-                    .addMemo(row, content);
-                Navigator.pop(context);
-              }
-            },
-            child: const Text(AppStrings.save),
-          ),
-        ],
-      ),
-    );
-  }
 }

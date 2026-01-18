@@ -29,16 +29,25 @@ final voiceStateProvider =
 class VoiceStateNotifier extends StateNotifier<VoiceState> {
   final Ref _ref;
   String? _lastError;
+  bool _continuousMode = false; // 연속 듣기 모드
 
   VoiceStateNotifier(this._ref) : super(VoiceState.idle);
 
   String? get lastError => _lastError;
+  bool get isContinuousMode => _continuousMode;
 
   /// 음성 명령 시작
   Future<void> startVoiceCommand() async {
+    _continuousMode = true;
+    await _startListeningInternal();
+  }
+
+  /// 내부 음성 인식 시작 (연속 듣기용)
+  Future<void> _startListeningInternal() async {
+    if (!_continuousMode) return;
+
     final isPremium = _ref.read(premiumStatusProvider);
     final voiceUsage = _ref.read(voiceUsageProvider.notifier);
-    final settings = _ref.read(appSettingsProvider);
 
     // 무료 사용자는 횟수 제한 체크
     if (!isPremium) {
@@ -46,6 +55,7 @@ class VoiceStateNotifier extends StateNotifier<VoiceState> {
       if (remaining <= 0) {
         _lastError = '오늘 음성 사용 횟수를 다 썼어요';
         state = VoiceState.error;
+        _continuousMode = false;
         return;
       }
     }
@@ -68,31 +78,51 @@ class VoiceStateNotifier extends StateNotifier<VoiceState> {
         // 명령 실행
         await _executeCommand(command, counterNotifier, counterState);
 
-        // 음성 피드백
-        if (settings.voiceFeedback) {
-          state = VoiceState.speaking;
-          await _speakFeedback(command, counterState);
+        // 연속 모드면 다시 듣기 시작
+        if (_continuousMode) {
+          await Future.delayed(const Duration(milliseconds: 300));
+          await _startListeningInternal();
+        } else {
+          state = VoiceState.idle;
         }
-
-        state = VoiceState.idle;
       },
       onPartialResult: (text) {
         // 부분 결과는 UI에서 표시 가능
       },
       onDone: () {
-        if (state == VoiceState.listening) {
+        // 연속 모드면 다시 시작
+        if (_continuousMode) {
+          // onCommand에서 이미 처리 중이면 (processing/speaking) 건너뜀
+          if (state == VoiceState.processing || state == VoiceState.speaking) {
+            return;
+          }
+          // 타임아웃이나 에러로 종료된 경우 다시 시작
+          state = VoiceState.listening;
+          Future.delayed(const Duration(milliseconds: 300), () {
+            _startListeningInternal();
+          });
+        } else if (state == VoiceState.listening) {
           state = VoiceState.idle;
         }
       },
       onError: (error) {
         _lastError = error;
-        state = VoiceState.error;
+        // 에러가 발생해도 연속 모드면 다시 시도
+        if (_continuousMode) {
+          state = VoiceState.listening;
+          Future.delayed(const Duration(milliseconds: 500), () {
+            _startListeningInternal();
+          });
+        } else {
+          state = VoiceState.error;
+        }
       },
     );
   }
 
   /// 음성 인식 중지
   Future<void> stopVoiceCommand() async {
+    _continuousMode = false; // 연속 모드 해제
     final voiceService = _ref.read(voiceServiceProvider);
     await voiceService.stopListening();
     state = VoiceState.idle;
@@ -128,39 +158,6 @@ class VoiceStateNotifier extends StateNotifier<VoiceState> {
         break;
       case VoiceCommandType.status:
         // 상태만 읽어주기 (카운터 변경 없음)
-        break;
-    }
-  }
-
-  /// 음성 피드백
-  Future<void> _speakFeedback(
-    VoiceCommandType command,
-    ProjectCounterState counterState,
-  ) async {
-    final voiceService = _ref.read(voiceServiceProvider);
-    final newState = _ref.read(activeProjectCounterProvider);
-
-    switch (command) {
-      case VoiceCommandType.nextRow:
-      case VoiceCommandType.prevRow:
-      case VoiceCommandType.undo:
-        await voiceService.announceCount(newState.currentRow, '단');
-        break;
-      case VoiceCommandType.nextStitch:
-      case VoiceCommandType.prevStitch:
-        await voiceService.announceCount(newState.currentStitch, '코');
-        break;
-      case VoiceCommandType.resetStitch:
-        await voiceService.announceReset('코');
-        break;
-      case VoiceCommandType.resetPattern:
-        await voiceService.announceReset('패턴');
-        break;
-      case VoiceCommandType.status:
-        await voiceService.announceStatus(
-          newState.currentRow,
-          newState.currentStitch > 0 ? newState.currentStitch : null,
-        );
         break;
     }
   }

@@ -77,6 +77,7 @@ class _ProjectSettingsScreenState extends ConsumerState<ProjectSettingsScreen> {
         ref.read(projectsProvider.notifier).renameProject(project, name);
         // TODO: 목표 단수 수정 기능 추가
       }
+      context.pop();
     } else {
       // 새 프로젝트 생성
       final newProject = ref.read(projectsProvider.notifier).createProject(
@@ -90,9 +91,11 @@ class _ProjectSettingsScreenState extends ConsumerState<ProjectSettingsScreen> {
       ref
           .read(activeProjectIdProvider.notifier)
           .setActiveProject(newProject.id);
-    }
 
-    context.pop();
+      // 새 프로젝트 생성 후 메인 카운터 화면으로 이동
+      // (온보딩에서 왔을 때 pop할 페이지가 없으므로 go 사용)
+      context.go('/');
+    }
   }
 
   @override

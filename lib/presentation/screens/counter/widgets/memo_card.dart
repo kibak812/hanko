@@ -6,12 +6,10 @@ import '../../../../data/models/row_memo.dart';
 /// 현재 단에 해당하는 메모를 표시
 class MemoCard extends StatelessWidget {
   final RowMemo memo;
-  final VoidCallback? onDismiss;
 
   const MemoCard({
     super.key,
     required this.memo,
-    this.onDismiss,
   });
 
   @override
@@ -50,13 +48,6 @@ class MemoCard extends StatelessWidget {
               ),
             ),
           ),
-          if (onDismiss != null)
-            IconButton(
-              icon: const Icon(Icons.close, size: 20),
-              onPressed: onDismiss,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
-            ),
         ],
       ),
     );

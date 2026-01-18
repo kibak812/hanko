@@ -151,6 +151,18 @@ class ProjectRepository {
     _db.saveProject(project);
   }
 
+  /// 메모 수정
+  void updateMemo(Project project, int memoId, int rowNumber, String content) {
+    final memoIndex = project.memos.indexWhere((m) => m.id == memoId);
+    if (memoIndex != -1) {
+      final memo = project.memos[memoIndex];
+      memo.rowNumber = rowNumber;
+      memo.content = content;
+      _db.saveMemo(memo);
+      _db.saveProject(project);
+    }
+  }
+
   // ============ 상태 관련 ============
 
   /// 프로젝트 완료 처리

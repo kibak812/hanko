@@ -243,6 +243,13 @@ class ActiveProjectCounterNotifier extends StateNotifier<ProjectCounterState> {
     _repository.removeMemo(_project, memoId);
     _updateState();
   }
+
+  /// 메모 수정
+  void updateMemo(int memoId, int rowNumber, String content) {
+    if (_project == null) return;
+    _repository.updateMemo(_project, memoId, rowNumber, content);
+    _updateState();
+  }
 }
 
 typedef VoidCallback = void Function();

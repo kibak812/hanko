@@ -54,14 +54,6 @@ class _AppSettingsScreenState extends ConsumerState<AppSettingsScreen> {
             value: settings.hapticFeedback,
             onChanged: (value) => settingsNotifier.setHapticFeedback(value),
           ),
-          _buildSwitchTile(
-            context,
-            icon: Icons.volume_up,
-            title: AppStrings.voiceFeedback,
-            subtitle: '음성 명령 후 소리로 알려줘요',
-            value: settings.voiceFeedback,
-            onChanged: (value) => settingsNotifier.setVoiceFeedback(value),
-          ),
 
           const SizedBox(height: 24),
 
