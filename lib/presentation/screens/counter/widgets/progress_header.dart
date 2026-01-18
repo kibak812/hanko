@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../widgets/widget_extensions.dart';
 
 /// 상단 진행률 헤더
 /// 프로젝트명 + 진행률 바
+/// - 탭: 프로젝트 목록으로 이동
+/// - 롱프레스: 인라인 편집기 표시
 class ProgressHeader extends StatelessWidget {
   final String projectName;
   final int currentRow;
   final int? targetRow;
   final double progress;
   final VoidCallback? onTap;
+  final void Function(Rect sourceRect)? onLongPress;
 
   const ProgressHeader({
     super.key,
@@ -17,17 +21,22 @@ class ProgressHeader extends StatelessWidget {
     this.targetRow,
     required this.progress,
     this.onTap,
+    this.onLongPress,
   });
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final progressPercent = (progress * 100).round();
+    final successColor = isDark ? AppColors.successDark : AppColors.success;
 
     return GestureDetector(
       onTap: onTap,
+      onLongPress: onLongPress != null
+          ? () => onLongPress!(context.getWidgetRect())
+          : null,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -62,7 +71,7 @@ class ProgressHeader extends StatelessWidget {
                         value: progress,
                         backgroundColor: isDark ? AppColors.borderDark : AppColors.border,
                         valueColor: AlwaysStoppedAnimation<Color>(
-                          progress >= 1.0 ? AppColors.success : AppColors.primary,
+                          progress >= 1.0 ? successColor : AppColors.primary,
                         ),
                         minHeight: 8,
                       ),
@@ -82,8 +91,8 @@ class ProgressHeader extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: progress >= 1.0
-                          ? AppColors.success.withOpacity(0.2)
-                          : AppColors.primary.withOpacity(0.1),
+                          ? successColor.withAlpha(50)
+                          : AppColors.primary.withAlpha(25),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -91,7 +100,7 @@ class ProgressHeader extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: progress >= 1.0 ? AppColors.success : AppColors.primary,
+                        color: progress >= 1.0 ? successColor : AppColors.primary,
                       ),
                     ),
                   ),

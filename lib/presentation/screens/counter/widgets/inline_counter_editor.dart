@@ -249,6 +249,7 @@ class _InlineCounterEditorState extends State<InlineCounterEditor>
     final progress = hasTarget
         ? (widget.currentValue / displayTarget!).clamp(0.0, 1.0)
         : 0.0;
+    final successColor = isDark ? AppColors.successDark : AppColors.success;
 
     return Container(
       width: 240,
@@ -311,7 +312,7 @@ class _InlineCounterEditorState extends State<InlineCounterEditor>
             style: TextStyle(
               fontSize: 48,
               fontWeight: FontWeight.w700,
-              color: isCompleted ? AppColors.success : textPrimary,
+              color: isCompleted ? successColor : textPrimary,
             ),
           ),
 
@@ -325,7 +326,7 @@ class _InlineCounterEditorState extends State<InlineCounterEditor>
                 minHeight: 6,
                 backgroundColor: isDark ? AppColors.borderDark : AppColors.border,
                 valueColor: AlwaysStoppedAnimation<Color>(
-                  isCompleted ? AppColors.success : AppColors.primary,
+                  isCompleted ? successColor : AppColors.primary,
                 ),
               ),
             ),

@@ -26,8 +26,11 @@ class AppColors {
   /// Text Sub - Warm Gray: 보조 텍스트
   static const Color textSecondary = Color(0xFF636E72);
 
-  /// Success - Soft Green: 완료, 성공
-  static const Color success = Color(0xFF6BCB77);
+  /// Success - Golden Honey: 완료, 성공 (따뜻한 톤)
+  static const Color success = Color(0xFFD4A574);
+
+  /// Success Dark - 다크모드용 밝은 변형
+  static const Color successDark = Color(0xFFE5B88A);
 
   /// Warning - Sunny Yellow: 알림, 메모
   static const Color warning = Color(0xFFFFD93D);
@@ -70,9 +73,9 @@ class AppColors {
     end: Alignment.bottomRight,
   );
 
-  /// Success Gradient
+  /// Success Gradient (따뜻한 골든 허니 톤)
   static const LinearGradient successGradient = LinearGradient(
-    colors: [Color(0xFF6BCB77), Color(0xFF88D992)],
+    colors: [Color(0xFFD4A574), Color(0xFFE5C5A3)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
@@ -80,10 +83,10 @@ class AppColors {
   // ============ Helper Methods ============
 
   /// 투명도가 적용된 primary 색상
-  static Color primaryWithOpacity(double opacity) => primary.withOpacity(opacity);
+  static Color primaryWithOpacity(double opacity) => primary.withValues(alpha: opacity);
 
   /// 투명도가 적용된 warning 색상 (메모 배경용)
-  static Color warningBackground = warning.withOpacity(0.2);
+  static Color warningBackground = warning.withValues(alpha: 0.2);
 }
 
 /// 다크 모드 색상을 쉽게 가져오기 위한 BuildContext extension
@@ -104,4 +107,6 @@ extension AppColorsExtension on BuildContext {
   Color get border => _isDark ? AppColors.borderDark : AppColors.border;
 
   Color get primary => _isDark ? AppColors.primaryDark : AppColors.primary;
+
+  Color get success => _isDark ? AppColors.successDark : AppColors.success;
 }

@@ -198,6 +198,12 @@ class ProjectsNotifier extends StateNotifier<List<Project>> {
     refresh();
   }
 
+  void updateProject(int projectId, {String? name, int? targetRow}) {
+    final project = state.firstWhere((p) => p.id == projectId);
+    _repository.updateProject(project, name: name, targetRow: targetRow);
+    refresh();
+  }
+
   void completeProject(Project project) {
     _repository.completeProject(project);
     refresh();

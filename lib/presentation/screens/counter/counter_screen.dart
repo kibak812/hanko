@@ -22,6 +22,7 @@ import 'widgets/action_buttons.dart';
 import 'widgets/progress_header.dart';
 import 'widgets/add_counter_button.dart';
 import 'widgets/inline_counter_editor.dart';
+import 'widgets/project_inline_editor.dart';
 import '../settings/widgets/add_secondary_counter_sheet.dart';
 
 /// 메인 카운터 화면
@@ -198,6 +199,8 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
               targetRow: counterState.targetRow,
               progress: counterState.progress,
               onTap: () => context.push(AppRoutes.projects),
+              onLongPress: (sourceRect) =>
+                  _showProjectInlineEditor(project, counterState, sourceRect),
             ),
 
             // 메인 콘텐츠 영역
@@ -379,15 +382,9 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
                             .startVoiceCommand();
                       },
                       isListening: voiceState == VoiceState.listening,
-                      onMenuAction: (action) {
-                        switch (action) {
-                          case MoreMenuAction.edit:
-                            context.push(AppRoutes.projectSettings, extra: project.id);
-                          case MoreMenuAction.projects:
-                            context.push(AppRoutes.projects);
-                          case MoreMenuAction.settings:
-                            context.push(AppRoutes.settings);
-                        }
+                      onSettings: () {
+                        _triggerHaptic(duration: 10, amplitude: 40);
+                        context.push(AppRoutes.settings);
                       },
                     ),
 
@@ -597,6 +594,34 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
       onRemove: () {
         ref.read(projectsProvider.notifier).removeSecondaryCounter(project, counter.id);
         // ToMany 변경 감지를 위해 강제 리빌드
+        ref.invalidate(activeProjectCounterProvider);
+      },
+    );
+  }
+
+  /// 프로젝트 인라인 편집기 표시
+  void _showProjectInlineEditor(
+    Project project,
+    ProjectCounterState counterState,
+    Rect sourceRect,
+  ) {
+    _triggerHaptic(duration: 25, amplitude: 80);
+
+    showProjectInlineEditor(
+      context: context,
+      projectName: project.name,
+      currentRow: counterState.currentRow,
+      targetRow: counterState.targetRow,
+      progress: counterState.progress,
+      sourceRect: sourceRect,
+      onSave: (newName, newTargetRow) {
+        ref.read(projectsProvider.notifier).updateProject(
+          project.id,
+          name: newName,
+          targetRow: newTargetRow,
+        );
+        // 강제 리빌드
+        ref.invalidate(activeProjectProvider);
         ref.invalidate(activeProjectCounterProvider);
       },
     );

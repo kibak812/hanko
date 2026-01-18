@@ -1,21 +1,13 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_strings.dart';
-
-/// 더보기 메뉴 항목
-enum MoreMenuAction {
-  edit,
-  projects,
-  settings,
-}
 
 /// 보조 액션 버튼 행
-/// 되돌리기, 메모, 음성, 더보기
+/// 되돌리기, 메모, 음성, 설정
 class ActionButtons extends StatelessWidget {
   final VoidCallback? onUndo;
   final VoidCallback? onMemo;
   final VoidCallback onVoice;
-  final void Function(MoreMenuAction action) onMenuAction;
+  final VoidCallback onSettings;
   final bool isListening;
 
   const ActionButtons({
@@ -23,7 +15,7 @@ class ActionButtons extends StatelessWidget {
     this.onUndo,
     this.onMemo,
     required this.onVoice,
-    required this.onMenuAction,
+    required this.onSettings,
     this.isListening = false,
   });
 
@@ -54,9 +46,9 @@ class ActionButtons extends StatelessWidget {
           isDark: isDark,
         ),
         const SizedBox(width: 12),
-        _MoreButton(
+        _SettingsButton(
           isDark: isDark,
-          onAction: onMenuAction,
+          onPressed: onSettings,
         ),
       ],
     );
@@ -78,10 +70,8 @@ class _ActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = enabled
-        ? (isDark ? AppColors.textSecondaryDark : AppColors.textSecondary)
-        : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondary)
-            .withValues(alpha: 0.3);
+    final baseColor = isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+    final color = enabled ? baseColor : baseColor.withValues(alpha: 0.3);
 
     return GestureDetector(
       onTap: enabled ? onPressed : null,
@@ -143,13 +133,13 @@ class _VoiceButton extends StatelessWidget {
   }
 }
 
-class _MoreButton extends StatelessWidget {
+class _SettingsButton extends StatelessWidget {
   final bool isDark;
-  final void Function(MoreMenuAction action) onAction;
+  final VoidCallback onPressed;
 
-  const _MoreButton({
+  const _SettingsButton({
     required this.isDark,
-    required this.onAction,
+    required this.onPressed,
   });
 
   @override
@@ -157,45 +147,8 @@ class _MoreButton extends StatelessWidget {
     final textColor =
         isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
 
-    return PopupMenuButton<MoreMenuAction>(
-      onSelected: onAction,
-      offset: const Offset(0, -160),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      color: isDark ? AppColors.surfaceDark : Colors.white,
-      itemBuilder: (context) => [
-        PopupMenuItem<MoreMenuAction>(
-          value: MoreMenuAction.edit,
-          child: Row(
-            children: [
-              Icon(Icons.edit, size: 20, color: textColor),
-              const SizedBox(width: 12),
-              Text(AppStrings.edit),
-            ],
-          ),
-        ),
-        PopupMenuItem<MoreMenuAction>(
-          value: MoreMenuAction.projects,
-          child: Row(
-            children: [
-              Icon(Icons.list, size: 20, color: textColor),
-              const SizedBox(width: 12),
-              Text(AppStrings.myProjects),
-            ],
-          ),
-        ),
-        PopupMenuItem<MoreMenuAction>(
-          value: MoreMenuAction.settings,
-          child: Row(
-            children: [
-              Icon(Icons.settings, size: 20, color: textColor),
-              const SizedBox(width: 12),
-              Text(AppStrings.settings),
-            ],
-          ),
-        ),
-      ],
+    return GestureDetector(
+      onTap: onPressed,
       child: Container(
         width: 56,
         height: 56,
@@ -207,7 +160,7 @@ class _MoreButton extends StatelessWidget {
           ),
         ),
         child: Icon(
-          Icons.more_horiz,
+          Icons.settings,
           color: textColor,
           size: 24,
         ),

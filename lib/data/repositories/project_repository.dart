@@ -377,6 +377,16 @@ class ProjectRepository {
     _db.saveProject(project);
   }
 
+  /// 프로젝트 정보 업데이트
+  void updateProject(Project project, {String? name, int? targetRow}) {
+    if (name != null) project.name = name;
+    if (project.rowCounter.target != null) {
+      project.rowCounter.target!.targetValue = targetRow;
+      _db.saveCounter(project.rowCounter.target!);
+    }
+    _db.saveProject(project);
+  }
+
   // ============ 조회 ============
 
   /// 진행 중인 프로젝트 목록

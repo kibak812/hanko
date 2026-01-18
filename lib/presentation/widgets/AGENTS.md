@@ -10,6 +10,7 @@
 | `expandable_counter_option.dart` | 확장형 토글 카드 (프로젝트 설정용) |
 | `large_area_button.dart` | 카운터 하단 +/- 버튼 (넓은 터치 영역) |
 | `dialogs.dart` | 공통 다이얼로그 유틸리티 함수 |
+| `widget_extensions.dart` | BuildContext extension (getWidgetRect 등) |
 
 ## expandable_counter_option.dart
 
@@ -66,6 +67,15 @@ if (confirmed) {
 
 - `ads/` - 광고 관련 위젯
 - `common/` - 범용 공통 위젯
+
+## widget_extensions.dart
+
+BuildContext extension 모음. 위젯에서 공통으로 사용되는 유틸리티 메서드.
+
+```dart
+// 위젯의 Rect 가져오기 (롱프레스 시 소스 위치 전달용)
+final rect = context.getWidgetRect();
+```
 
 ## For AI Agents
 
