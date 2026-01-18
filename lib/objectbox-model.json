@@ -5,7 +5,7 @@
   "entities": [
     {
       "id": "1:3632591137761859193",
-      "lastPropertyId": "7:8865628590794396191",
+      "lastPropertyId": "9:684398579768846715",
       "name": "Counter",
       "properties": [
         {
@@ -43,6 +43,16 @@
           "id": "7:8865628590794396191",
           "name": "autoResetEnabled",
           "type": 1
+        },
+        {
+          "id": "8:1242216881074291197",
+          "name": "secondaryTypeIndex",
+          "type": 6
+        },
+        {
+          "id": "9:684398579768846715",
+          "name": "orderIndex",
+          "type": 6
         }
       ],
       "relations": []
@@ -113,6 +123,11 @@
           "id": "1:3282312659816922589",
           "name": "memos",
           "targetId": "3:1189483727074397873"
+        },
+        {
+          "id": "2:5758338300307667726",
+          "name": "secondaryCounters",
+          "targetId": "1:3632591137761859193"
         }
       ]
     },
@@ -148,7 +163,7 @@
   ],
   "lastEntityId": "3:1189483727074397873",
   "lastIndexId": "3:5656448226333148380",
-  "lastRelationId": "1:3282312659816922589",
+  "lastRelationId": "2:5758338300307667726",
   "lastSequenceId": "0:0",
   "modelVersion": 5,
   "modelVersionParserMinimum": 5,

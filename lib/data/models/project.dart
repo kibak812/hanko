@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:objectbox/objectbox.dart';
 import 'counter.dart';
 import 'row_memo.dart';
@@ -11,15 +12,17 @@ enum ProjectStatus {
 
 /// 카운터 액션 (되돌리기용)
 class CounterAction {
-  final String counterType; // 'row', 'stitch', 'pattern'
+  final String counterType; // 'row', 'stitch', 'pattern', 'secondary'
   final int previousValue;
   final int newValue;
   final DateTime timestamp;
+  final int? counterId; // 보조 카운터용 ID (secondary 타입일 때 사용)
 
   CounterAction({
     required this.counterType,
     required this.previousValue,
     required this.newValue,
+    this.counterId,
     DateTime? timestamp,
   }) : timestamp = timestamp ?? DateTime.now();
 
@@ -28,6 +31,7 @@ class CounterAction {
         'prev': previousValue,
         'new': newValue,
         'ts': timestamp.millisecondsSinceEpoch,
+        if (counterId != null) 'cid': counterId,
       };
 
   factory CounterAction.fromJson(Map<String, dynamic> json) {
@@ -35,6 +39,7 @@ class CounterAction {
       counterType: json['type'] as String,
       previousValue: json['prev'] as int,
       newValue: json['new'] as int,
+      counterId: json['cid'] as int?,
       timestamp: DateTime.fromMillisecondsSinceEpoch(json['ts'] as int),
     );
   }
@@ -62,6 +67,7 @@ class Project {
   final rowCounter = ToOne<Counter>();
   final stitchCounter = ToOne<Counter>();
   final patternCounter = ToOne<Counter>();
+  final secondaryCounters = ToMany<Counter>(); // 동적 보조 카운터들
   final memos = ToMany<RowMemo>();
 
   Project({
@@ -89,8 +95,7 @@ class Project {
       if (counterHistoryJson == '[]' || counterHistoryJson.isEmpty) {
         return [];
       }
-      // JSON 파싱
-      final List<dynamic> jsonList = _parseJsonArray(counterHistoryJson);
+      final List<dynamic> jsonList = jsonDecode(counterHistoryJson);
       return jsonList
           .map((item) => CounterAction.fromJson(item as Map<String, dynamic>))
           .toList();
@@ -105,93 +110,17 @@ class Project {
       return;
     }
     final jsonList = value.map((a) => a.toJson()).toList();
-    counterHistoryJson = _encodeJsonArray(jsonList);
+    counterHistoryJson = jsonEncode(jsonList);
   }
 
-  /// JSON 배열 파싱 헬퍼
-  static List<dynamic> _parseJsonArray(String json) {
-    // 간단한 JSON 배열 파서
-    if (json == '[]') return [];
-
-    final List<dynamic> result = [];
-    int depth = 0;
-    int start = 0;
-    bool inString = false;
-
-    for (int i = 0; i < json.length; i++) {
-      final char = json[i];
-
-      if (char == '"' && (i == 0 || json[i - 1] != '\\')) {
-        inString = !inString;
-      }
-
-      if (!inString) {
-        if (char == '[' || char == '{') {
-          if (depth == 0) start = i + 1;
-          depth++;
-        } else if (char == ']' || char == '}') {
-          depth--;
-          if (depth == 0 && char == '}') {
-            final objStr = json.substring(start - 1, i + 1);
-            result.add(_parseJsonObject(objStr));
-          }
-        }
-      }
-    }
-
-    return result;
-  }
-
-  /// JSON 객체 파싱 헬퍼
-  static Map<String, dynamic> _parseJsonObject(String json) {
-    final Map<String, dynamic> result = {};
-    // {로 시작하고 }로 끝나는지 확인
-    if (!json.startsWith('{') || !json.endsWith('}')) return result;
-
-    final content = json.substring(1, json.length - 1);
-    final parts = content.split(',');
-
-    for (final part in parts) {
-      final colonIdx = part.indexOf(':');
-      if (colonIdx == -1) continue;
-
-      var key = part.substring(0, colonIdx).trim();
-      var value = part.substring(colonIdx + 1).trim();
-
-      // 키에서 따옴표 제거
-      if (key.startsWith('"') && key.endsWith('"')) {
-        key = key.substring(1, key.length - 1);
-      }
-
-      // 값 파싱
-      if (value.startsWith('"') && value.endsWith('"')) {
-        result[key] = value.substring(1, value.length - 1);
-      } else {
-        result[key] = int.tryParse(value) ?? value;
-      }
-    }
-
-    return result;
-  }
-
-  /// JSON 배열 인코딩 헬퍼
-  static String _encodeJsonArray(List<Map<String, dynamic>> list) {
-    final items = list.map((map) {
-      final pairs = map.entries.map((e) {
-        final value = e.value is String ? '"${e.value}"' : e.value;
-        return '"${e.key}":$value';
-      }).join(',');
-      return '{$pairs}';
-    }).join(',');
-    return '[$items]';
-  }
-
-  void addCounterAction(String counterType, int previousValue, int newValue) {
+  void addCounterAction(String counterType, int previousValue, int newValue,
+      {int? counterId}) {
     final history = counterHistory;
     history.add(CounterAction(
       counterType: counterType,
       previousValue: previousValue,
       newValue: newValue,
+      counterId: counterId,
     ));
     // 최대 50개까지만 유지
     if (history.length > 50) {
@@ -289,7 +218,7 @@ class Project {
     }
   }
 
-  /// 되돌리기 (Undo) - 모든 카운터 지원
+  /// 되돌리기 (Undo) - 모든 카운터 지원 (보조 카운터 포함)
   bool undo() {
     final action = popCounterAction();
     if (action == null) return false;
@@ -304,6 +233,17 @@ class Project {
         break;
       case 'pattern':
         counter = patternCounter.target;
+        break;
+      case 'secondary':
+        if (action.counterId != null) {
+          try {
+            counter = secondaryCounters.firstWhere(
+              (c) => c.id == action.counterId,
+            );
+          } catch (_) {
+            counter = null;
+          }
+        }
         break;
     }
 
@@ -385,6 +325,80 @@ class Project {
       final prevValue = counter.value;
       counter.value = 0;
       addCounterAction('pattern', prevValue, counter.value);
+      _updateTimestamp();
+    }
+  }
+
+  // ============ Secondary Counter Operations ============
+
+  /// 보조 카운터 ID로 찾기
+  Counter? getSecondaryCounter(int counterId) {
+    try {
+      return secondaryCounters.firstWhere((c) => c.id == counterId);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// 보조 카운터 증가 (자동 리셋 포함)
+  /// Returns: (didAutoReset, isGoalReached)
+  (bool, bool) incrementSecondaryCounter(int counterId) {
+    final counter = getSecondaryCounter(counterId);
+    if (counter == null) return (false, false);
+
+    final prevValue = counter.value;
+    counter.value++;
+
+    bool didAutoReset = false;
+    bool isGoalReached = false;
+
+    // 반복 유형: 자동 리셋 체크
+    if (counter.secondaryType == SecondaryCounterType.repetition &&
+        counter.shouldAutoReset) {
+      counter.value = 0;
+      didAutoReset = true;
+    }
+
+    // 횟수 유형: 목표 달성 체크
+    if (counter.secondaryType == SecondaryCounterType.goal &&
+        counter.isCompleted) {
+      isGoalReached = true;
+    }
+
+    addCounterAction('secondary', prevValue, counter.value, counterId: counterId);
+    _updateTimestamp();
+    return (didAutoReset, isGoalReached);
+  }
+
+  /// 보조 카운터 감소
+  void decrementSecondaryCounter(int counterId) {
+    final counter = getSecondaryCounter(counterId);
+    if (counter != null && counter.value > 0) {
+      final prevValue = counter.value;
+      counter.value--;
+      addCounterAction('secondary', prevValue, counter.value, counterId: counterId);
+      _updateTimestamp();
+    }
+  }
+
+  /// 보조 카운터 리셋
+  void resetSecondaryCounter(int counterId) {
+    final counter = getSecondaryCounter(counterId);
+    if (counter != null) {
+      final prevValue = counter.value;
+      counter.value = 0;
+      addCounterAction('secondary', prevValue, counter.value, counterId: counterId);
+      _updateTimestamp();
+    }
+  }
+
+  /// 보조 카운터 값 직접 설정
+  void setSecondaryCounterValue(int counterId, int value) {
+    final counter = getSecondaryCounter(counterId);
+    if (counter != null && value >= 0) {
+      final prevValue = counter.value;
+      counter.value = value;
+      addCounterAction('secondary', prevValue, counter.value, counterId: counterId);
       _updateTimestamp();
     }
   }

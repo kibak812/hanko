@@ -142,16 +142,36 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
       }
     });
 
-    // 코 카운터 목표 달성 감지
+    // 카운터 이벤트 감지
     ref.listen<ProjectCounterState>(activeProjectCounterProvider, (previous, next) {
-      // 코 카운터 목표 달성
+      // 레거시: 코 카운터 목표 달성
       if (next.stitchGoalReached && !(previous?.stitchGoalReached ?? false)) {
         _showGoalCompletedDialog(next.stitchTarget!);
         ref.read(activeProjectCounterProvider.notifier).clearEventFlags();
       }
-      // 패턴 자동 리셋
+      // 레거시: 패턴 자동 리셋
       if (next.patternWasReset && !(previous?.patternWasReset ?? false)) {
         _showAutoResetToast(next.patternResetAt!);
+        ref.read(activeProjectCounterProvider.notifier).clearEventFlags();
+      }
+      // 동적 보조 카운터: 목표 달성
+      if (next.goalReachedCounterId != null &&
+          next.goalReachedCounterId != previous?.goalReachedCounterId) {
+        final counter = next.secondaryCounters.firstWhere(
+          (c) => c.id == next.goalReachedCounterId,
+          orElse: () => next.secondaryCounters.first,
+        );
+        _showSecondaryGoalCompletedDialog(counter.label, counter.targetValue!);
+        ref.read(activeProjectCounterProvider.notifier).clearEventFlags();
+      }
+      // 동적 보조 카운터: 자동 리셋
+      if (next.resetTriggeredCounterId != null &&
+          next.resetTriggeredCounterId != previous?.resetTriggeredCounterId) {
+        final counter = next.secondaryCounters.firstWhere(
+          (c) => c.id == next.resetTriggeredCounterId,
+          orElse: () => next.secondaryCounters.first,
+        );
+        _showSecondaryAutoResetToast(counter.label, counter.resetAt!);
         ref.read(activeProjectCounterProvider.notifier).clearEventFlags();
       }
     });
@@ -188,98 +208,110 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
                         child: MemoCard(memo: counterState.currentMemo!),
                       ),
 
-                    const Spacer(),
+                    // 스크롤 가능한 카운터 영역
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // 메인 숫자 표시 (인라인 +/- 버튼 포함)
+                            AnimatedBuilder(
+                              animation: _flashAnimation,
+                              builder: (context, child) {
+                                return Container(
+                                  decoration: BoxDecoration(
+                                    boxShadow: [
+                                      if (_flashAnimation.value > 0)
+                                        BoxShadow(
+                                          color: AppColors.primary
+                                              .withOpacity(0.3 * _flashAnimation.value),
+                                          blurRadius: 30,
+                                          spreadRadius: 10,
+                                        ),
+                                    ],
+                                  ),
+                                  child: child,
+                                );
+                              },
+                              child: CounterDisplay(
+                                value: counterState.currentRow,
+                                label: AppStrings.row,
+                                onIncrement: _onIncrement,
+                                onDecrement: _onDecrement,
+                              ),
+                            ),
 
-                    // 메인 숫자 표시 (인라인 +/- 버튼 포함)
-                    AnimatedBuilder(
-                      animation: _flashAnimation,
-                      builder: (context, child) {
-                        return Container(
-                          decoration: BoxDecoration(
-                            boxShadow: [
-                              if (_flashAnimation.value > 0)
-                                BoxShadow(
-                                  color: AppColors.primary
-                                      .withOpacity(0.3 * _flashAnimation.value),
-                                  blurRadius: 30,
-                                  spreadRadius: 10,
-                                ),
-                            ],
-                          ),
-                          child: child,
-                        );
-                      },
-                      child: CounterDisplay(
-                        value: counterState.currentRow,
-                        label: AppStrings.row,
-                        onIncrement: _onIncrement,
-                        onDecrement: _onDecrement,
+                            const SizedBox(height: 16),
+
+                            // 동적 보조 카운터 (2x2 그리드)
+                            if (counterState.secondaryCounters.isNotEmpty)
+                              LayoutBuilder(
+                                builder: (context, constraints) {
+                                  // 메인 카운터와 동일한 너비 사용
+                                  final totalWidth = constraints.maxWidth;
+                                  final spacing = 8.0;
+                                  final itemWidth = (totalWidth - spacing) / 2;
+
+                                  return Wrap(
+                                    spacing: spacing,
+                                    runSpacing: spacing,
+                                    children: [
+                                      for (final counter
+                                          in counterState.secondaryCounters)
+                                        SizedBox(
+                                          width: itemWidth,
+                                          child: SecondaryCounter(
+                                            id: counter.id,
+                                            value: counter.value,
+                                            label: counter.label,
+                                            type: counter.type,
+                                            targetValue: counter.type ==
+                                                    SecondaryCounterType.goal
+                                                ? counter.targetValue
+                                                : null,
+                                            resetAt: counter.type ==
+                                                    SecondaryCounterType.repetition
+                                                ? counter.resetAt
+                                                : null,
+                                            onIncrement: () {
+                                              final settings =
+                                                  ref.read(appSettingsProvider);
+                                              if (settings.hapticFeedback) {
+                                                _hapticFeedback(
+                                                    duration: 15, amplitude: 50);
+                                              }
+                                              ref
+                                                  .read(activeProjectCounterProvider
+                                                      .notifier)
+                                                  .incrementSecondaryCounter(
+                                                      counter.id);
+                                            },
+                                            onDecrement: () {
+                                              final settings =
+                                                  ref.read(appSettingsProvider);
+                                              if (settings.hapticFeedback) {
+                                                _hapticFeedback(
+                                                    duration: 15, amplitude: 50);
+                                              }
+                                              ref
+                                                  .read(activeProjectCounterProvider
+                                                      .notifier)
+                                                  .decrementSecondaryCounter(
+                                                      counter.id);
+                                            },
+                                            onLongPress: () =>
+                                                _showSecondaryCounterSettings(
+                                                    project, counter.id),
+                                          ),
+                                        ),
+                                    ],
+                                  );
+                                },
+                              ),
+                          ],
+                        ),
                       ),
                     ),
-
-                    const SizedBox(height: 24),
-
-                    // 보조 카운터 (코, 패턴)
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        if (project.stitchCounter.target != null)
-                          SecondaryCounter(
-                            value: counterState.currentStitch,
-                            label: AppStrings.stitch,
-                            targetValue: counterState.stitchTarget,
-                            onIncrement: () {
-                              final settings = ref.read(appSettingsProvider);
-                              if (settings.hapticFeedback) {
-                                _hapticFeedback(duration: 15, amplitude: 50);
-                              }
-                              ref
-                                  .read(activeProjectCounterProvider.notifier)
-                                  .incrementStitch();
-                            },
-                            onDecrement: () {
-                              final settings = ref.read(appSettingsProvider);
-                              if (settings.hapticFeedback) {
-                                _hapticFeedback(duration: 15, amplitude: 50);
-                              }
-                              ref
-                                  .read(activeProjectCounterProvider.notifier)
-                                  .decrementStitch();
-                            },
-                            onLongPress: () => _showStitchSettings(project),
-                          ),
-                        if (project.stitchCounter.target != null &&
-                            project.patternCounter.target != null)
-                          const SizedBox(width: 16),
-                        if (project.patternCounter.target != null)
-                          SecondaryCounter(
-                            value: counterState.currentPattern,
-                            label: AppStrings.pattern,
-                            resetAt: counterState.patternResetAt,
-                            onIncrement: () {
-                              final settings = ref.read(appSettingsProvider);
-                              if (settings.hapticFeedback) {
-                                _hapticFeedback(duration: 15, amplitude: 50);
-                              }
-                              ref
-                                  .read(activeProjectCounterProvider.notifier)
-                                  .incrementPattern();
-                            },
-                            onDecrement: () {
-                              final settings = ref.read(appSettingsProvider);
-                              if (settings.hapticFeedback) {
-                                _hapticFeedback(duration: 15, amplitude: 50);
-                              }
-                              ref
-                                  .read(activeProjectCounterProvider.notifier)
-                                  .decrementPattern();
-                            },
-                            onLongPress: () => _showPatternSettings(project),
-                          ),
-                      ],
-                    ),
-
-                    const Spacer(),
 
                     // 보조 액션 버튼
                     ActionButtons(
@@ -499,50 +531,92 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
     );
   }
 
-  /// 코 카운터 설정 바텀시트
-  void _showStitchSettings(dynamic project) {
-    final counterState = ref.read(activeProjectCounterProvider);
+  /// 동적 보조 카운터 목표 달성 다이얼로그
+  void _showSecondaryGoalCompletedDialog(String label, int target) {
+    final settings = ref.read(appSettingsProvider);
+    if (settings.hapticFeedback) {
+      _hapticFeedback(duration: 40, amplitude: 100);
+    }
 
-    showCounterSettingsSheet(
+    showDialog(
       context: context,
-      type: CounterType.stitch,
-      currentValue: counterState.currentStitch,
-      targetValue: counterState.stitchTarget,
-      onReset: () {
-        ref.read(activeProjectCounterProvider.notifier).resetStitch();
-      },
-      onTargetChanged: (value) {
-        ref.read(projectsProvider.notifier).updateStitchCounter(
-          project,
-          targetValue: value,
-        );
-      },
-      onRemove: () {
-        ref.read(projectsProvider.notifier).removeStitchCounter(project);
-      },
+      builder: (context) => AlertDialog(
+        icon: AppIcons.goalIcon(size: 48, color: AppColors.success),
+        title: Text('$label $target 완료!'),
+        content: const Text('목표에 도달했어요.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('확인'),
+          ),
+        ],
+      ),
     );
   }
 
-  /// 패턴 카운터 설정 바텀시트
-  void _showPatternSettings(dynamic project) {
-    final counterState = ref.read(activeProjectCounterProvider);
+  /// 동적 보조 카운터 자동 리셋 토스트
+  void _showSecondaryAutoResetToast(String label, int resetAt) {
+    final settings = ref.read(appSettingsProvider);
+    if (settings.hapticFeedback) {
+      _hapticFeedback(duration: 15, amplitude: 60);
+      Future.delayed(const Duration(milliseconds: 100), () {
+        _hapticFeedback(duration: 15, amplitude: 60);
+      });
+    }
 
-    showCounterSettingsSheet(
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            AppIcons.patternIcon(size: 20, color: Colors.white),
+            const SizedBox(width: 8),
+            Text('$label $resetAt회 완료 → 리셋됨'),
+          ],
+        ),
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: AppColors.primary,
+      ),
+    );
+  }
+
+  /// 동적 보조 카운터 설정 바텀시트
+  void _showSecondaryCounterSettings(dynamic project, int counterId) {
+    final counterState = ref.read(activeProjectCounterProvider);
+    final counter = counterState.secondaryCounters.firstWhere(
+      (c) => c.id == counterId,
+    );
+
+    showSecondaryCounterSettingsSheet(
       context: context,
-      type: CounterType.pattern,
-      currentValue: counterState.currentPattern,
-      resetAt: counterState.patternResetAt,
+      counterId: counterId,
+      label: counter.label,
+      type: counter.type,
+      currentValue: counter.value,
+      targetValue: counter.targetValue,
+      resetAt: counter.resetAt,
       onReset: () {
-        ref.read(activeProjectCounterProvider.notifier).resetPattern();
+        ref.read(activeProjectCounterProvider.notifier).resetSecondaryCounter(counterId);
       },
-      onTargetChanged: (value) {
-        ref.read(projectsProvider.notifier).updatePatternCounter(
-          project,
-          resetAt: value,
-        );
+      onSave: (newLabel, newTarget) {
+        if (counter.type == SecondaryCounterType.goal) {
+          ref.read(projectsProvider.notifier).updateSecondaryCounter(
+            project,
+            counterId,
+            label: newLabel,
+            targetValue: newTarget,
+          );
+        } else {
+          ref.read(projectsProvider.notifier).updateSecondaryCounter(
+            project,
+            counterId,
+            label: newLabel,
+            resetAt: newTarget,
+          );
+        }
       },
       onRemove: () {
-        ref.read(projectsProvider.notifier).removePatternCounter(project);
+        ref.read(projectsProvider.notifier).removeSecondaryCounter(project, counterId);
       },
     );
   }

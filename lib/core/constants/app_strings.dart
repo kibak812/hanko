@@ -121,4 +121,17 @@ class AppStrings {
   static const String changeTarget = '목표 변경';
   static const String current = '현재';
   static const String none = '없음';
+
+  // ============ 동적 보조 카운터 ============
+  static const String repetitionType = '반복';
+  static const String goalType = '횟수';
+  static const String addSecondaryCounter = '보조 카운터 추가';
+  static const String counterLabel = '카운터 이름';
+  static const String selectCounterType = '유형 선택';
+  static const String period = '주기';
+  static const String goal = '목표';
+  static const String everyNRows = '단마다';
+  static const String totalNTimes = '총 N번';
+  static const String secondaryCounterLimit = '무료 사용자는 보조 카운터를 2개까지 추가할 수 있어요';
+  static const String editCounter = '카운터 편집';
 }

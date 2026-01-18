@@ -52,6 +52,11 @@ class ObjectBoxDatabase {
       counterBox.put(project.patternCounter.target!);
     }
 
+    // 보조 카운터들 저장
+    for (final counter in project.secondaryCounters) {
+      counterBox.put(counter);
+    }
+
     // 메모들 저장
     for (final memo in project.memos) {
       memoBox.put(memo);
@@ -74,6 +79,11 @@ class ObjectBoxDatabase {
     }
     if (project.patternCounter.target != null) {
       counterBox.remove(project.patternCounter.target!.id);
+    }
+
+    // 보조 카운터 삭제
+    for (final counter in project.secondaryCounters) {
+      counterBox.remove(counter.id);
     }
 
     // 관련 메모 삭제

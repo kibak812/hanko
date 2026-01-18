@@ -1,8 +1,48 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../data/models/counter.dart';
 import '../../data/models/models.dart';
 import '../../data/repositories/project_repository.dart';
 import '../../data/datasources/local_storage.dart';
 import 'app_providers.dart';
+
+/// 보조 카운터 상태
+class SecondaryCounterState {
+  final int id;
+  final String label;
+  final SecondaryCounterType type;
+  final int value;
+  final int? targetValue; // goal 타입
+  final int? resetAt; // repetition 타입
+  final double progress;
+  final bool isCompleted;
+  final int orderIndex;
+
+  SecondaryCounterState({
+    required this.id,
+    required this.label,
+    required this.type,
+    required this.value,
+    this.targetValue,
+    this.resetAt,
+    this.progress = 0.0,
+    this.isCompleted = false,
+    this.orderIndex = 0,
+  });
+
+  factory SecondaryCounterState.fromCounter(Counter counter) {
+    return SecondaryCounterState(
+      id: counter.id,
+      label: counter.label,
+      type: counter.secondaryType,
+      value: counter.value,
+      targetValue: counter.targetValue,
+      resetAt: counter.resetAt,
+      progress: counter.progress,
+      isCompleted: counter.isCompleted,
+      orderIndex: counter.orderIndex,
+    );
+  }
+}
 
 /// 모든 프로젝트 목록 Provider
 final projectsProvider = StateNotifierProvider<ProjectsNotifier, List<Project>>((ref) {
@@ -72,6 +112,67 @@ class ProjectsNotifier extends StateNotifier<List<Project>> {
   /// 패턴 카운터 설정 업데이트
   void updatePatternCounter(Project project, {int? resetAt}) {
     _repository.updatePatternCounter(project, resetAt: resetAt);
+    refresh();
+  }
+
+  // ============ 동적 보조 카운터 관리 ============
+
+  /// 보조 카운터 추가 가능 여부
+  bool canAddSecondaryCounter(Project project, {required bool isPremium}) {
+    return _repository.canAddSecondaryCounter(project, isPremium: isPremium);
+  }
+
+  /// 보조 카운터 추가 (반복 유형)
+  Counter addSecondaryRepetitionCounter(
+    Project project, {
+    required String label,
+    int? resetAt,
+  }) {
+    final counter = _repository.addSecondaryRepetitionCounter(
+      project,
+      label: label,
+      resetAt: resetAt,
+    );
+    refresh();
+    return counter;
+  }
+
+  /// 보조 카운터 추가 (횟수 유형)
+  Counter addSecondaryGoalCounter(
+    Project project, {
+    required String label,
+    int? targetValue,
+  }) {
+    final counter = _repository.addSecondaryGoalCounter(
+      project,
+      label: label,
+      targetValue: targetValue,
+    );
+    refresh();
+    return counter;
+  }
+
+  /// 보조 카운터 제거
+  void removeSecondaryCounter(Project project, int counterId) {
+    _repository.removeSecondaryCounter(project, counterId);
+    refresh();
+  }
+
+  /// 보조 카운터 설정 업데이트
+  void updateSecondaryCounter(
+    Project project,
+    int counterId, {
+    String? label,
+    int? targetValue,
+    int? resetAt,
+  }) {
+    _repository.updateSecondaryCounter(
+      project,
+      counterId,
+      label: label,
+      targetValue: targetValue,
+      resetAt: resetAt,
+    );
     refresh();
   }
 
@@ -150,16 +251,21 @@ class ProjectCounterState {
   final RowMemo? currentMemo;
   final double progress;
 
-  // 보조 카운터 상태
+  // 보조 카운터 상태 (레거시 호환용)
   final int? stitchTarget;
   final int? patternResetAt;
   final double stitchProgress;
   final bool hasStitchCounter;
   final bool hasPatternCounter;
 
+  // 동적 보조 카운터 목록
+  final List<SecondaryCounterState> secondaryCounters;
+
   // 이벤트 플래그 (피드백용)
   final bool stitchGoalReached;
   final bool patternWasReset;
+  final int? goalReachedCounterId; // 목표 달성한 카운터 ID
+  final int? resetTriggeredCounterId; // 자동 리셋된 카운터 ID
 
   ProjectCounterState({
     this.currentRow = 0,
@@ -174,8 +280,11 @@ class ProjectCounterState {
     this.stitchProgress = 0.0,
     this.hasStitchCounter = false,
     this.hasPatternCounter = false,
+    this.secondaryCounters = const [],
     this.stitchGoalReached = false,
     this.patternWasReset = false,
+    this.goalReachedCounterId,
+    this.resetTriggeredCounterId,
   });
 
   ProjectCounterState copyWith({
@@ -191,8 +300,11 @@ class ProjectCounterState {
     double? stitchProgress,
     bool? hasStitchCounter,
     bool? hasPatternCounter,
+    List<SecondaryCounterState>? secondaryCounters,
     bool? stitchGoalReached,
     bool? patternWasReset,
+    int? goalReachedCounterId,
+    int? resetTriggeredCounterId,
   }) {
     return ProjectCounterState(
       currentRow: currentRow ?? this.currentRow,
@@ -207,8 +319,11 @@ class ProjectCounterState {
       stitchProgress: stitchProgress ?? this.stitchProgress,
       hasStitchCounter: hasStitchCounter ?? this.hasStitchCounter,
       hasPatternCounter: hasPatternCounter ?? this.hasPatternCounter,
+      secondaryCounters: secondaryCounters ?? this.secondaryCounters,
       stitchGoalReached: stitchGoalReached ?? this.stitchGoalReached,
       patternWasReset: patternWasReset ?? this.patternWasReset,
+      goalReachedCounterId: goalReachedCounterId,
+      resetTriggeredCounterId: resetTriggeredCounterId,
     );
   }
 }
@@ -227,6 +342,8 @@ class ActiveProjectCounterNotifier extends StateNotifier<ProjectCounterState> {
   static ProjectCounterState _buildState(Project? project, {
     bool stitchGoalReached = false,
     bool patternWasReset = false,
+    int? goalReachedCounterId,
+    int? resetTriggeredCounterId,
   }) {
     if (project == null) {
       return ProjectCounterState();
@@ -234,6 +351,12 @@ class ActiveProjectCounterNotifier extends StateNotifier<ProjectCounterState> {
 
     final stitchCounter = project.stitchCounter.target;
     final patternCounter = project.patternCounter.target;
+
+    // 동적 보조 카운터 상태 빌드
+    final secondaryCounterStates = project.secondaryCounters
+        .map((c) => SecondaryCounterState.fromCounter(c))
+        .toList()
+      ..sort((a, b) => a.orderIndex.compareTo(b.orderIndex));
 
     return ProjectCounterState(
       currentRow: project.currentRow,
@@ -248,29 +371,41 @@ class ActiveProjectCounterNotifier extends StateNotifier<ProjectCounterState> {
       stitchProgress: stitchCounter?.progress ?? 0.0,
       hasStitchCounter: stitchCounter != null,
       hasPatternCounter: patternCounter != null,
+      secondaryCounters: secondaryCounterStates,
       stitchGoalReached: stitchGoalReached,
       patternWasReset: patternWasReset,
+      goalReachedCounterId: goalReachedCounterId,
+      resetTriggeredCounterId: resetTriggeredCounterId,
     );
   }
 
   void _updateState({
     bool stitchGoalReached = false,
     bool patternWasReset = false,
+    int? goalReachedCounterId,
+    int? resetTriggeredCounterId,
   }) {
     state = _buildState(
       _project,
       stitchGoalReached: stitchGoalReached,
       patternWasReset: patternWasReset,
+      goalReachedCounterId: goalReachedCounterId,
+      resetTriggeredCounterId: resetTriggeredCounterId,
     );
     _refreshProjects();
   }
 
   /// 이벤트 플래그 초기화 (피드백 표시 후 호출)
   void clearEventFlags() {
-    if (state.stitchGoalReached || state.patternWasReset) {
+    if (state.stitchGoalReached ||
+        state.patternWasReset ||
+        state.goalReachedCounterId != null ||
+        state.resetTriggeredCounterId != null) {
       state = state.copyWith(
         stitchGoalReached: false,
         patternWasReset: false,
+        goalReachedCounterId: null,
+        resetTriggeredCounterId: null,
       );
     }
   }
@@ -376,6 +511,40 @@ class ActiveProjectCounterNotifier extends StateNotifier<ProjectCounterState> {
   void updateMemo(int memoId, int rowNumber, String content) {
     if (_project == null) return;
     _repository.updateMemo(_project, memoId, rowNumber, content);
+    _updateState();
+  }
+
+  // ============ 동적 보조 카운터 조작 ============
+
+  /// 보조 카운터 증가
+  void incrementSecondaryCounter(int counterId) {
+    if (_project == null) return;
+    final (didAutoReset, isGoalReached) =
+        _repository.incrementSecondaryCounter(_project, counterId);
+    _updateState(
+      goalReachedCounterId: isGoalReached ? counterId : null,
+      resetTriggeredCounterId: didAutoReset ? counterId : null,
+    );
+  }
+
+  /// 보조 카운터 감소
+  void decrementSecondaryCounter(int counterId) {
+    if (_project == null) return;
+    _repository.decrementSecondaryCounter(_project, counterId);
+    _updateState();
+  }
+
+  /// 보조 카운터 리셋
+  void resetSecondaryCounter(int counterId) {
+    if (_project == null) return;
+    _repository.resetSecondaryCounter(_project, counterId);
+    _updateState();
+  }
+
+  /// 보조 카운터 값 직접 설정
+  void setSecondaryCounterValue(int counterId, int value) {
+    if (_project == null) return;
+    _repository.setSecondaryCounterValue(_project, counterId, value);
     _updateState();
   }
 }

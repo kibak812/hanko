@@ -184,6 +184,106 @@ class ProjectRepository {
     _db.saveCounter(counter);
   }
 
+  // ============ 동적 보조 카운터 관리 ============
+
+  /// 무료 사용자 보조 카운터 제한 (개발용: 999)
+  static const int freeSecondaryCounterLimit = 999;
+
+  /// 보조 카운터 추가 가능 여부
+  bool canAddSecondaryCounter(Project project, {required bool isPremium}) {
+    if (isPremium) return true;
+    return project.secondaryCounters.length < freeSecondaryCounterLimit;
+  }
+
+  /// 보조 카운터 추가 (반복 유형)
+  Counter addSecondaryRepetitionCounter(
+    Project project, {
+    required String label,
+    int? resetAt,
+  }) {
+    final orderIndex = project.secondaryCounters.length;
+    final counter = Counter.secondaryRepetition(
+      label: label,
+      resetAt: resetAt,
+      orderIndex: orderIndex,
+    );
+    _db.counterBox.put(counter);
+    project.secondaryCounters.add(counter);
+    _db.saveProject(project);
+    return counter;
+  }
+
+  /// 보조 카운터 추가 (횟수 유형)
+  Counter addSecondaryGoalCounter(
+    Project project, {
+    required String label,
+    int? targetValue,
+  }) {
+    final orderIndex = project.secondaryCounters.length;
+    final counter = Counter.secondaryGoal(
+      label: label,
+      targetValue: targetValue,
+      orderIndex: orderIndex,
+    );
+    _db.counterBox.put(counter);
+    project.secondaryCounters.add(counter);
+    _db.saveProject(project);
+    return counter;
+  }
+
+  /// 보조 카운터 제거
+  void removeSecondaryCounter(Project project, int counterId) {
+    final counter = project.getSecondaryCounter(counterId);
+    if (counter == null) return;
+    project.secondaryCounters.removeWhere((c) => c.id == counterId);
+    _db.counterBox.remove(counterId);
+    _db.saveProject(project);
+  }
+
+  /// 보조 카운터 설정 업데이트
+  void updateSecondaryCounter(
+    Project project,
+    int counterId, {
+    String? label,
+    int? targetValue,
+    int? resetAt,
+  }) {
+    final counter = project.getSecondaryCounter(counterId);
+    if (counter == null) return;
+    if (label != null) counter.label = label;
+    if (targetValue != null) counter.targetValue = targetValue;
+    if (resetAt != null) {
+      counter.resetAt = resetAt;
+      counter.autoResetEnabled = true;
+    }
+    _db.saveCounter(counter);
+  }
+
+  /// 보조 카운터 증가
+  (bool, bool) incrementSecondaryCounter(Project project, int counterId) {
+    final result = project.incrementSecondaryCounter(counterId);
+    _saveProjectAndCounters(project);
+    return result;
+  }
+
+  /// 보조 카운터 감소
+  void decrementSecondaryCounter(Project project, int counterId) {
+    project.decrementSecondaryCounter(counterId);
+    _saveProjectAndCounters(project);
+  }
+
+  /// 보조 카운터 리셋
+  void resetSecondaryCounter(Project project, int counterId) {
+    project.resetSecondaryCounter(counterId);
+    _saveProjectAndCounters(project);
+  }
+
+  /// 보조 카운터 값 직접 설정
+  void setSecondaryCounterValue(Project project, int counterId, int value) {
+    project.setSecondaryCounterValue(counterId, value);
+    _saveProjectAndCounters(project);
+  }
+
   void _saveProjectAndCounters(Project project) {
     // 카운터들 저장
     if (project.rowCounter.target != null) {
@@ -194,6 +294,10 @@ class ProjectRepository {
     }
     if (project.patternCounter.target != null) {
       _db.saveCounter(project.patternCounter.target!);
+    }
+    // 보조 카운터들 저장
+    for (final counter in project.secondaryCounters) {
+      _db.saveCounter(counter);
     }
     // 프로젝트 저장
     _db.projectBox.put(project);

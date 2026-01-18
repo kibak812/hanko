@@ -7,6 +7,12 @@ enum CounterType {
   pattern, // 패턴 반복 카운터
 }
 
+/// 보조 카운터 유형
+enum SecondaryCounterType {
+  repetition, // 반복: 주기 도달 → 0으로 리셋
+  goal, // 횟수: 목표 도달 → 완료 표시
+}
+
 /// 카운터 엔티티
 /// 단, 코, 패턴 반복 등 다양한 카운터를 표현
 @Entity()
@@ -20,6 +26,8 @@ class Counter {
   int? targetValue; // 목표 값 (optional)
   int? resetAt; // 이 값에 도달하면 자동 리셋 (패턴 반복용)
   bool autoResetEnabled; // 자동 리셋 활성화 여부
+  int secondaryTypeIndex; // SecondaryCounterType enum index (보조 카운터용)
+  int orderIndex; // 정렬 순서 (보조 카운터용)
 
   Counter({
     this.id = 0,
@@ -29,6 +37,8 @@ class Counter {
     this.targetValue,
     this.resetAt,
     this.autoResetEnabled = false,
+    this.secondaryTypeIndex = 0,
+    this.orderIndex = 0,
   });
 
   /// CounterType getter
@@ -36,6 +46,14 @@ class Counter {
   CounterType get type => CounterType.values[typeIndex];
 
   set type(CounterType value) => typeIndex = value.index;
+
+  /// SecondaryCounterType getter
+  @Transient()
+  SecondaryCounterType get secondaryType =>
+      SecondaryCounterType.values[secondaryTypeIndex];
+
+  set secondaryType(SecondaryCounterType value) =>
+      secondaryTypeIndex = value.index;
 
   /// 현재 진행률 (0.0 ~ 1.0)
   @Transient()
@@ -65,6 +83,8 @@ class Counter {
     int? targetValue,
     int? resetAt,
     bool? autoResetEnabled,
+    SecondaryCounterType? secondaryType,
+    int? orderIndex,
   }) {
     return Counter(
       id: id ?? this.id,
@@ -74,6 +94,8 @@ class Counter {
       targetValue: targetValue ?? this.targetValue,
       resetAt: resetAt ?? this.resetAt,
       autoResetEnabled: autoResetEnabled ?? this.autoResetEnabled,
+      secondaryTypeIndex: secondaryType?.index ?? secondaryTypeIndex,
+      orderIndex: orderIndex ?? this.orderIndex,
     );
   }
 
@@ -121,6 +143,45 @@ class Counter {
       value: initialValue,
       resetAt: resetAt,
       autoResetEnabled: autoReset,
+    );
+  }
+
+  /// 보조 카운터 생성 헬퍼 (반복 유형)
+  factory Counter.secondaryRepetition({
+    int id = 0,
+    required String label,
+    int initialValue = 0,
+    int? resetAt,
+    int orderIndex = 0,
+  }) {
+    return Counter(
+      id: id,
+      typeIndex: CounterType.pattern.index,
+      label: label,
+      value: initialValue,
+      resetAt: resetAt,
+      autoResetEnabled: resetAt != null,
+      secondaryTypeIndex: SecondaryCounterType.repetition.index,
+      orderIndex: orderIndex,
+    );
+  }
+
+  /// 보조 카운터 생성 헬퍼 (횟수 유형)
+  factory Counter.secondaryGoal({
+    int id = 0,
+    required String label,
+    int initialValue = 0,
+    int? targetValue,
+    int orderIndex = 0,
+  }) {
+    return Counter(
+      id: id,
+      typeIndex: CounterType.stitch.index,
+      label: label,
+      value: initialValue,
+      targetValue: targetValue,
+      secondaryTypeIndex: SecondaryCounterType.goal.index,
+      orderIndex: orderIndex,
     );
   }
 

@@ -24,7 +24,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(1, 3632591137761859193),
     name: 'Counter',
-    lastPropertyId: const obx_int.IdUid(7, 8865628590794396191),
+    lastPropertyId: const obx_int.IdUid(9, 684398579768846715),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -67,6 +67,18 @@ final _entities = <obx_int.ModelEntity>[
         id: const obx_int.IdUid(7, 8865628590794396191),
         name: 'autoResetEnabled',
         type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(8, 1242216881074291197),
+        name: 'secondaryTypeIndex',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(9, 684398579768846715),
+        name: 'orderIndex',
+        type: 6,
         flags: 0,
       ),
     ],
@@ -148,6 +160,11 @@ final _entities = <obx_int.ModelEntity>[
         id: const obx_int.IdUid(1, 3282312659816922589),
         name: 'memos',
         targetId: const obx_int.IdUid(3, 1189483727074397873),
+      ),
+      obx_int.ModelRelation(
+        id: const obx_int.IdUid(2, 5758338300307667726),
+        name: 'secondaryCounters',
+        targetId: const obx_int.IdUid(1, 3632591137761859193),
       ),
     ],
     backlinks: <obx_int.ModelBacklink>[],
@@ -233,7 +250,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
     entities: _entities,
     lastEntityId: const obx_int.IdUid(3, 1189483727074397873),
     lastIndexId: const obx_int.IdUid(3, 5656448226333148380),
-    lastRelationId: const obx_int.IdUid(1, 3282312659816922589),
+    lastRelationId: const obx_int.IdUid(2, 5758338300307667726),
     lastSequenceId: const obx_int.IdUid(0, 0),
     retiredEntityUids: const [],
     retiredIndexUids: const [],
@@ -255,7 +272,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
       },
       objectToFB: (Counter object, fb.Builder fbb) {
         final labelOffset = fbb.writeString(object.label);
-        fbb.startTable(8);
+        fbb.startTable(10);
         fbb.addInt64(0, object.id);
         fbb.addInt64(1, object.typeIndex);
         fbb.addOffset(2, labelOffset);
@@ -263,6 +280,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addInt64(4, object.targetValue);
         fbb.addInt64(5, object.resetAt);
         fbb.addBool(6, object.autoResetEnabled);
+        fbb.addInt64(7, object.secondaryTypeIndex);
+        fbb.addInt64(8, object.orderIndex);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -306,6 +325,18 @@ obx_int.ModelDefinition getObjectBoxModel() {
           16,
           false,
         );
+        final secondaryTypeIndexParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          18,
+          0,
+        );
+        final orderIndexParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          20,
+          0,
+        );
         final object = Counter(
           id: idParam,
           typeIndex: typeIndexParam,
@@ -314,6 +345,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
           targetValue: targetValueParam,
           resetAt: resetAtParam,
           autoResetEnabled: autoResetEnabledParam,
+          secondaryTypeIndex: secondaryTypeIndexParam,
+          orderIndex: orderIndexParam,
         );
 
         return object;
@@ -328,6 +361,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
       ],
       toManyRelations: (Project object) => {
         obx_int.RelInfo<Project>.toMany(1, object.id): object.memos,
+        obx_int.RelInfo<Project>.toMany(2, object.id): object.secondaryCounters,
       },
       getId: (Project object) => object.id,
       setId: (Project object, int id) {
@@ -411,6 +445,11 @@ obx_int.ModelDefinition getObjectBoxModel() {
           object.memos,
           store,
           obx_int.RelInfo<Project>.toMany(1, object.id),
+        );
+        obx_int.InternalToManyAccess.setRelInfo<Project>(
+          object.secondaryCounters,
+          store,
+          obx_int.RelInfo<Project>.toMany(2, object.id),
         );
         return object;
       },
@@ -508,6 +547,16 @@ class Counter_ {
   static final autoResetEnabled = obx.QueryBooleanProperty<Counter>(
     _entities[0].properties[6],
   );
+
+  /// See [Counter.secondaryTypeIndex].
+  static final secondaryTypeIndex = obx.QueryIntegerProperty<Counter>(
+    _entities[0].properties[7],
+  );
+
+  /// See [Counter.orderIndex].
+  static final orderIndex = obx.QueryIntegerProperty<Counter>(
+    _entities[0].properties[8],
+  );
 }
 
 /// [Project] entity fields to define ObjectBox queries.
@@ -560,6 +609,11 @@ class Project_ {
   /// see [Project.memos]
   static final memos = obx.QueryRelationToMany<Project, RowMemo>(
     _entities[1].relations[0],
+  );
+
+  /// see [Project.secondaryCounters]
+  static final secondaryCounters = obx.QueryRelationToMany<Project, Counter>(
+    _entities[1].relations[1],
   );
 }
 

@@ -5,12 +5,18 @@
 ## [Unreleased]
 
 ### Added
-- 공통 카운터 히스토리 (`CounterAction`) - 모든 카운터(단/코/패턴) 되돌리기 지원
+- **동적 보조 카운터 시스템** - 반복(주기) / 횟수(목표) 두 가지 유형
+- 보조 카운터 추가 바텀시트 (`AddSecondaryCounterSheet`)
+- 보조 카운터 마이그레이션 유틸 (`migration_utils.dart`) - 기존 코/패턴 카운터 자동 변환
+- `SecondaryCounterType` enum (repetition, goal)
+- `Counter` 모델에 `secondaryTypeIndex`, `orderIndex` 필드 추가
+- `Project` 모델에 `secondaryCounters` ToMany 관계 추가
+- 공통 카운터 히스토리 (`CounterAction`) - 모든 카운터(단/코/패턴/보조) 되돌리기 지원
 - 메인 카운터 인라인 +/- 버튼 (`CounterDisplay`)
 - 보조 카운터 인라인 +/- 버튼 및 `onDecrement` 콜백
 - `decrementPattern()` 메서드 (Repository, Provider)
 - 보조 카운터 기능 완성: 코 카운터 목표값, 패턴 자동 리셋
-- 카운터 설정 바텀시트 (`CounterSettingsSheet`) - 롱프레스로 열기
+- 카운터 설정 바텀시트 (`CounterSettingsSheet`) - 롱프레스로 열기, 라벨 편집 지원
 - 확장형 카운터 옵션 위젯 (`ExpandableCounterOption`)
 - SVG 아이콘 시스템 (`AppIcons`) - 코/패턴/목표 아이콘
 - 목표 달성 다이얼로그 및 자동 리셋 토스트 알림
@@ -26,6 +32,9 @@
 - 메모 목록 화면 (`MemoListScreen`) 및 `/memos` 라우트
 
 ### Changed
+- **메인 카운터 UI 리디자인**: 상단 70% 숫자영역, 하단 30% -/+ 버튼 분리
+- **보조 카운터 UI 리디자인**: 상단 라벨 + 진행률 바, 하단 -/+ 버튼
+- 카운터 히스토리 JSON 파서를 `dart:convert` 표준 라이브러리로 교체 (되돌리기 버그 수정)
 - 카운터 조작 UX 통일: 모든 카운터에 인라인 +/- 버튼 적용
 - 화면 탭으로 카운터 증가 기능 제거 (명시적 버튼 조작으로 변경)
 - 보조 카운터: 탭(+1) 제거 → 인라인 +/- 버튼으로 조작
@@ -46,6 +55,11 @@
 - 새 프로젝트 생성 후 메인 화면으로 이동 (온보딩에서 저장 시 작동 안하던 버그 수정)
 - 액션 버튼 UI 미니멀화: 텍스트 레이블 제거, 아이콘만 표시
 
+### Fixed
+- 되돌리기 버튼 비활성화 버그 수정 (커스텀 JSON 파서 → dart:convert로 교체)
+- 메인 화면 레이아웃 패딩 문제 수정 (Spacer 제거)
+- 보조 카운터 삭제 시 UI 즉시 반영 안되는 문제 수정
+
 ### Removed
 - 메인 +1 버튼 제거 (화면 탭으로 대체)
 - 마일스톤 토스트 알림 제거 (10단 단위)
@@ -54,6 +68,7 @@
 
 ### Dev
 - 음성 제한 999회로 변경 (개발용)
+- 보조 카운터 제한 999개로 변경 (개발용)
 
 ---
 

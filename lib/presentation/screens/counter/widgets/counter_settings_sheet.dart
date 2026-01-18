@@ -448,19 +448,378 @@ void showCounterSettingsSheet({
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (context) => Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
-      child: CounterSettingsSheet(
-        type: type,
-        currentValue: currentValue,
-        targetValue: targetValue,
-        resetAt: resetAt,
-        onReset: onReset,
-        onTargetChanged: onTargetChanged,
-        onRemove: onRemove,
-      ),
+    builder: (context) => CounterSettingsSheet(
+      type: type,
+      currentValue: currentValue,
+      targetValue: targetValue,
+      resetAt: resetAt,
+      onReset: onReset,
+      onTargetChanged: onTargetChanged,
+      onRemove: onRemove,
     ),
   );
+}
+
+/// 동적 보조 카운터 설정 바텀시트 표시 헬퍼
+void showSecondaryCounterSettingsSheet({
+  required BuildContext context,
+  required int counterId,
+  required String label,
+  required SecondaryCounterType type,
+  required int currentValue,
+  int? targetValue,
+  int? resetAt,
+  required VoidCallback onReset,
+  required void Function(String? label, int? targetValue) onSave,
+  VoidCallback? onRemove,
+}) {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (context) => SecondaryCounterSettingsSheet(
+      counterId: counterId,
+      label: label,
+      type: type,
+      currentValue: currentValue,
+      targetValue: targetValue,
+      resetAt: resetAt,
+      onReset: onReset,
+      onSave: onSave,
+      onRemove: onRemove,
+    ),
+  );
+}
+
+/// 동적 보조 카운터 설정 시트 (심플 버전)
+class SecondaryCounterSettingsSheet extends StatefulWidget {
+  final int counterId;
+  final String label;
+  final SecondaryCounterType type;
+  final int currentValue;
+  final int? targetValue;
+  final int? resetAt;
+  final VoidCallback onReset;
+  final void Function(String? label, int? targetValue) onSave;
+  final VoidCallback? onRemove;
+
+  const SecondaryCounterSettingsSheet({
+    super.key,
+    required this.counterId,
+    required this.label,
+    required this.type,
+    required this.currentValue,
+    this.targetValue,
+    this.resetAt,
+    required this.onReset,
+    required this.onSave,
+    this.onRemove,
+  });
+
+  @override
+  State<SecondaryCounterSettingsSheet> createState() =>
+      _SecondaryCounterSettingsSheetState();
+}
+
+class _SecondaryCounterSettingsSheetState
+    extends State<SecondaryCounterSettingsSheet> {
+  late TextEditingController _labelController;
+  late TextEditingController _targetController;
+  bool _isEditingLabel = false;
+
+  bool get isGoalType => widget.type == SecondaryCounterType.goal;
+  String get valueLabel => isGoalType ? '목표 (선택)' : '주기 (선택)';
+  String get valueHint => isGoalType ? '예: 10' : '예: 4';
+  int? get displayTarget => isGoalType ? widget.targetValue : widget.resetAt;
+
+  @override
+  void initState() {
+    super.initState();
+    _labelController = TextEditingController(text: widget.label);
+    _targetController = TextEditingController(
+      text: displayTarget?.toString() ?? '',
+    );
+  }
+
+  @override
+  void dispose() {
+    _labelController.dispose();
+    _targetController.dispose();
+    super.dispose();
+  }
+
+  void _onSave() {
+    final newLabel = _labelController.text.trim();
+    final newTarget = int.tryParse(_targetController.text.trim());
+
+    // 변경사항 확인
+    final labelChanged = newLabel.isNotEmpty && newLabel != widget.label;
+    final targetChanged = newTarget != displayTarget;
+
+    if (labelChanged || targetChanged) {
+      widget.onSave(
+        labelChanged ? newLabel : null,
+        targetChanged ? newTarget : displayTarget,
+      );
+    }
+    Navigator.pop(context);
+  }
+
+  void _onReset() {
+    widget.onReset();
+    Navigator.pop(context);
+  }
+
+  void _onRemove() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('카운터 제거'),
+        content: const Text('이 카운터를 제거할까요?\n현재 값은 사라집니다.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('취소'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.pop(context);
+              widget.onRemove?.call();
+            },
+            style: TextButton.styleFrom(
+              foregroundColor: AppColors.error,
+            ),
+            child: const Text('제거'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textSecondary =
+        isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Container(
+        // 키보드가 올라와도 바텀시트 높이 고정
+        height: 420 + (widget.onRemove != null ? 48 : 0),
+        margin: EdgeInsets.only(bottom: bottomInset),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.surfaceDark : Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+      child: Column(
+        children: [
+          // 핸들
+          Padding(
+            padding: const EdgeInsets.only(top: 16),
+            child: Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.borderDark : AppColors.border,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+          ),
+
+          // 스크롤 가능한 콘텐츠
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 라벨 (터치하여 편집)
+                  GestureDetector(
+                    onTap: () {
+                      setState(() => _isEditingLabel = true);
+                    },
+                    child: _isEditingLabel
+                        ? TextField(
+                            controller: _labelController,
+                            autofocus: true,
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w600,
+                              color: isDark
+                                  ? AppColors.textPrimaryDark
+                                  : AppColors.textPrimary,
+                            ),
+                            decoration: InputDecoration(
+                              isDense: true,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              suffixIcon: IconButton(
+                                icon: const Icon(Icons.check, size: 20),
+                                onPressed: () {
+                                  setState(() => _isEditingLabel = false);
+                                },
+                              ),
+                            ),
+                            onSubmitted: (_) {
+                              setState(() => _isEditingLabel = false);
+                            },
+                          )
+                        : Row(
+                            children: [
+                              Icon(
+                                isGoalType ? Icons.flag : Icons.refresh,
+                                size: 20,
+                                color: AppColors.primary,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  _labelController.text,
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w600,
+                                    color: isDark
+                                        ? AppColors.textPrimaryDark
+                                        : AppColors.textPrimary,
+                                  ),
+                                ),
+                              ),
+                              Icon(
+                                Icons.edit,
+                                size: 16,
+                                color: textSecondary.withAlpha(128),
+                              ),
+                            ],
+                          ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    isGoalType ? '횟수 카운터' : '반복 카운터',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: textSecondary,
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // 현재 값
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? AppColors.backgroundDark
+                          : AppColors.background,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      children: [
+                        Text(
+                          '${widget.currentValue}',
+                          style: TextStyle(
+                            fontSize: 36,
+                            fontWeight: FontWeight.w700,
+                            color: isDark
+                                ? AppColors.textPrimaryDark
+                                : AppColors.textPrimary,
+                          ),
+                        ),
+                        if (displayTarget != null)
+                          Text(
+                            '/ $displayTarget',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: textSecondary,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // 목표/주기 입력
+                  Text(
+                    valueLabel,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _targetController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      hintText: valueHint,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // 액션 버튼
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: _onReset,
+                          icon: const Icon(Icons.refresh, size: 18),
+                          label: const Text('리셋'),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: _onSave,
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                          child: const Text('저장'),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  // 제거 버튼
+                  if (widget.onRemove != null) ...[
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: double.infinity,
+                      child: TextButton(
+                        onPressed: _onRemove,
+                        style: TextButton.styleFrom(
+                          foregroundColor: AppColors.error,
+                        ),
+                        child: const Text('카운터 제거'),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+      ),
+    );
+  }
 }
