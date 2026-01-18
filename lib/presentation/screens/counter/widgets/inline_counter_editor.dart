@@ -48,6 +48,11 @@ class _InlineCounterEditorState extends State<InlineCounterEditor>
   late SecondaryCounterType _currentType;
   bool _animationsInitialized = false;
 
+  // 포커스 상태 추적 (키보드 닫기용)
+  late FocusNode _labelFocusNode;
+  late FocusNode _targetFocusNode;
+  bool _hasFocus = false;
+
   String _originalLabel = '';
   String _originalTarget = '';
   SecondaryCounterType? _originalType;
@@ -68,6 +73,9 @@ class _InlineCounterEditorState extends State<InlineCounterEditor>
     _labelController = TextEditingController(text: widget.label);
     _targetController = TextEditingController(text: _originalTarget);
 
+    _labelFocusNode = FocusNode()..addListener(_onFocusChange);
+    _targetFocusNode = FocusNode()..addListener(_onFocusChange);
+
     _controller = AnimationController(
       duration: const Duration(milliseconds: 250),
       reverseDuration: const Duration(milliseconds: 200),
@@ -77,6 +85,12 @@ class _InlineCounterEditorState extends State<InlineCounterEditor>
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeOut),
     );
+  }
+
+  void _onFocusChange() {
+    setState(() {
+      _hasFocus = _labelFocusNode.hasFocus || _targetFocusNode.hasFocus;
+    });
   }
 
   void _initializePositionAnimation(Size screenSize) {
@@ -107,7 +121,22 @@ class _InlineCounterEditorState extends State<InlineCounterEditor>
     _controller.dispose();
     _labelController.dispose();
     _targetController.dispose();
+    _labelFocusNode.removeListener(_onFocusChange);
+    _targetFocusNode.removeListener(_onFocusChange);
+    _labelFocusNode.dispose();
+    _targetFocusNode.dispose();
     super.dispose();
+  }
+
+  /// 배경 탭 핸들러: 키보드 열려있으면 키보드만 닫고, 아니면 편집기 닫기
+  void _handleBackgroundTap() {
+    if (_hasFocus) {
+      // 키보드가 열려있으면 포커스 해제 (키보드만 닫기)
+      FocusScope.of(context).unfocus();
+    } else {
+      // 키보드가 없으면 편집기 닫기
+      _handleClose();
+    }
   }
 
   void _handleClose() {
@@ -154,13 +183,17 @@ class _InlineCounterEditorState extends State<InlineCounterEditor>
 
     _initializePositionAnimation(screenSize);
 
+    // 키보드 높이 감지
+    final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+    final hasKeyboard = keyboardHeight > 0;
+
     return Material(
       type: MaterialType.transparency,
       child: Stack(
         children: [
           // 배경
           GestureDetector(
-            onTap: _handleClose,
+            onTap: _handleBackgroundTap,
             child: AnimatedBuilder(
               animation: _fadeAnimation,
               builder: (context, child) => Container(
@@ -175,9 +208,17 @@ class _InlineCounterEditorState extends State<InlineCounterEditor>
             builder: (context, child) {
               final position = _positionAnimation?.value ??
                   Offset(widget.sourceRect.left, widget.sourceRect.top);
-              return Positioned(
+
+              // 키보드가 열렸을 때 카드 위치 조정
+              final adjustedTop = hasKeyboard
+                  ? (position.dy - keyboardHeight / 2).clamp(40.0, position.dy)
+                  : position.dy;
+
+              return AnimatedPositioned(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOut,
                 left: position.dx,
-                top: position.dy,
+                top: adjustedTop,
                 child: Opacity(
                   opacity: _fadeAnimation.value.clamp(0.0, 1.0),
                   child: Transform.scale(
@@ -234,6 +275,7 @@ class _InlineCounterEditorState extends State<InlineCounterEditor>
           // 라벨 입력
           TextField(
             controller: _labelController,
+            focusNode: _labelFocusNode,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 16,
@@ -305,6 +347,7 @@ class _InlineCounterEditorState extends State<InlineCounterEditor>
               Expanded(
                 child: TextField(
                   controller: _targetController,
+                  focusNode: _targetFocusNode,
                   keyboardType: TextInputType.number,
                   textAlign: TextAlign.center,
                   style: TextStyle(
@@ -314,7 +357,7 @@ class _InlineCounterEditorState extends State<InlineCounterEditor>
                   ),
                   decoration: InputDecoration(
                     isDense: true,
-                    hintText: isGoalType ? '없음' : '없음',
+                    hintText: '없음',
                     hintStyle: TextStyle(color: textSecondary.withAlpha(100)),
                     contentPadding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -369,7 +412,6 @@ class _InlineCounterEditorState extends State<InlineCounterEditor>
   }
 
   Widget _buildTypeSegment(bool isDark) {
-    final selectedColor = AppColors.primary;
     final unselectedColor =
         isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
     final bgColor = isDark
@@ -409,7 +451,7 @@ class _InlineCounterEditorState extends State<InlineCounterEditor>
                     Icon(
                       Icons.flag,
                       size: 16,
-                      color: isGoalType ? selectedColor : unselectedColor,
+                      color: isGoalType ? AppColors.primary : unselectedColor,
                     ),
                     const SizedBox(width: 4),
                     Text(
@@ -418,7 +460,7 @@ class _InlineCounterEditorState extends State<InlineCounterEditor>
                         fontSize: 13,
                         fontWeight:
                             isGoalType ? FontWeight.w600 : FontWeight.w500,
-                        color: isGoalType ? selectedColor : unselectedColor,
+                        color: isGoalType ? AppColors.primary : unselectedColor,
                       ),
                     ),
                   ],
@@ -452,7 +494,7 @@ class _InlineCounterEditorState extends State<InlineCounterEditor>
                     Icon(
                       Icons.refresh,
                       size: 16,
-                      color: !isGoalType ? selectedColor : unselectedColor,
+                      color: !isGoalType ? AppColors.primary : unselectedColor,
                     ),
                     const SizedBox(width: 4),
                     Text(
@@ -461,7 +503,7 @@ class _InlineCounterEditorState extends State<InlineCounterEditor>
                         fontSize: 13,
                         fontWeight:
                             !isGoalType ? FontWeight.w600 : FontWeight.w500,
-                        color: !isGoalType ? selectedColor : unselectedColor,
+                        color: !isGoalType ? AppColors.primary : unselectedColor,
                       ),
                     ),
                   ],
