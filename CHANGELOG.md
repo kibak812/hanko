@@ -4,6 +4,11 @@
 
 ## [Unreleased]
 
+### Changed
+- 프로젝트명 옆 실뭉치 이모지(🧶) 제거 - 상단바, 프로젝트 카드, 인라인 편집기
+- 새 프로젝트 생성 시 보조 카운터 방식 통일: 레거시(코/패턴) → 현재 방식(횟수/반복)
+- `withOpacity()` → `withValues(alpha:)` 마이그레이션 (deprecated API 제거)
+
 ### Added
 - 프로젝트 인라인 편집기 (`ProjectInlineEditor`) - 상단바 롱프레스 시 프로젝트명/목표 단수 편집
 - 보조 카운터 목표 달성 시 체크마크 배지 (우상단 원형)

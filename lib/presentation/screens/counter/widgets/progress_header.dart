@@ -42,7 +42,6 @@ class ProgressHeader extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Text('🧶 ', style: TextStyle(fontSize: 18)),
                 Expanded(
                   child: Text(
                     projectName,

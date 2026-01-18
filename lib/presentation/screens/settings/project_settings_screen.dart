@@ -2,13 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_icons.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../data/models/counter.dart';
 import '../../providers/app_providers.dart';
 import '../../providers/project_provider.dart';
 import '../../widgets/dialogs.dart';
-import '../../widgets/expandable_counter_option.dart';
 import 'widgets/add_secondary_counter_sheet.dart';
 
 /// 프로젝트 생성/편집 화면
@@ -25,19 +23,25 @@ class ProjectSettingsScreen extends ConsumerStatefulWidget {
       _ProjectSettingsScreenState();
 }
 
+/// 새 프로젝트용 임시 보조 카운터 데이터
+class _PendingSecondaryCounter {
+  final String label;
+  final SecondaryCounterType type;
+  final int? value;
+
+  _PendingSecondaryCounter({
+    required this.label,
+    required this.type,
+    this.value,
+  });
+}
+
 class _ProjectSettingsScreenState extends ConsumerState<ProjectSettingsScreen> {
   late TextEditingController _nameController;
   late TextEditingController _targetRowController;
 
-  // 보조 카운터 설정 (레거시 - 새 프로젝트 생성용)
-  bool _includeStitchCounter = false;
-  bool _includePatternCounter = false;
-  int? _stitchTarget;
-  int? _patternResetAt;
-
-  // 편집 모드에서 기존 카운터 존재 여부
-  bool _hadStitchCounter = false;
-  bool _hadPatternCounter = false;
+  // 새 프로젝트용 임시 보조 카운터 목록
+  final List<_PendingSecondaryCounter> _pendingSecondaryCounters = [];
 
   bool get isEditing => widget.projectId != null;
 
@@ -55,18 +59,6 @@ class _ProjectSettingsScreenState extends ConsumerState<ProjectSettingsScreen> {
         if (project != null) {
           _nameController.text = project.name;
           _targetRowController.text = project.targetRow?.toString() ?? '';
-
-          final stitchCounter = project.stitchCounter.target;
-          final patternCounter = project.patternCounter.target;
-
-          setState(() {
-            _includeStitchCounter = stitchCounter != null;
-            _includePatternCounter = patternCounter != null;
-            _stitchTarget = stitchCounter?.targetValue;
-            _patternResetAt = patternCounter?.resetAt;
-            _hadStitchCounter = stitchCounter != null;
-            _hadPatternCounter = patternCounter != null;
-          });
         }
       }
     });
@@ -96,27 +88,7 @@ class _ProjectSettingsScreenState extends ConsumerState<ProjectSettingsScreen> {
           ref.read(projectRepositoryProvider).getProject(widget.projectId!);
       if (project != null) {
         final notifier = ref.read(projectsProvider.notifier);
-
-        // 이름 변경
         notifier.renameProject(project, name);
-
-        // 코 카운터 추가/제거/업데이트 (레거시)
-        if (_includeStitchCounter && !_hadStitchCounter) {
-          notifier.addStitchCounter(project, targetValue: _stitchTarget);
-        } else if (!_includeStitchCounter && _hadStitchCounter) {
-          notifier.removeStitchCounter(project);
-        } else if (_includeStitchCounter && _hadStitchCounter) {
-          notifier.updateStitchCounter(project, targetValue: _stitchTarget);
-        }
-
-        // 패턴 카운터 추가/제거/업데이트 (레거시)
-        if (_includePatternCounter && !_hadPatternCounter) {
-          notifier.addPatternCounter(project, resetAt: _patternResetAt);
-        } else if (!_includePatternCounter && _hadPatternCounter) {
-          notifier.removePatternCounter(project);
-        } else if (_includePatternCounter && _hadPatternCounter) {
-          notifier.updatePatternCounter(project, resetAt: _patternResetAt);
-        }
       }
       context.pop();
     } else {
@@ -124,11 +96,25 @@ class _ProjectSettingsScreenState extends ConsumerState<ProjectSettingsScreen> {
       final newProject = ref.read(projectsProvider.notifier).createProject(
             name: name,
             targetRow: targetRow,
-            includeStitchCounter: _includeStitchCounter,
-            includePatternCounter: _includePatternCounter,
-            stitchTarget: _stitchTarget,
-            patternResetAt: _patternResetAt,
           );
+
+      // 보조 카운터 추가
+      final notifier = ref.read(projectsProvider.notifier);
+      for (final counter in _pendingSecondaryCounters) {
+        if (counter.type == SecondaryCounterType.goal) {
+          notifier.addSecondaryGoalCounter(
+            newProject,
+            label: counter.label,
+            targetValue: counter.value,
+          );
+        } else {
+          notifier.addSecondaryRepetitionCounter(
+            newProject,
+            label: counter.label,
+            resetAt: counter.value,
+          );
+        }
+      }
 
       // 새 프로젝트를 활성화
       ref
@@ -141,36 +127,54 @@ class _ProjectSettingsScreenState extends ConsumerState<ProjectSettingsScreen> {
   }
 
   void _addSecondaryCounter() {
-    final project =
-        ref.read(projectRepositoryProvider).getProject(widget.projectId!);
-    if (project == null) return;
+    if (isEditing) {
+      // 편집 모드: 기존 프로젝트에 직접 추가
+      final project =
+          ref.read(projectRepositoryProvider).getProject(widget.projectId!);
+      if (project == null) return;
 
-    final isPremium = ref.read(premiumStatusProvider);
-    final canAdd = ref
-        .read(projectsProvider.notifier)
-        .canAddSecondaryCounter(project, isPremium: isPremium);
+      final isPremium = ref.read(premiumStatusProvider);
+      final canAdd = ref
+          .read(projectsProvider.notifier)
+          .canAddSecondaryCounter(project, isPremium: isPremium);
 
-    showAddSecondaryCounterSheet(
-      context: context,
-      canAdd: canAdd,
-      onAdd: (label, type, value) {
-        final notifier = ref.read(projectsProvider.notifier);
-        if (type == SecondaryCounterType.goal) {
-          notifier.addSecondaryGoalCounter(
-            project,
-            label: label,
-            targetValue: value,
-          );
-        } else {
-          notifier.addSecondaryRepetitionCounter(
-            project,
-            label: label,
-            resetAt: value,
-          );
-        }
-        setState(() {});
-      },
-    );
+      showAddSecondaryCounterSheet(
+        context: context,
+        canAdd: canAdd,
+        onAdd: (label, type, value) {
+          final notifier = ref.read(projectsProvider.notifier);
+          if (type == SecondaryCounterType.goal) {
+            notifier.addSecondaryGoalCounter(
+              project,
+              label: label,
+              targetValue: value,
+            );
+          } else {
+            notifier.addSecondaryRepetitionCounter(
+              project,
+              label: label,
+              resetAt: value,
+            );
+          }
+          setState(() {});
+        },
+      );
+    } else {
+      // 새 프로젝트 모드: 임시 목록에 추가
+      showAddSecondaryCounterSheet(
+        context: context,
+        canAdd: true,
+        onAdd: (label, type, value) {
+          setState(() {
+            _pendingSecondaryCounters.add(_PendingSecondaryCounter(
+              label: label,
+              type: type,
+              value: value,
+            ));
+          });
+        },
+      );
+    }
   }
 
   @override
@@ -246,8 +250,8 @@ class _ProjectSettingsScreenState extends ConsumerState<ProjectSettingsScreen> {
               style: TextStyle(
                 fontSize: 12,
                 color: isDark
-                    ? AppColors.textSecondaryDark.withOpacity(0.7)
-                    : AppColors.textSecondary.withOpacity(0.7),
+                    ? AppColors.textSecondaryDark.withValues(alpha: 0.7)
+                    : AppColors.textSecondary.withValues(alpha: 0.7),
               ),
             ),
 
@@ -268,9 +272,8 @@ class _ProjectSettingsScreenState extends ConsumerState<ProjectSettingsScreen> {
             ),
             const SizedBox(height: 12),
 
-            // 편집 모드: 동적 보조 카운터 목록
+            // 편집 모드: 기존 프로젝트의 보조 카운터 목록
             if (isEditing && project != null) ...[
-              // 기존 보조 카운터들 표시
               if (project.secondaryCounters.isNotEmpty) ...[
                 ...project.secondaryCounters.map((counter) {
                   return Padding(
@@ -293,78 +296,46 @@ class _ProjectSettingsScreenState extends ConsumerState<ProjectSettingsScreen> {
                 }),
                 const SizedBox(height: 8),
               ],
-
-              // 보조 카운터 추가 버튼
-              OutlinedButton.icon(
-                onPressed: _addSecondaryCounter,
-                icon: const Icon(Icons.add),
-                label: const Text(AppStrings.addSecondaryCounter),
-                style: OutlinedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 48),
-                ),
-              ),
             ] else ...[
-              // 새 프로젝트: 기존 방식 (코/패턴 카운터)
-              ExpandableCounterOption(
-                icon: AppIcons.stitchIcon(
-                  size: 24,
-                  color: _includeStitchCounter
-                      ? AppColors.primary
-                      : (isDark
-                          ? AppColors.textSecondaryDark
-                          : AppColors.textSecondary),
-                ),
-                title: '코 카운터',
-                subtitle: '현재 단에서 코 수를 추적',
-                enabled: _includeStitchCounter,
-                onEnabledChanged: (value) {
-                  setState(() {
-                    _includeStitchCounter = value;
-                    if (!value) {
-                      _stitchTarget = null;
-                    }
-                  });
-                },
-                presets: const [10, 20, 30],
-                selectedValue: _stitchTarget,
-                onValueChanged: (value) {
-                  setState(() => _stitchTarget = value);
-                },
-                valueLabel: '목표 코 수 (선택)',
-                valueTip: '목표에 도달하면 알려드려요',
-              ),
-
-              const SizedBox(height: 12),
-
-              ExpandableCounterOption(
-                icon: AppIcons.patternIcon(
-                  size: 24,
-                  color: _includePatternCounter
-                      ? AppColors.primary
-                      : (isDark
-                          ? AppColors.textSecondaryDark
-                          : AppColors.textSecondary),
-                ),
-                title: '패턴 반복 카운터',
-                subtitle: '반복 패턴 추적',
-                enabled: _includePatternCounter,
-                onEnabledChanged: (value) {
-                  setState(() {
-                    _includePatternCounter = value;
-                    if (!value) {
-                      _patternResetAt = null;
-                    }
-                  });
-                },
-                presets: const [4, 6, 8],
-                selectedValue: _patternResetAt,
-                onValueChanged: (value) {
-                  setState(() => _patternResetAt = value);
-                },
-                valueLabel: '자동 리셋 (몇 회마다?)',
-                valueTip: '설정한 횟수에 도달하면 자동으로 0으로 리셋',
-              ),
+              // 새 프로젝트: 임시 보조 카운터 목록
+              if (_pendingSecondaryCounters.isNotEmpty) ...[
+                ..._pendingSecondaryCounters.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final counter = entry.value;
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: _SecondaryCounterListItem(
+                      label: counter.label,
+                      type: counter.type,
+                      value: 0,
+                      targetValue: counter.type == SecondaryCounterType.goal
+                          ? counter.value
+                          : null,
+                      resetAt: counter.type == SecondaryCounterType.repetition
+                          ? counter.value
+                          : null,
+                      onRemove: () {
+                        setState(() {
+                          _pendingSecondaryCounters.removeAt(index);
+                        });
+                      },
+                      isDark: isDark,
+                    ),
+                  );
+                }),
+                const SizedBox(height: 8),
+              ],
             ],
+
+            // 보조 카운터 추가 버튼
+            OutlinedButton.icon(
+              onPressed: _addSecondaryCounter,
+              icon: const Icon(Icons.add),
+              label: const Text(AppStrings.addSecondaryCounter),
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 48),
+              ),
+            ),
           ],
         ),
       ),

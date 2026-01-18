@@ -223,19 +223,16 @@ class _ProjectInlineEditorState extends State<ProjectInlineEditor>
         mainAxisSize: MainAxisSize.min,
         children: [
           // 제목
-          Row(
-            children: [
-              const Text('🧶', style: TextStyle(fontSize: 20)),
-              const SizedBox(width: 8),
-              Text(
-                '프로젝트 편집',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: textPrimary,
-                ),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              '프로젝트 편집',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: textPrimary,
               ),
-            ],
+            ),
           ),
 
           const SizedBox(height: 20),

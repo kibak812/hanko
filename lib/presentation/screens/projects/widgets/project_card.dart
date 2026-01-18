@@ -43,7 +43,7 @@ class ProjectCard extends StatelessWidget {
               ? null
               : [
                   BoxShadow(
-                    color: AppColors.textPrimary.withOpacity(0.05),
+                    color: AppColors.textPrimary.withValues(alpha: 0.05),
                     blurRadius: 10,
                     offset: const Offset(0, 2),
                   ),
@@ -54,11 +54,10 @@ class ProjectCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Text(
-                  isCompleted ? '✅' : '🧶',
-                  style: const TextStyle(fontSize: 20),
-                ),
-                const SizedBox(width: 8),
+                if (isCompleted) ...[
+                  const Text('✅', style: TextStyle(fontSize: 20)),
+                  const SizedBox(width: 8),
+                ],
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -94,7 +93,7 @@ class ProjectCard extends StatelessWidget {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.1),
+                      color: AppColors.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -188,8 +187,8 @@ class ProjectCard extends StatelessWidget {
                     ),
                     decoration: BoxDecoration(
                       color: isCompleted
-                          ? AppColors.success.withOpacity(0.1)
-                          : AppColors.primary.withOpacity(0.1),
+                          ? AppColors.success.withValues(alpha: 0.1)
+                          : AppColors.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
