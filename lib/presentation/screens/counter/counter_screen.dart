@@ -9,7 +9,6 @@ import '../../providers/app_providers.dart';
 import '../../providers/project_provider.dart';
 import '../../providers/voice_provider.dart';
 import 'widgets/counter_display.dart';
-import 'widgets/main_counter_button.dart';
 import 'widgets/memo_card.dart';
 import 'widgets/secondary_counter.dart';
 import 'widgets/action_buttons.dart';
@@ -107,22 +106,22 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
-        child: GestureDetector(
-          // 화면 아무데나 탭해도 증가
-          onTap: _onIncrement,
-          behavior: HitTestBehavior.opaque,
-          child: Column(
-            children: [
-              // 상단 헤더 (프로젝트명 + 진행률)
-              ProgressHeader(
-                projectName: project.name,
-                currentRow: counterState.currentRow,
-                targetRow: counterState.targetRow,
-                progress: counterState.progress,
-                onTap: () => context.push(AppRoutes.projects),
-              ),
+        child: Column(
+          children: [
+            // 상단 헤더 (프로젝트명 + 진행률) - 탭 영역에서 제외
+            ProgressHeader(
+              projectName: project.name,
+              currentRow: counterState.currentRow,
+              targetRow: counterState.targetRow,
+              progress: counterState.progress,
+              onTap: () => context.push(AppRoutes.projects),
+            ),
 
-              Expanded(
+            // 메인 콘텐츠 영역 - 탭하면 카운터 증가
+            Expanded(
+              child: GestureDetector(
+                onTap: _onIncrement,
+                behavior: HitTestBehavior.opaque,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Column(
@@ -227,6 +226,31 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
                           if (settings.hapticFeedback) {
                             HapticFeedback.selectionClick();
                           }
+
+                          // 프리미엄이 아닌 경우 사용량 체크
+                          final isPremium = ref.read(premiumStatusProvider);
+                          if (!isPremium) {
+                            final remaining = ref.read(voiceUsageProvider);
+                            if (remaining <= 0) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('${AppStrings.voiceLimitReached} (3/3 사용)'),
+                                    duration: const Duration(seconds: 3),
+                                    behavior: SnackBarBehavior.floating,
+                                    action: SnackBarAction(
+                                      label: AppStrings.watchAdForVoice,
+                                      onPressed: () {
+                                        // 광고 시청 로직
+                                      },
+                                    ),
+                                  ),
+                                );
+                              }
+                              return;
+                            }
+                          }
+
                           await ref
                               .read(voiceStateProvider.notifier)
                               .startVoiceCommand();
@@ -237,20 +261,13 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
                         },
                       ),
 
-                      const SizedBox(height: 16),
-
-                      // 메인 +1 버튼
-                      MainCounterButton(
-                        onPressed: _onIncrement,
-                      ),
-
                       const SizedBox(height: 24),
                     ],
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -341,7 +358,7 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
                 title: const Text(AppStrings.settings),
                 onTap: () {
                   Navigator.pop(context);
-                  // TODO: 설정 화면으로 이동
+                  context.push(AppRoutes.settings);
                 },
               ),
             ],

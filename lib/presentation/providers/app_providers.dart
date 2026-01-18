@@ -106,7 +106,7 @@ final voiceUsageProvider =
 
 class VoiceUsageNotifier extends StateNotifier<int> {
   final LocalStorage _localStorage;
-  static const int dailyLimit = 3; // 무료 사용자 일일 제한
+  static const int dailyLimit = 999; // 개발 중 제한 해제 (원래: 3)
 
   VoiceUsageNotifier(this._localStorage)
       : super(_localStorage.getRemainingVoiceCount(dailyLimit: dailyLimit));

@@ -5,6 +5,7 @@ import '../presentation/providers/app_providers.dart';
 import '../presentation/screens/counter/counter_screen.dart';
 import '../presentation/screens/projects/project_list_screen.dart';
 import '../presentation/screens/settings/project_settings_screen.dart';
+import '../presentation/screens/settings/app_settings_screen.dart';
 import '../presentation/screens/onboarding/onboarding_screen.dart';
 
 /// 라우트 이름
@@ -14,6 +15,7 @@ class AppRoutes {
   static const String projects = '/projects';
   static const String projectSettings = '/projects/settings';
   static const String newProject = '/projects/new';
+  static const String settings = '/settings';
 }
 
 /// GoRouter Provider
@@ -45,6 +47,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.newProject,
         builder: (context, state) => const ProjectSettingsScreen(projectId: null),
+      ),
+      GoRoute(
+        path: AppRoutes.settings,
+        builder: (context, state) => const AppSettingsScreen(),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(

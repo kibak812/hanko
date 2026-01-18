@@ -295,7 +295,7 @@ class AppSettings {
     this.hapticFeedback = true,
     this.voiceFeedback = true,
     this.keepScreenOn = true,
-    this.themeMode = 'system',
+    this.themeMode = 'light',
   });
 
   AppSettings copyWith({
@@ -326,7 +326,7 @@ class AppSettings {
       hapticFeedback: json['hapticFeedback'] as bool? ?? true,
       voiceFeedback: json['voiceFeedback'] as bool? ?? true,
       keepScreenOn: json['keepScreenOn'] as bool? ?? true,
-      themeMode: json['themeMode'] as String? ?? 'system',
+      themeMode: json['themeMode'] as String? ?? 'light',
     );
   }
 }

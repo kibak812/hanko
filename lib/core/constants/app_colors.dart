@@ -11,11 +11,11 @@ class AppColors {
   static const Color primary = Color(0xFFFF6B6B);
   static const Color primaryLight = Color(0xFFFF8585);
 
-  /// Secondary - Mint Thread: 보조 강조, 성공
-  static const Color secondary = Color(0xFF4ECDC4);
+  /// Secondary - Terracotta Clay: 보조 강조, 따뜻한 흙/점토 톤
+  static const Color secondary = Color(0xFFE07A5F);
 
-  /// Background - Cream Base: 배경 (눈 편함)
-  static const Color background = Color(0xFFFFFBF0);
+  /// Background - Warm Cream: 배경 (카드와 명확한 대비)
+  static const Color background = Color(0xFFFAF3E0);
 
   /// Surface - Yarn White: 카드, 버튼
   static const Color surface = Color(0xFFFFFFFF);
@@ -43,8 +43,8 @@ class AppColors {
   /// Primary Dark - Soft Coral
   static const Color primaryDark = Color(0xFFFF8585);
 
-  /// Secondary Dark - Mint Glow
-  static const Color secondaryDark = Color(0xFF5EDDD5);
+  /// Secondary Dark - Light Terracotta
+  static const Color secondaryDark = Color(0xFFE89B84);
 
   /// Background Dark - Shadow Yarn
   static const Color backgroundDark = Color(0xFF1A1C23);
