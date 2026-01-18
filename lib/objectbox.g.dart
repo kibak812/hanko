@@ -76,7 +76,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(2, 56912154864965339),
     name: 'Project',
-    lastPropertyId: const obx_int.IdUid(9, 2873116436902126093),
+    lastPropertyId: const obx_int.IdUid(10, 1699624302455779529),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -110,12 +110,6 @@ final _entities = <obx_int.ModelEntity>[
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(6, 4468402353214468101),
-        name: 'rowHistoryJson',
-        type: 9,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
         id: const obx_int.IdUid(7, 2440378411404313604),
         name: 'rowCounterId',
         type: 11,
@@ -141,6 +135,12 @@ final _entities = <obx_int.ModelEntity>[
         indexId: const obx_int.IdUid(3, 5656448226333148380),
         relationField: 'patternCounter',
         relationTarget: 'Counter',
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(10, 1699624302455779529),
+        name: 'counterHistoryJson',
+        type: 9,
+        flags: 0,
       ),
     ],
     relations: <obx_int.ModelRelation>[
@@ -237,7 +237,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
     lastSequenceId: const obx_int.IdUid(0, 0),
     retiredEntityUids: const [],
     retiredIndexUids: const [],
-    retiredPropertyUids: const [],
+    retiredPropertyUids: const [4468402353214468101],
     retiredRelationUids: const [],
     modelVersion: 5,
     modelVersionParserMinimum: 5,
@@ -335,17 +335,19 @@ obx_int.ModelDefinition getObjectBoxModel() {
       },
       objectToFB: (Project object, fb.Builder fbb) {
         final nameOffset = fbb.writeString(object.name);
-        final rowHistoryJsonOffset = fbb.writeString(object.rowHistoryJson);
-        fbb.startTable(10);
+        final counterHistoryJsonOffset = fbb.writeString(
+          object.counterHistoryJson,
+        );
+        fbb.startTable(11);
         fbb.addInt64(0, object.id);
         fbb.addOffset(1, nameOffset);
         fbb.addInt64(2, object.statusIndex);
         fbb.addInt64(3, object.createdAt.millisecondsSinceEpoch);
         fbb.addInt64(4, object.updatedAt.millisecondsSinceEpoch);
-        fbb.addOffset(5, rowHistoryJsonOffset);
         fbb.addInt64(6, object.rowCounter.targetId);
         fbb.addInt64(7, object.stitchCounter.targetId);
         fbb.addInt64(8, object.patternCounter.targetId);
+        fbb.addOffset(9, counterHistoryJsonOffset);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -373,16 +375,16 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final updatedAtParam = DateTime.fromMillisecondsSinceEpoch(
           const fb.Int64Reader().vTableGet(buffer, rootOffset, 12, 0),
         );
-        final rowHistoryJsonParam = const fb.StringReader(
+        final counterHistoryJsonParam = const fb.StringReader(
           asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 14, '');
+        ).vTableGet(buffer, rootOffset, 22, '');
         final object = Project(
           id: idParam,
           name: nameParam,
           statusIndex: statusIndexParam,
           createdAt: createdAtParam,
           updatedAt: updatedAtParam,
-          rowHistoryJson: rowHistoryJsonParam,
+          counterHistoryJson: counterHistoryJsonParam,
         );
         object.rowCounter.targetId = const fb.Int64Reader().vTableGet(
           buffer,
@@ -535,23 +537,23 @@ class Project_ {
     _entities[1].properties[4],
   );
 
-  /// See [Project.rowHistoryJson].
-  static final rowHistoryJson = obx.QueryStringProperty<Project>(
-    _entities[1].properties[5],
-  );
-
   /// See [Project.rowCounter].
   static final rowCounter = obx.QueryRelationToOne<Project, Counter>(
-    _entities[1].properties[6],
+    _entities[1].properties[5],
   );
 
   /// See [Project.stitchCounter].
   static final stitchCounter = obx.QueryRelationToOne<Project, Counter>(
-    _entities[1].properties[7],
+    _entities[1].properties[6],
   );
 
   /// See [Project.patternCounter].
   static final patternCounter = obx.QueryRelationToOne<Project, Counter>(
+    _entities[1].properties[7],
+  );
+
+  /// See [Project.counterHistoryJson].
+  static final counterHistoryJson = obx.QueryStringProperty<Project>(
     _entities[1].properties[8],
   );
 

@@ -114,6 +114,12 @@ class ProjectRepository {
     _saveProjectAndCounters(project);
   }
 
+  /// 패턴 감소
+  void decrementPattern(Project project) {
+    project.decrementPattern();
+    _saveProjectAndCounters(project);
+  }
+
   /// 패턴 리셋
   void resetPattern(Project project) {
     project.resetPattern();

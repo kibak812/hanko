@@ -5,6 +5,10 @@
 ## [Unreleased]
 
 ### Added
+- 공통 카운터 히스토리 (`CounterAction`) - 모든 카운터(단/코/패턴) 되돌리기 지원
+- 메인 카운터 인라인 +/- 버튼 (`CounterDisplay`)
+- 보조 카운터 인라인 +/- 버튼 및 `onDecrement` 콜백
+- `decrementPattern()` 메서드 (Repository, Provider)
 - 보조 카운터 기능 완성: 코 카운터 목표값, 패턴 자동 리셋
 - 카운터 설정 바텀시트 (`CounterSettingsSheet`) - 롱프레스로 열기
 - 확장형 카운터 옵션 위젯 (`ExpandableCounterOption`)
@@ -22,6 +26,10 @@
 - 메모 목록 화면 (`MemoListScreen`) 및 `/memos` 라우트
 
 ### Changed
+- 카운터 조작 UX 통일: 모든 카운터에 인라인 +/- 버튼 적용
+- 화면 탭으로 카운터 증가 기능 제거 (명시적 버튼 조작으로 변경)
+- 보조 카운터: 탭(+1) 제거 → 인라인 +/- 버튼으로 조작
+- 하단 ActionButtons: -1 버튼 제거 (각 카운터에 인라인 버튼으로 대체)
 - 보조 카운터 터치 반응 즉시 반응으로 개선 (더블탭 감지 대기 제거)
 - 보조 카운터 제스처: 탭(+1), 롱프레스(설정)
 - 보조 카운터 UI: 진행률 바, 목표값 표시 추가

@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 
 /// 보조 액션 버튼 행
-/// -1, 리셋, 음성, 더보기
+/// 되돌리기, 음성, 더보기
 class ActionButtons extends StatelessWidget {
-  final VoidCallback onDecrement;
   final VoidCallback? onUndo;
   final VoidCallback onVoice;
   final VoidCallback onMore;
@@ -12,7 +11,6 @@ class ActionButtons extends StatelessWidget {
 
   const ActionButtons({
     super.key,
-    required this.onDecrement,
     this.onUndo,
     required this.onVoice,
     required this.onMore,
@@ -26,12 +24,6 @@ class ActionButtons extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        _ActionButton(
-          icon: Icons.remove,
-          onPressed: onDecrement,
-          isDark: isDark,
-        ),
-        const SizedBox(width: 12),
         _ActionButton(
           icon: Icons.undo,
           onPressed: onUndo,

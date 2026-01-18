@@ -9,6 +9,37 @@ enum ProjectStatus {
   paused, // 일시정지
 }
 
+/// 카운터 액션 (되돌리기용)
+class CounterAction {
+  final String counterType; // 'row', 'stitch', 'pattern'
+  final int previousValue;
+  final int newValue;
+  final DateTime timestamp;
+
+  CounterAction({
+    required this.counterType,
+    required this.previousValue,
+    required this.newValue,
+    DateTime? timestamp,
+  }) : timestamp = timestamp ?? DateTime.now();
+
+  Map<String, dynamic> toJson() => {
+        'type': counterType,
+        'prev': previousValue,
+        'new': newValue,
+        'ts': timestamp.millisecondsSinceEpoch,
+      };
+
+  factory CounterAction.fromJson(Map<String, dynamic> json) {
+    return CounterAction(
+      counterType: json['type'] as String,
+      previousValue: json['prev'] as int,
+      newValue: json['new'] as int,
+      timestamp: DateTime.fromMillisecondsSinceEpoch(json['ts'] as int),
+    );
+  }
+}
+
 /// 뜨개질 프로젝트 엔티티
 @Entity()
 class Project {
@@ -24,8 +55,8 @@ class Project {
   @Property(type: PropertyType.date)
   DateTime updatedAt;
 
-  // Undo 히스토리 (JSON string으로 저장)
-  String rowHistoryJson;
+  // 공통 카운터 히스토리 (JSON string으로 저장)
+  String counterHistoryJson;
 
   // 관계 설정
   final rowCounter = ToOne<Counter>();
@@ -39,7 +70,7 @@ class Project {
     this.statusIndex = 0,
     DateTime? createdAt,
     DateTime? updatedAt,
-    this.rowHistoryJson = '[]',
+    this.counterHistoryJson = '[]',
   })  : createdAt = createdAt ?? DateTime.now(),
         updatedAt = updatedAt ?? DateTime.now();
 
@@ -50,44 +81,131 @@ class Project {
 
   set status(ProjectStatus value) => statusIndex = value.index;
 
-  // ============ Row History ============
+  // ============ Counter History ============
 
   @Transient()
-  List<int> get rowHistory {
+  List<CounterAction> get counterHistory {
     try {
-      final list = rowHistoryJson
-          .replaceAll('[', '')
-          .replaceAll(']', '')
-          .split(',')
-          .where((s) => s.trim().isNotEmpty)
-          .map((s) => int.parse(s.trim()))
+      if (counterHistoryJson == '[]' || counterHistoryJson.isEmpty) {
+        return [];
+      }
+      // JSON 파싱
+      final List<dynamic> jsonList = _parseJsonArray(counterHistoryJson);
+      return jsonList
+          .map((item) => CounterAction.fromJson(item as Map<String, dynamic>))
           .toList();
-      return list;
     } catch (_) {
       return [];
     }
   }
 
-  set rowHistory(List<int> value) {
-    rowHistoryJson = '[${value.join(',')}]';
+  set counterHistory(List<CounterAction> value) {
+    if (value.isEmpty) {
+      counterHistoryJson = '[]';
+      return;
+    }
+    final jsonList = value.map((a) => a.toJson()).toList();
+    counterHistoryJson = _encodeJsonArray(jsonList);
   }
 
-  void addToHistory(int value) {
-    final history = rowHistory;
-    history.add(value);
+  /// JSON 배열 파싱 헬퍼
+  static List<dynamic> _parseJsonArray(String json) {
+    // 간단한 JSON 배열 파서
+    if (json == '[]') return [];
+
+    final List<dynamic> result = [];
+    int depth = 0;
+    int start = 0;
+    bool inString = false;
+
+    for (int i = 0; i < json.length; i++) {
+      final char = json[i];
+
+      if (char == '"' && (i == 0 || json[i - 1] != '\\')) {
+        inString = !inString;
+      }
+
+      if (!inString) {
+        if (char == '[' || char == '{') {
+          if (depth == 0) start = i + 1;
+          depth++;
+        } else if (char == ']' || char == '}') {
+          depth--;
+          if (depth == 0 && char == '}') {
+            final objStr = json.substring(start - 1, i + 1);
+            result.add(_parseJsonObject(objStr));
+          }
+        }
+      }
+    }
+
+    return result;
+  }
+
+  /// JSON 객체 파싱 헬퍼
+  static Map<String, dynamic> _parseJsonObject(String json) {
+    final Map<String, dynamic> result = {};
+    // {로 시작하고 }로 끝나는지 확인
+    if (!json.startsWith('{') || !json.endsWith('}')) return result;
+
+    final content = json.substring(1, json.length - 1);
+    final parts = content.split(',');
+
+    for (final part in parts) {
+      final colonIdx = part.indexOf(':');
+      if (colonIdx == -1) continue;
+
+      var key = part.substring(0, colonIdx).trim();
+      var value = part.substring(colonIdx + 1).trim();
+
+      // 키에서 따옴표 제거
+      if (key.startsWith('"') && key.endsWith('"')) {
+        key = key.substring(1, key.length - 1);
+      }
+
+      // 값 파싱
+      if (value.startsWith('"') && value.endsWith('"')) {
+        result[key] = value.substring(1, value.length - 1);
+      } else {
+        result[key] = int.tryParse(value) ?? value;
+      }
+    }
+
+    return result;
+  }
+
+  /// JSON 배열 인코딩 헬퍼
+  static String _encodeJsonArray(List<Map<String, dynamic>> list) {
+    final items = list.map((map) {
+      final pairs = map.entries.map((e) {
+        final value = e.value is String ? '"${e.value}"' : e.value;
+        return '"${e.key}":$value';
+      }).join(',');
+      return '{$pairs}';
+    }).join(',');
+    return '[$items]';
+  }
+
+  void addCounterAction(String counterType, int previousValue, int newValue) {
+    final history = counterHistory;
+    history.add(CounterAction(
+      counterType: counterType,
+      previousValue: previousValue,
+      newValue: newValue,
+    ));
     // 최대 50개까지만 유지
     if (history.length > 50) {
       history.removeAt(0);
     }
-    rowHistory = history;
+    counterHistory = history;
   }
 
-  int? popFromHistory() {
-    final history = rowHistory;
+  CounterAction? popCounterAction() {
+    final history = counterHistory;
     if (history.isEmpty) return null;
-    final value = history.removeLast();
-    rowHistory = history;
-    return value;
+    final action = history.removeLast();
+    counterHistory = history;
+    return action;
   }
 
   // ============ Getters ============
@@ -134,7 +252,7 @@ class Project {
 
   /// 되돌리기 가능 여부
   @Transient()
-  bool get canUndo => rowHistory.isNotEmpty;
+  bool get canUndo => counterHistory.isNotEmpty;
 
   // ============ Row Operations ============
 
@@ -142,8 +260,9 @@ class Project {
   void incrementRow() {
     final counter = rowCounter.target;
     if (counter != null) {
-      addToHistory(counter.value);
+      final prevValue = counter.value;
       counter.value++;
+      addCounterAction('row', prevValue, counter.value);
       _updateTimestamp();
     }
   }
@@ -152,8 +271,9 @@ class Project {
   void decrementRow() {
     final counter = rowCounter.target;
     if (counter != null && counter.value > 0) {
-      addToHistory(counter.value);
+      final prevValue = counter.value;
       counter.value--;
+      addCounterAction('row', prevValue, counter.value);
       _updateTimestamp();
     }
   }
@@ -162,20 +282,33 @@ class Project {
   void setRow(int value) {
     final counter = rowCounter.target;
     if (counter != null && value >= 0) {
-      addToHistory(counter.value);
+      final prevValue = counter.value;
       counter.value = value;
+      addCounterAction('row', prevValue, counter.value);
       _updateTimestamp();
     }
   }
 
-  /// 되돌리기 (Undo)
+  /// 되돌리기 (Undo) - 모든 카운터 지원
   bool undo() {
-    final previousValue = popFromHistory();
-    if (previousValue == null) return false;
+    final action = popCounterAction();
+    if (action == null) return false;
 
-    final counter = rowCounter.target;
+    Counter? counter;
+    switch (action.counterType) {
+      case 'row':
+        counter = rowCounter.target;
+        break;
+      case 'stitch':
+        counter = stitchCounter.target;
+        break;
+      case 'pattern':
+        counter = patternCounter.target;
+        break;
+    }
+
     if (counter != null) {
-      counter.value = previousValue;
+      counter.value = action.previousValue;
       _updateTimestamp();
       return true;
     }
@@ -188,7 +321,9 @@ class Project {
   void incrementStitch() {
     final counter = stitchCounter.target;
     if (counter != null) {
+      final prevValue = counter.value;
       counter.value++;
+      addCounterAction('stitch', prevValue, counter.value);
       _updateTimestamp();
     }
   }
@@ -197,7 +332,9 @@ class Project {
   void decrementStitch() {
     final counter = stitchCounter.target;
     if (counter != null && counter.value > 0) {
+      final prevValue = counter.value;
       counter.value--;
+      addCounterAction('stitch', prevValue, counter.value);
       _updateTimestamp();
     }
   }
@@ -206,7 +343,9 @@ class Project {
   void resetStitch() {
     final counter = stitchCounter.target;
     if (counter != null) {
+      final prevValue = counter.value;
       counter.value = 0;
+      addCounterAction('stitch', prevValue, counter.value);
       _updateTimestamp();
     }
   }
@@ -217,11 +356,13 @@ class Project {
   void incrementPattern() {
     final counter = patternCounter.target;
     if (counter != null) {
+      final prevValue = counter.value;
       counter.value++;
       // 자동 리셋 체크
       if (counter.shouldAutoReset) {
         counter.value = 0;
       }
+      addCounterAction('pattern', prevValue, counter.value);
       _updateTimestamp();
     }
   }
@@ -230,7 +371,9 @@ class Project {
   void decrementPattern() {
     final counter = patternCounter.target;
     if (counter != null && counter.value > 0) {
+      final prevValue = counter.value;
       counter.value--;
+      addCounterAction('pattern', prevValue, counter.value);
       _updateTimestamp();
     }
   }
@@ -239,7 +382,9 @@ class Project {
   void resetPattern() {
     final counter = patternCounter.target;
     if (counter != null) {
+      final prevValue = counter.value;
       counter.value = 0;
+      addCounterAction('pattern', prevValue, counter.value);
       _updateTimestamp();
     }
   }

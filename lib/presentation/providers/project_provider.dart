@@ -344,6 +344,13 @@ class ActiveProjectCounterNotifier extends StateNotifier<ProjectCounterState> {
     _updateState(patternWasReset: wasReset);
   }
 
+  /// 패턴 감소
+  void decrementPattern() {
+    if (_project == null) return;
+    _repository.decrementPattern(_project);
+    _updateState();
+  }
+
   /// 패턴 리셋
   void resetPattern() {
     if (_project == null) return;

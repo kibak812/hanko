@@ -175,151 +175,166 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
               onTap: () => context.push(AppRoutes.projects),
             ),
 
-            // 메인 콘텐츠 영역 - 탭하면 카운터 증가
+            // 메인 콘텐츠 영역
             Expanded(
-              child: GestureDetector(
-                onTap: _onIncrement,
-                behavior: HitTestBehavior.opaque,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Column(
-                    children: [
-                      // 메모 카드 (있을 때만)
-                      if (counterState.currentMemo != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 16),
-                          child: MemoCard(memo: counterState.currentMemo!),
-                        ),
-
-                      const Spacer(),
-
-                      // 메인 숫자 표시
-                      AnimatedBuilder(
-                        animation: _flashAnimation,
-                        builder: (context, child) {
-                          return Container(
-                            decoration: BoxDecoration(
-                              boxShadow: [
-                                if (_flashAnimation.value > 0)
-                                  BoxShadow(
-                                    color: AppColors.primary
-                                        .withOpacity(0.3 * _flashAnimation.value),
-                                    blurRadius: 30,
-                                    spreadRadius: 10,
-                                  ),
-                              ],
-                            ),
-                            child: child,
-                          );
-                        },
-                        child: CounterDisplay(
-                          value: counterState.currentRow,
-                          label: AppStrings.row,
-                        ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  children: [
+                    // 메모 카드 (있을 때만)
+                    if (counterState.currentMemo != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 16),
+                        child: MemoCard(memo: counterState.currentMemo!),
                       ),
 
-                      const SizedBox(height: 24),
+                    const Spacer(),
 
-                      // 보조 카운터 (코, 패턴)
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          if (project.stitchCounter.target != null)
-                            SecondaryCounter(
-                              value: counterState.currentStitch,
-                              label: AppStrings.stitch,
-                              targetValue: counterState.stitchTarget,
-                              onIncrement: () {
-                                final settings = ref.read(appSettingsProvider);
-                                if (settings.hapticFeedback) {
-                                  _hapticFeedback(duration: 15, amplitude: 50);
-                                }
-                                ref
-                                    .read(activeProjectCounterProvider.notifier)
-                                    .incrementStitch();
-                              },
-                              onLongPress: () => _showStitchSettings(project),
-                            ),
-                          if (project.stitchCounter.target != null &&
-                              project.patternCounter.target != null)
-                            const SizedBox(width: 16),
-                          if (project.patternCounter.target != null)
-                            SecondaryCounter(
-                              value: counterState.currentPattern,
-                              label: AppStrings.pattern,
-                              resetAt: counterState.patternResetAt,
-                              onIncrement: () {
-                                final settings = ref.read(appSettingsProvider);
-                                if (settings.hapticFeedback) {
-                                  _hapticFeedback(duration: 15, amplitude: 50);
-                                }
-                                ref
-                                    .read(activeProjectCounterProvider.notifier)
-                                    .incrementPattern();
-                              },
-                              onLongPress: () => _showPatternSettings(project),
-                            ),
-                        ],
-                      ),
-
-                      const Spacer(),
-
-                      // 보조 액션 버튼
-                      ActionButtons(
+                    // 메인 숫자 표시 (인라인 +/- 버튼 포함)
+                    AnimatedBuilder(
+                      animation: _flashAnimation,
+                      builder: (context, child) {
+                        return Container(
+                          decoration: BoxDecoration(
+                            boxShadow: [
+                              if (_flashAnimation.value > 0)
+                                BoxShadow(
+                                  color: AppColors.primary
+                                      .withOpacity(0.3 * _flashAnimation.value),
+                                  blurRadius: 30,
+                                  spreadRadius: 10,
+                                ),
+                            ],
+                          ),
+                          child: child,
+                        );
+                      },
+                      child: CounterDisplay(
+                        value: counterState.currentRow,
+                        label: AppStrings.row,
+                        onIncrement: _onIncrement,
                         onDecrement: _onDecrement,
-                        onUndo: counterState.canUndo ? _onUndo : null,
-                        onVoice: () async {
-                          final settings = ref.read(appSettingsProvider);
-                          if (settings.hapticFeedback) {
-                            _hapticFeedback(duration: 10, amplitude: 40);
-                          }
+                      ),
+                    ),
 
-                          // 토글: 이미 듣고 있으면 중지
-                          final currentState = ref.read(voiceStateProvider);
-                          if (currentState == VoiceState.listening) {
-                            await ref
-                                .read(voiceStateProvider.notifier)
-                                .stopVoiceCommand();
-                            return;
-                          }
+                    const SizedBox(height: 24),
 
-                          // 프리미엄이 아닌 경우 사용량 체크
-                          final isPremium = ref.read(premiumStatusProvider);
-                          if (!isPremium) {
-                            final remaining = ref.read(voiceUsageProvider);
-                            if (remaining <= 0) {
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('${AppStrings.voiceLimitReached} (3/3 사용)'),
-                                    duration: const Duration(seconds: 3),
-                                    behavior: SnackBarBehavior.floating,
-                                    action: SnackBarAction(
-                                      label: AppStrings.watchAdForVoice,
-                                      onPressed: () {
-                                        // 광고 시청 로직
-                                      },
-                                    ),
-                                  ),
-                                );
+                    // 보조 카운터 (코, 패턴)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (project.stitchCounter.target != null)
+                          SecondaryCounter(
+                            value: counterState.currentStitch,
+                            label: AppStrings.stitch,
+                            targetValue: counterState.stitchTarget,
+                            onIncrement: () {
+                              final settings = ref.read(appSettingsProvider);
+                              if (settings.hapticFeedback) {
+                                _hapticFeedback(duration: 15, amplitude: 50);
                               }
-                              return;
-                            }
-                          }
+                              ref
+                                  .read(activeProjectCounterProvider.notifier)
+                                  .incrementStitch();
+                            },
+                            onDecrement: () {
+                              final settings = ref.read(appSettingsProvider);
+                              if (settings.hapticFeedback) {
+                                _hapticFeedback(duration: 15, amplitude: 50);
+                              }
+                              ref
+                                  .read(activeProjectCounterProvider.notifier)
+                                  .decrementStitch();
+                            },
+                            onLongPress: () => _showStitchSettings(project),
+                          ),
+                        if (project.stitchCounter.target != null &&
+                            project.patternCounter.target != null)
+                          const SizedBox(width: 16),
+                        if (project.patternCounter.target != null)
+                          SecondaryCounter(
+                            value: counterState.currentPattern,
+                            label: AppStrings.pattern,
+                            resetAt: counterState.patternResetAt,
+                            onIncrement: () {
+                              final settings = ref.read(appSettingsProvider);
+                              if (settings.hapticFeedback) {
+                                _hapticFeedback(duration: 15, amplitude: 50);
+                              }
+                              ref
+                                  .read(activeProjectCounterProvider.notifier)
+                                  .incrementPattern();
+                            },
+                            onDecrement: () {
+                              final settings = ref.read(appSettingsProvider);
+                              if (settings.hapticFeedback) {
+                                _hapticFeedback(duration: 15, amplitude: 50);
+                              }
+                              ref
+                                  .read(activeProjectCounterProvider.notifier)
+                                  .decrementPattern();
+                            },
+                            onLongPress: () => _showPatternSettings(project),
+                          ),
+                      ],
+                    ),
 
+                    const Spacer(),
+
+                    // 보조 액션 버튼
+                    ActionButtons(
+                      onUndo: counterState.canUndo ? _onUndo : null,
+                      onVoice: () async {
+                        final settings = ref.read(appSettingsProvider);
+                        if (settings.hapticFeedback) {
+                          _hapticFeedback(duration: 10, amplitude: 40);
+                        }
+
+                        // 토글: 이미 듣고 있으면 중지
+                        final currentState = ref.read(voiceStateProvider);
+                        if (currentState == VoiceState.listening) {
                           await ref
                               .read(voiceStateProvider.notifier)
-                              .startVoiceCommand();
-                        },
-                        isListening: voiceState == VoiceState.listening,
-                        onMore: () {
-                          _showMoreOptions(context);
-                        },
-                      ),
+                              .stopVoiceCommand();
+                          return;
+                        }
 
-                      const SizedBox(height: 24),
-                    ],
-                  ),
+                        // 프리미엄이 아닌 경우 사용량 체크
+                        final isPremium = ref.read(premiumStatusProvider);
+                        if (!isPremium) {
+                          final remaining = ref.read(voiceUsageProvider);
+                          if (remaining <= 0) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('${AppStrings.voiceLimitReached} (3/3 사용)'),
+                                  duration: const Duration(seconds: 3),
+                                  behavior: SnackBarBehavior.floating,
+                                  action: SnackBarAction(
+                                    label: AppStrings.watchAdForVoice,
+                                    onPressed: () {
+                                      // 광고 시청 로직
+                                    },
+                                  ),
+                                ),
+                              );
+                            }
+                            return;
+                          }
+                        }
+
+                        await ref
+                            .read(voiceStateProvider.notifier)
+                            .startVoiceCommand();
+                      },
+                      isListening: voiceState == VoiceState.listening,
+                      onMore: () {
+                        _showMoreOptions(context);
+                      },
+                    ),
+
+                    const SizedBox(height: 24),
+                  ],
                 ),
               ),
             ),
