@@ -285,6 +285,13 @@ class ProjectCounterState {
   final int? goalReachedCounterId; // 목표 달성한 카운터 ID
   final int? resetTriggeredCounterId; // 자동 리셋된 카운터 ID
 
+  // 타이머/날짜 관련
+  final DateTime? startDate;
+  final DateTime? completedDate;
+  final int totalWorkSeconds;
+  final bool isTimerRunning;
+  final DateTime? timerStartedAt;
+
   ProjectCounterState({
     this.currentRow = 0,
     this.targetRow,
@@ -303,6 +310,11 @@ class ProjectCounterState {
     this.patternWasReset = false,
     this.goalReachedCounterId,
     this.resetTriggeredCounterId,
+    this.startDate,
+    this.completedDate,
+    this.totalWorkSeconds = 0,
+    this.isTimerRunning = false,
+    this.timerStartedAt,
   });
 
   ProjectCounterState copyWith({
@@ -323,6 +335,11 @@ class ProjectCounterState {
     bool? patternWasReset,
     int? goalReachedCounterId,
     int? resetTriggeredCounterId,
+    DateTime? startDate,
+    DateTime? completedDate,
+    int? totalWorkSeconds,
+    bool? isTimerRunning,
+    DateTime? timerStartedAt,
   }) {
     return ProjectCounterState(
       currentRow: currentRow ?? this.currentRow,
@@ -342,6 +359,11 @@ class ProjectCounterState {
       patternWasReset: patternWasReset ?? this.patternWasReset,
       goalReachedCounterId: goalReachedCounterId,
       resetTriggeredCounterId: resetTriggeredCounterId,
+      startDate: startDate ?? this.startDate,
+      completedDate: completedDate ?? this.completedDate,
+      totalWorkSeconds: totalWorkSeconds ?? this.totalWorkSeconds,
+      isTimerRunning: isTimerRunning ?? this.isTimerRunning,
+      timerStartedAt: timerStartedAt ?? this.timerStartedAt,
     );
   }
 }
@@ -394,6 +416,11 @@ class ActiveProjectCounterNotifier extends StateNotifier<ProjectCounterState> {
       patternWasReset: patternWasReset,
       goalReachedCounterId: goalReachedCounterId,
       resetTriggeredCounterId: resetTriggeredCounterId,
+      startDate: project.startDate,
+      completedDate: project.completedDate,
+      totalWorkSeconds: project.totalWorkSeconds,
+      isTimerRunning: project.isTimerRunning,
+      timerStartedAt: project.timerStartedAt,
     );
   }
 
@@ -570,6 +597,45 @@ class ActiveProjectCounterNotifier extends StateNotifier<ProjectCounterState> {
   void toggleSecondaryCounterLink(int counterId) {
     if (_project == null) return;
     _repository.toggleSecondaryCounterLink(_project, counterId);
+    _updateState();
+  }
+
+  // ============ 타이머 조작 ============
+
+  /// 타이머 토글 (시작/정지)
+  void toggleTimer() {
+    if (_project == null) return;
+    _repository.toggleTimer(_project);
+    _updateState();
+  }
+
+  /// 타이머 정지 (백그라운드 전환 시 사용)
+  void stopTimer() {
+    if (_project == null) return;
+    _repository.stopTimer(_project);
+    _updateState();
+  }
+
+  /// 누적 작업 시간 리셋
+  void resetWorkTime() {
+    if (_project == null) return;
+    _repository.resetWorkTime(_project);
+    _updateState();
+  }
+
+  // ============ 날짜 조작 ============
+
+  /// 시작일 설정
+  void setStartDate(DateTime? date) {
+    if (_project == null) return;
+    _repository.setStartDate(_project, date);
+    _updateState();
+  }
+
+  /// 완료일 설정 (프로젝트 상태도 함께 변경됨)
+  void setCompletedDate(DateTime? date) {
+    if (_project == null) return;
+    _repository.setCompletedDate(_project, date);
     _updateState();
   }
 }

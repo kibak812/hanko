@@ -64,7 +64,7 @@
     },
     {
       "id": "2:56912154864965339",
-      "lastPropertyId": "10:1699624302455779529",
+      "lastPropertyId": "14:5949652666699062062",
       "name": "Project",
       "properties": [
         {
@@ -121,6 +121,26 @@
           "id": "10:1699624302455779529",
           "name": "counterHistoryJson",
           "type": 9
+        },
+        {
+          "id": "11:8133976123594356589",
+          "name": "startDate",
+          "type": 10
+        },
+        {
+          "id": "12:4884216570791037245",
+          "name": "completedDate",
+          "type": 10
+        },
+        {
+          "id": "13:1889655614927940284",
+          "name": "totalWorkSeconds",
+          "type": 6
+        },
+        {
+          "id": "14:5949652666699062062",
+          "name": "timerStartedAt",
+          "type": 10
         }
       ],
       "relations": [

@@ -94,7 +94,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(2, 56912154864965339),
     name: 'Project',
-    lastPropertyId: const obx_int.IdUid(10, 1699624302455779529),
+    lastPropertyId: const obx_int.IdUid(14, 5949652666699062062),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -158,6 +158,30 @@ final _entities = <obx_int.ModelEntity>[
         id: const obx_int.IdUid(10, 1699624302455779529),
         name: 'counterHistoryJson',
         type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(11, 8133976123594356589),
+        name: 'startDate',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(12, 4884216570791037245),
+        name: 'completedDate',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(13, 1889655614927940284),
+        name: 'totalWorkSeconds',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(14, 5949652666699062062),
+        name: 'timerStartedAt',
+        type: 10,
         flags: 0,
       ),
     ],
@@ -386,7 +410,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final counterHistoryJsonOffset = fbb.writeString(
           object.counterHistoryJson,
         );
-        fbb.startTable(11);
+        fbb.startTable(15);
         fbb.addInt64(0, object.id);
         fbb.addOffset(1, nameOffset);
         fbb.addInt64(2, object.statusIndex);
@@ -396,12 +420,31 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addInt64(7, object.stitchCounter.targetId);
         fbb.addInt64(8, object.patternCounter.targetId);
         fbb.addOffset(9, counterHistoryJsonOffset);
+        fbb.addInt64(10, object.startDate?.millisecondsSinceEpoch);
+        fbb.addInt64(11, object.completedDate?.millisecondsSinceEpoch);
+        fbb.addInt64(12, object.totalWorkSeconds);
+        fbb.addInt64(13, object.timerStartedAt?.millisecondsSinceEpoch);
         fbb.finish(fbb.endTable());
         return object.id;
       },
       objectFromFB: (obx.Store store, ByteData fbData) {
         final buffer = fb.BufferContext(fbData);
         final rootOffset = buffer.derefObject(0);
+        final startDateValue = const fb.Int64Reader().vTableGetNullable(
+          buffer,
+          rootOffset,
+          24,
+        );
+        final completedDateValue = const fb.Int64Reader().vTableGetNullable(
+          buffer,
+          rootOffset,
+          26,
+        );
+        final timerStartedAtValue = const fb.Int64Reader().vTableGetNullable(
+          buffer,
+          rootOffset,
+          30,
+        );
         final idParam = const fb.Int64Reader().vTableGet(
           buffer,
           rootOffset,
@@ -423,6 +466,21 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final updatedAtParam = DateTime.fromMillisecondsSinceEpoch(
           const fb.Int64Reader().vTableGet(buffer, rootOffset, 12, 0),
         );
+        final startDateParam = startDateValue == null
+            ? null
+            : DateTime.fromMillisecondsSinceEpoch(startDateValue);
+        final completedDateParam = completedDateValue == null
+            ? null
+            : DateTime.fromMillisecondsSinceEpoch(completedDateValue);
+        final totalWorkSecondsParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          28,
+          0,
+        );
+        final timerStartedAtParam = timerStartedAtValue == null
+            ? null
+            : DateTime.fromMillisecondsSinceEpoch(timerStartedAtValue);
         final counterHistoryJsonParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 22, '');
@@ -432,6 +490,10 @@ obx_int.ModelDefinition getObjectBoxModel() {
           statusIndex: statusIndexParam,
           createdAt: createdAtParam,
           updatedAt: updatedAtParam,
+          startDate: startDateParam,
+          completedDate: completedDateParam,
+          totalWorkSeconds: totalWorkSecondsParam,
+          timerStartedAt: timerStartedAtParam,
           counterHistoryJson: counterHistoryJsonParam,
         );
         object.rowCounter.targetId = const fb.Int64Reader().vTableGet(
@@ -623,6 +685,26 @@ class Project_ {
   /// See [Project.counterHistoryJson].
   static final counterHistoryJson = obx.QueryStringProperty<Project>(
     _entities[1].properties[8],
+  );
+
+  /// See [Project.startDate].
+  static final startDate = obx.QueryDateProperty<Project>(
+    _entities[1].properties[9],
+  );
+
+  /// See [Project.completedDate].
+  static final completedDate = obx.QueryDateProperty<Project>(
+    _entities[1].properties[10],
+  );
+
+  /// See [Project.totalWorkSeconds].
+  static final totalWorkSeconds = obx.QueryIntegerProperty<Project>(
+    _entities[1].properties[11],
+  );
+
+  /// See [Project.timerStartedAt].
+  static final timerStartedAt = obx.QueryDateProperty<Project>(
+    _entities[1].properties[12],
   );
 
   /// see [Project.memos]

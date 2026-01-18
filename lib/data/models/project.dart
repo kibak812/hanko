@@ -60,6 +60,21 @@ class Project {
   @Property(type: PropertyType.date)
   DateTime updatedAt;
 
+  /// 시작일 (프로젝트 생성 시 자동 설정)
+  @Property(type: PropertyType.date)
+  DateTime? startDate;
+
+  /// 완료일 (설정 시 프로젝트 완료 처리)
+  @Property(type: PropertyType.date)
+  DateTime? completedDate;
+
+  /// 총 작업 시간 (초 단위)
+  int totalWorkSeconds;
+
+  /// 타이머 세션 시작 시간 (실행 중일 때만 값 있음)
+  @Property(type: PropertyType.date)
+  DateTime? timerStartedAt;
+
   // 공통 카운터 히스토리 (JSON string으로 저장)
   String counterHistoryJson;
 
@@ -76,6 +91,10 @@ class Project {
     this.statusIndex = 0,
     DateTime? createdAt,
     DateTime? updatedAt,
+    this.startDate,
+    this.completedDate,
+    this.totalWorkSeconds = 0,
+    this.timerStartedAt,
     this.counterHistoryJson = '[]',
   })  : createdAt = createdAt ?? DateTime.now(),
         updatedAt = updatedAt ?? DateTime.now();
@@ -440,5 +459,81 @@ class Project {
   @override
   String toString() {
     return 'Project(id: $id, name: $name, row: $currentRow/$targetRow, status: $status)';
+  }
+
+  // ============ Timer Operations ============
+
+  /// 타이머 실행 중 여부
+  @Transient()
+  bool get isTimerRunning => timerStartedAt != null;
+
+  /// 현재까지 누적 작업 시간 (초 단위, 실행 중인 경우 현재 세션 포함)
+  @Transient()
+  int get currentWorkSeconds {
+    if (timerStartedAt == null) {
+      return totalWorkSeconds;
+    }
+    final currentSessionSeconds = DateTime.now().difference(timerStartedAt!).inSeconds;
+    return totalWorkSeconds + currentSessionSeconds;
+  }
+
+  /// 타이머 시작
+  void startTimer() {
+    if (timerStartedAt == null) {
+      timerStartedAt = DateTime.now();
+      _updateTimestamp();
+    }
+  }
+
+  /// 타이머 정지 (누적 시간에 추가)
+  void stopTimer() {
+    if (timerStartedAt != null) {
+      final sessionSeconds = DateTime.now().difference(timerStartedAt!).inSeconds;
+      totalWorkSeconds += sessionSeconds;
+      timerStartedAt = null;
+      _updateTimestamp();
+    }
+  }
+
+  /// 타이머 토글 (시작/정지)
+  void toggleTimer() {
+    if (isTimerRunning) {
+      stopTimer();
+    } else {
+      startTimer();
+    }
+  }
+
+  /// 누적 작업 시간 리셋
+  void resetWorkTime() {
+    if (timerStartedAt != null) {
+      timerStartedAt = null;
+    }
+    totalWorkSeconds = 0;
+    _updateTimestamp();
+  }
+
+  // ============ Date Operations ============
+
+  /// 시작일 설정
+  void setStartDate(DateTime? date) {
+    startDate = date;
+    _updateTimestamp();
+  }
+
+  /// 완료일 설정 (설정 시 프로젝트 상태도 완료로 변경)
+  void setCompletedDate(DateTime? date) {
+    completedDate = date;
+    if (date != null) {
+      status = ProjectStatus.completed;
+      // 타이머 실행 중이면 정지
+      if (isTimerRunning) {
+        stopTimer();
+      }
+    } else {
+      // 완료일 제거 시 진행 중으로 변경
+      status = ProjectStatus.inProgress;
+    }
+    _updateTimestamp();
   }
 }

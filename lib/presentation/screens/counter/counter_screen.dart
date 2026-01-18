@@ -23,6 +23,8 @@ import 'widgets/progress_header.dart';
 import 'widgets/add_counter_button.dart';
 import 'widgets/inline_counter_editor.dart';
 import 'widgets/project_inline_editor.dart';
+import 'widgets/project_info_bar.dart';
+import 'widgets/date_edit_sheet.dart';
 import '../settings/widgets/add_secondary_counter_sheet.dart';
 import '../../widgets/dialogs.dart';
 
@@ -35,7 +37,7 @@ class CounterScreen extends ConsumerStatefulWidget {
 }
 
 class _CounterScreenState extends ConsumerState<CounterScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late AnimationController _flashController;
   late Animation<double> _flashAnimation;
   bool? _hasVibrator;
@@ -43,6 +45,7 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _flashController = AnimationController(
       duration: const Duration(milliseconds: 200),
       vsync: this,
@@ -67,9 +70,23 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _flashController.dispose();
     WakelockPlus.disable();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    // 앱이 백그라운드로 전환될 때 타이머 자동 정지
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
+      final counterState = ref.read(activeProjectCounterProvider);
+      if (counterState.isTimerRunning) {
+        ref.read(activeProjectCounterProvider.notifier).stopTimer();
+      }
+    }
   }
 
   /// 플랫폼별 햅틱 피드백 (내부용)
@@ -202,6 +219,16 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
               onTap: () => context.push(AppRoutes.projects),
               onLongPress: (sourceRect) =>
                   _showProjectInlineEditor(project, counterState, sourceRect),
+            ),
+
+            // 프로젝트 정보 바 (시작일 + 작업 시간)
+            ProjectInfoBar(
+              startDate: counterState.startDate,
+              completedDate: counterState.completedDate,
+              totalWorkSeconds: counterState.totalWorkSeconds,
+              isTimerRunning: counterState.isTimerRunning,
+              timerStartedAt: counterState.timerStartedAt,
+              onLongPress: () => _showDateEditSheet(counterState),
             ),
 
             // 메인 콘텐츠 영역
@@ -350,6 +377,12 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
                         _triggerHaptic(duration: 10, amplitude: 40);
                         context.push(AppRoutes.memos, extra: project.id);
                       },
+                      onTimer: () {
+                        _triggerHaptic(duration: 15, amplitude: 50);
+                        ref.read(activeProjectCounterProvider.notifier).toggleTimer();
+                      },
+                      onTimerLongPress: () => _showResetWorkTimeDialog(),
+                      isTimerRunning: counterState.isTimerRunning,
                       onVoice: () async {
                         _triggerHaptic(duration: 10, amplitude: 40);
 
@@ -640,6 +673,51 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
         ref.invalidate(activeProjectProvider);
         ref.invalidate(activeProjectCounterProvider);
       },
+    );
+  }
+
+  /// 날짜 편집 바텀시트 표시
+  void _showDateEditSheet(ProjectCounterState counterState) {
+    _triggerHaptic(duration: 25, amplitude: 80);
+
+    showDateEditSheet(
+      context: context,
+      startDate: counterState.startDate,
+      completedDate: counterState.completedDate,
+      onStartDateChanged: (date) {
+        ref.read(activeProjectCounterProvider.notifier).setStartDate(date);
+      },
+      onCompletedDateChanged: (date) {
+        ref.read(activeProjectCounterProvider.notifier).setCompletedDate(date);
+        // 완료일 설정 시 프로젝트 목록 갱신
+        ref.invalidate(projectsProvider);
+      },
+    );
+  }
+
+  /// 작업 시간 리셋 확인 다이얼로그
+  void _showResetWorkTimeDialog() {
+    _triggerHaptic(duration: 25, amplitude: 80);
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text(AppStrings.resetWorkTime),
+        content: const Text(AppStrings.resetWorkTimeConfirm),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(AppStrings.cancel),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              ref.read(activeProjectCounterProvider.notifier).resetWorkTime();
+            },
+            child: const Text(AppStrings.reset),
+          ),
+        ],
+      ),
     );
   }
 }

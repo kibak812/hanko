@@ -134,4 +134,13 @@ class AppStrings {
   static const String totalNTimes = '총 N번';
   static const String secondaryCounterLimit = '무료 사용자는 보조 카운터를 2개까지 추가할 수 있어요';
   static const String editCounter = '카운터 편집';
+
+  // ============ 타이머/작업 시간 ============
+  static const String editSchedule = '일정 편집';
+  static const String startDateLabel = '시작일';
+  static const String completedDateLabel = '완료일 (선택)';
+  static const String setDate = '설정하기';
+  static const String completedDateInfo = '완료일을 설정하면 프로젝트가 완료 상태로 변경됩니다.';
+  static const String resetWorkTime = '작업 시간 리셋';
+  static const String resetWorkTimeConfirm = '누적 작업 시간을 0으로 리셋할까요?';
 }

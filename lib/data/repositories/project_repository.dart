@@ -29,7 +29,10 @@ class ProjectRepository {
     int? stitchTarget,
     int? patternResetAt,
   }) {
-    final project = Project(name: name);
+    final project = Project(
+      name: name,
+      startDate: DateTime.now(), // 시작일 자동 설정
+    );
 
     // 메인 단 카운터 생성
     final rowCounter = Counter.row(targetRow: targetRow);
@@ -408,5 +411,45 @@ class ProjectRepository {
   bool canCreateProject({required bool isPremium}) {
     if (isPremium) return true;
     return getAllProjects().length < freeProjectLimit;
+  }
+
+  // ============ 타이머 관련 ============
+
+  /// 타이머 토글 (시작/정지)
+  void toggleTimer(Project project) {
+    project.toggleTimer();
+    _db.saveProject(project);
+  }
+
+  /// 타이머 시작
+  void startTimer(Project project) {
+    project.startTimer();
+    _db.saveProject(project);
+  }
+
+  /// 타이머 정지
+  void stopTimer(Project project) {
+    project.stopTimer();
+    _db.saveProject(project);
+  }
+
+  /// 누적 작업 시간 리셋
+  void resetWorkTime(Project project) {
+    project.resetWorkTime();
+    _db.saveProject(project);
+  }
+
+  // ============ 날짜 관련 ============
+
+  /// 시작일 설정
+  void setStartDate(Project project, DateTime? date) {
+    project.setStartDate(date);
+    _db.saveProject(project);
+  }
+
+  /// 완료일 설정 (프로젝트 상태도 함께 변경됨)
+  void setCompletedDate(Project project, DateTime? date) {
+    project.setCompletedDate(date);
+    _db.saveProject(project);
   }
 }

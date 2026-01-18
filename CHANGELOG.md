@@ -4,6 +4,24 @@
 
 ## [Unreleased]
 
+### Added
+- **프로젝트 작업 시간 추적 기능**
+  - 타이머 버튼: 탭으로 시작/정지, 롱프레스로 누적 시간 리셋
+  - 정보 바 (`ProjectInfoBar`): ProgressHeader 아래에 시작일 + 작업시간 표시
+  - 날짜 편집 바텀시트 (`DateEditSheet`): 시작일/완료일 편집 (정보 바 롱프레스)
+  - 백그라운드 전환 시 타이머 자동 정지 (`WidgetsBindingObserver`)
+  - 프로젝트 생성 시 startDate 자동 설정
+  - 완료일 설정 시 프로젝트 상태 자동 완료 처리
+- `Project` 모델에 `startDate`, `completedDate`, `totalWorkSeconds`, `timerStartedAt` 필드 추가
+- 한국어 DatePicker 지원 (`flutter_localizations` 추가)
+
+### Changed
+- 하단 액션 버튼 레이아웃 개선: `Flexible` + `AspectRatio`로 오버플로우 방지
+- 버튼 크기 축소: 56x56 → 48x48 (최대), 간격 12px → 8px
+- 메모 아이콘 변경: `note_alt_outlined` → `sticky_note_2_outlined`
+- 정보 바 날짜 포맷: `2026/1/19부터 1분 30초째...`
+- 작업시간 초 단위까지 표시
+
 ### Fixed
 - 보조 카운터 제거 버그 수정: 확인 다이얼로그가 인라인 편집기 뒤에 가려지던 문제
 - 보조 카운터 제거 후 UI 미갱신 문제 수정 (ObjectBox ToMany 관계 처리 순서 수정)
