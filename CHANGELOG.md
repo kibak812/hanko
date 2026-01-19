@@ -4,6 +4,27 @@
 
 ## [Unreleased]
 
+### Changed
+- **메인 카운터 UI 개선**
+  - 프로젝트명 영역 위아래 간격 확대 (vertical padding 8 추가)
+  - 우측 아이콘 변경: `chevron_right` → `menu` (햄버거 메뉴)
+  - 날짜 앞 캘린더 아이콘 추가 (`calendar_today_outlined`)
+  - 시간 앞 타이머 아이콘 추가 (`schedule_outlined`)
+- **프로젝트 목록 시간 표시**: 초 단위까지 표시 (예: "2시간 30분 15초")
+- **보조 카운터 완료 효과 개선**
+  - 기존 bounce 애니메이션 → Subtle Glow 효과 (primary 색상)
+  - Goal/Repetition 모두 파란색(primary)으로 통일
+  - 우상단 체크마크 배지 제거
+
+### Added
+- **Repetition 카운터 리셋 효과**: 리셋값 도달 시 5/5 표시 → 파란 플래시 → 0으로 변경
+  - 리셋 중 최대값 잠시 표시 후 실제 값(0)으로 전환
+  - primary 색상 플래시 + lightImpact 햅틱
+
+### Removed
+- 보조 카운터 목표 달성 다이얼로그 (`_showSecondaryGoalCompletedDialog`) 삭제
+- 보조 카운터 자동 리셋 토스트 (`_showSecondaryAutoResetToast`) 삭제
+
 ### Added
 - **프로젝트 카드 시간 정보 표시** - 시작일, 완료일, 누적 작업시간을 프로젝트 목록에서 확인
   - 진행 중: `1/5부터 · 2시간 30분`

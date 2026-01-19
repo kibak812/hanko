@@ -178,24 +178,14 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
         _showAutoResetToast(next.patternResetAt!);
         ref.read(activeProjectCounterProvider.notifier).clearEventFlags();
       }
-      // 동적 보조 카운터: 목표 달성
+      // 동적 보조 카운터: 목표 달성 (Glow 효과 + 햅틱만, 알림창 없음)
       if (next.goalReachedCounterId != null &&
           next.goalReachedCounterId != previous?.goalReachedCounterId) {
-        final counter = next.secondaryCounters.firstWhere(
-          (c) => c.id == next.goalReachedCounterId,
-          orElse: () => next.secondaryCounters.first,
-        );
-        _showSecondaryGoalCompletedDialog(counter.label, counter.targetValue!);
         ref.read(activeProjectCounterProvider.notifier).clearEventFlags();
       }
-      // 동적 보조 카운터: 자동 리셋
+      // 동적 보조 카운터: 자동 리셋 (플래시 효과 + 햅틱만, 토스트 없음)
       if (next.resetTriggeredCounterId != null &&
           next.resetTriggeredCounterId != previous?.resetTriggeredCounterId) {
-        final counter = next.secondaryCounters.firstWhere(
-          (c) => c.id == next.resetTriggeredCounterId,
-          orElse: () => next.secondaryCounters.first,
-        );
-        _showSecondaryAutoResetToast(counter.label, counter.resetAt!);
         ref.read(activeProjectCounterProvider.notifier).clearEventFlags();
       }
     });
@@ -522,45 +512,6 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
             AppIcons.patternIcon(size: 20, color: Colors.white),
             const SizedBox(width: 8),
             Text('패턴 $resetAt회 완료 → 리셋됨'),
-          ],
-        ),
-        duration: const Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: AppColors.primary,
-      ),
-    );
-  }
-
-  /// 동적 보조 카운터 목표 달성 다이얼로그
-  void _showSecondaryGoalCompletedDialog(String label, int target) {
-    _triggerHaptic(duration: 40, amplitude: 100);
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        icon: AppIcons.goalIcon(size: 48, color: AppColors.success),
-        title: Text('$label $target 완료!'),
-        content: const Text('목표에 도달했어요.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('확인'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// 동적 보조 카운터 자동 리셋 토스트
-  void _showSecondaryAutoResetToast(String label, int resetAt) {
-    _triggerDoubleHaptic();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            AppIcons.patternIcon(size: 20, color: Colors.white),
-            const SizedBox(width: 8),
-            Text('$label $resetAt회 완료 → 리셋됨'),
           ],
         ),
         duration: const Duration(seconds: 2),

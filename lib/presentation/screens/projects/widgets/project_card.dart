@@ -252,22 +252,21 @@ class ProjectCard extends StatelessWidget {
     return null;
   }
 
-  /// 작업 시간 포맷 (초 생략)
+  /// 작업 시간 포맷 (초 포함)
   String? _formatWorkTime() {
-    final seconds = project.totalWorkSeconds;
-    if (seconds == 0) return null;
+    final totalSeconds = project.totalWorkSeconds;
+    if (totalSeconds == 0) return null;
 
-    final hours = seconds ~/ 3600;
-    final minutes = (seconds % 3600) ~/ 60;
+    final hours = totalSeconds ~/ 3600;
+    final minutes = (totalSeconds % 3600) ~/ 60;
+    final seconds = totalSeconds % 60;
 
-    if (hours > 0 && minutes > 0) {
-      return '$hours시간 $minutes분';
-    } else if (hours > 0) {
-      return '$hours시간';
-    } else if (minutes > 0) {
-      return '$minutes분';
-    }
-    return null;
+    final parts = <String>[];
+    if (hours > 0) parts.add('$hours시간');
+    if (minutes > 0) parts.add('$minutes분');
+    if (seconds > 0 || parts.isEmpty) parts.add('$seconds초');
+
+    return parts.join(' ');
   }
 
   /// 시간 정보 섹션 빌드 (날짜 범위 + 작업 시간)

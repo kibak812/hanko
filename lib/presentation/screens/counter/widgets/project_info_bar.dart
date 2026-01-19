@@ -89,48 +89,52 @@ class _ProjectInfoBarState extends State<ProjectInfoBar> {
     return DateFormat('yyyy/M/d').format(date);
   }
 
-  /// 정보 텍스트 생성
-  String _buildInfoText() {
+  /// 날짜 텍스트 생성
+  String? _buildDateText() {
     final startDate = widget.startDate;
     final completedDate = widget.completedDate;
-    final workTime = _formatDuration(_currentWorkSeconds);
 
-    // 시작일이 없으면 빈 문자열
-    if (startDate == null) return '';
+    if (startDate == null) return null;
 
     final dateStr = _formatDate(startDate);
 
-    // 완료된 경우
     if (completedDate != null) {
       final completedStr = _formatDate(completedDate);
-      if (workTime.isNotEmpty) {
-        return '$dateStr부터 $workTime 동안 $completedStr까지';
-      }
-      return '$dateStr부터 $completedStr까지';
+      return '$dateStr → $completedStr';
     }
 
-    // 진행 중 - 타이머 실행 중
+    return '$dateStr부터';
+  }
+
+  /// 시간 텍스트 생성
+  String? _buildTimeText() {
+    final workTime = _formatDuration(_currentWorkSeconds);
+    if (workTime.isEmpty) return null;
+
+    final completedDate = widget.completedDate;
+
+    if (completedDate != null) {
+      return '총 $workTime';
+    }
+
     if (widget.isTimerRunning) {
-      if (workTime.isNotEmpty) {
-        return '$dateStr부터 $workTime째...';
-      }
-      return '$dateStr부터 작업 중...';
+      return '$workTime째...';
     }
 
-    // 진행 중 - 타이머 정지
-    if (workTime.isNotEmpty) {
-      return '$dateStr부터 $workTime 동안 작업 중';
-    }
-    return '$dateStr부터 작업 중';
+    return workTime;
   }
 
   @override
   Widget build(BuildContext context) {
-    final infoText = _buildInfoText();
-    if (infoText.isEmpty) return const SizedBox.shrink();
+    final dateText = _buildDateText();
+    final timeText = _buildTimeText();
+
+    if (dateText == null && timeText == null) return const SizedBox.shrink();
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+    final activeColor = widget.isTimerRunning ? AppColors.primary : textColor;
+    final textStyle = TextStyle(fontSize: 13, color: activeColor);
 
     return GestureDetector(
       onLongPress: widget.onLongPress,
@@ -138,24 +142,29 @@ class _ProjectInfoBarState extends State<ProjectInfoBar> {
         padding: const EdgeInsets.only(left: 24, right: 24, top: 0, bottom: 12),
         child: Row(
           children: [
-            if (widget.isTimerRunning)
+            if (dateText != null) ...[
+              Icon(
+                Icons.calendar_today_outlined,
+                size: 14,
+                color: activeColor,
+              ),
+              const SizedBox(width: 4),
+              Text(dateText, style: textStyle),
+            ],
+            if (dateText != null && timeText != null)
               Padding(
-                padding: const EdgeInsets.only(right: 6),
-                child: Icon(
-                  Icons.timer,
-                  size: 14,
-                  color: AppColors.primary,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Text('·', style: textStyle),
               ),
-            Expanded(
-              child: Text(
-                infoText,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: widget.isTimerRunning ? AppColors.primary : textColor,
-                ),
+            if (timeText != null) ...[
+              Icon(
+                Icons.schedule_outlined,
+                size: 14,
+                color: activeColor,
               ),
-            ),
+              const SizedBox(width: 4),
+              Text(timeText, style: textStyle),
+            ],
           ],
         ),
       ),
