@@ -15,6 +15,7 @@
   - 기존 bounce 애니메이션 → Subtle Glow 효과 (primary 색상)
   - Goal/Repetition 모두 파란색(primary)으로 통일
   - 우상단 체크마크 배지 제거
+  - 인라인 편집기도 primary 색상으로 통일
 
 ### Added
 - **Repetition 카운터 리셋 효과**: 리셋값 도달 시 5/5 표시 → 파란 플래시 → 0으로 변경
