@@ -83,28 +83,10 @@ class ProjectCard extends StatelessWidget {
                               : AppColors.textSecondary,
                         ),
                       ),
+                      _buildTimeInfoSection(isDark, isCompleted),
                     ],
                   ),
                 ),
-                if (isActive)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      '활성',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  ),
                 PopupMenuButton<String>(
                   icon: Icon(
                     Icons.more_vert,
@@ -151,7 +133,7 @@ class ProjectCard extends StatelessWidget {
               ],
             ),
             if (project.targetRow != null) ...[
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               Row(
                 children: [
                   Expanded(
@@ -237,5 +219,91 @@ class ProjectCard extends StatelessWidget {
     } else {
       return DateFormat('M월 d일').format(dateTime);
     }
+  }
+
+  /// 날짜 포맷 (올해: M/d, 작년 이전: yy년 M/d)
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    if (date.year == now.year) {
+      return DateFormat('M/d').format(date);
+    } else {
+      return DateFormat("yy'년' M/d").format(date);
+    }
+  }
+
+  /// 날짜 범위 포맷
+  String? _formatDateRange() {
+    final startDate = project.startDate;
+    final completedDate = project.completedDate;
+    final isCompleted = project.status == ProjectStatus.completed;
+
+    if (startDate == null && completedDate == null) {
+      return null;
+    }
+
+    if (isCompleted && startDate != null && completedDate != null) {
+      return '${_formatDate(startDate)} → ${_formatDate(completedDate)}';
+    }
+
+    if (startDate != null) {
+      return '${_formatDate(startDate)}부터';
+    }
+
+    return null;
+  }
+
+  /// 작업 시간 포맷 (초 생략)
+  String? _formatWorkTime() {
+    final seconds = project.totalWorkSeconds;
+    if (seconds == 0) return null;
+
+    final hours = seconds ~/ 3600;
+    final minutes = (seconds % 3600) ~/ 60;
+
+    if (hours > 0 && minutes > 0) {
+      return '$hours시간 $minutes분';
+    } else if (hours > 0) {
+      return '$hours시간';
+    } else if (minutes > 0) {
+      return '$minutes분';
+    }
+    return null;
+  }
+
+  /// 시간 정보 섹션 빌드 (날짜 범위 + 작업 시간)
+  Widget _buildTimeInfoSection(bool isDark, bool isCompleted) {
+    final dateRange = _formatDateRange();
+    final workTime = _formatWorkTime();
+
+    if (dateRange == null && workTime == null) {
+      return const SizedBox.shrink();
+    }
+
+    final textColor =
+        isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+    final textStyle = TextStyle(fontSize: 12, color: textColor);
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Row(
+        children: [
+          if (dateRange != null) ...[
+            Icon(Icons.calendar_today_outlined, size: 12, color: textColor),
+            const SizedBox(width: 4),
+            Text(dateRange, style: textStyle),
+          ],
+          if (dateRange != null && workTime != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6),
+              child: Text('·', style: textStyle),
+            ),
+          if (workTime != null) ...[
+            Icon(Icons.schedule_outlined, size: 12, color: textColor),
+            const SizedBox(width: 4),
+            Text(isCompleted ? '총 $workTime' : workTime, style: textStyle),
+          ],
+        ],
+      ),
+    );
   }
 }

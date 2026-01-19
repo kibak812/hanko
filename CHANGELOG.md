@@ -5,6 +5,9 @@
 ## [Unreleased]
 
 ### Added
+- **프로젝트 카드 시간 정보 표시** - 시작일, 완료일, 누적 작업시간을 프로젝트 목록에서 확인
+  - 진행 중: `1/5부터 · 2시간 30분`
+  - 완료: `1/5 → 1/19 · 총 5시간 30분`
 - **프로젝트 작업 시간 추적 기능**
   - 타이머 버튼: 탭으로 시작/정지, 롱프레스로 누적 시간 리셋
   - 정보 바 (`ProjectInfoBar`): ProgressHeader 아래에 시작일 + 작업시간 표시
@@ -14,6 +17,9 @@
   - 완료일 설정 시 프로젝트 상태 자동 완료 처리
 - `Project` 모델에 `startDate`, `completedDate`, `totalWorkSeconds`, `timerStartedAt` 필드 추가
 - 한국어 DatePicker 지원 (`flutter_localizations` 추가)
+
+### Removed
+- 프로젝트 카드 "활성" 배지 제거
 
 ### Changed
 - 하단 액션 버튼 레이아웃 개선: `Flexible` + `AspectRatio`로 오버플로우 방지
