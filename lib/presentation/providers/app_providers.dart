@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../data/datasources/local_storage.dart';
 import '../../data/datasources/objectbox_database.dart';
 import '../../data/repositories/project_repository.dart';
+import '../../domain/services/ad_service.dart';
 
 /// SharedPreferences Provider
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
@@ -24,6 +25,41 @@ final localStorageProvider = Provider<LocalStorage>((ref) {
 final projectRepositoryProvider = Provider<ProjectRepository>((ref) {
   final db = ref.watch(objectBoxDatabaseProvider);
   return ProjectRepository(db);
+});
+
+/// AdService Provider
+final adServiceProvider = Provider<AdService>((ref) {
+  throw UnimplementedError('AdService must be initialized');
+});
+
+/// 전면 광고 표시 컨트롤러
+class InterstitialAdController {
+  final AdService _adService;
+  final LocalStorage _localStorage;
+
+  InterstitialAdController(this._adService, this._localStorage);
+
+  /// 전면 광고 표시 시도 (빈도 제어 적용)
+  Future<bool> tryShowAd() async {
+    if (!_localStorage.canShowAd()) return false;
+    final shown = await _adService.showInterstitialAd();
+    if (shown) {
+      await _localStorage.incrementAdCount();
+      await _localStorage.setLastAdTime(DateTime.now());
+    }
+    return shown;
+  }
+}
+
+/// 전면 광고 컨트롤러 Provider
+/// 프리미엄 사용자는 null 반환 (광고 없음)
+final interstitialAdControllerProvider = Provider<InterstitialAdController?>((ref) {
+  final isPremium = ref.watch(premiumStatusProvider);
+  if (isPremium) return null;
+  return InterstitialAdController(
+    ref.read(adServiceProvider),
+    ref.read(localStorageProvider),
+  );
 });
 
 /// App Settings Provider
@@ -106,7 +142,7 @@ final voiceUsageProvider =
 
 class VoiceUsageNotifier extends StateNotifier<int> {
   final LocalStorage _localStorage;
-  static const int dailyLimit = 999; // 개발 중 제한 해제 (원래: 3)
+  static const int dailyLimit = 5; // 기본 5회, 광고 시청 시 +5회
 
   VoiceUsageNotifier(this._localStorage)
       : super(_localStorage.getRemainingVoiceCount(dailyLimit: dailyLimit));

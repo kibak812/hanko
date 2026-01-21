@@ -7,6 +7,7 @@
 
 | 파일 | 역할 |
 |------|------|
+| `ad_banner_widget.dart` | 하단 배너 광고 위젯 (프리미엄 사용자 제외) |
 | `expandable_counter_option.dart` | 확장형 토글 카드 (프로젝트 설정용) |
 | `large_area_button.dart` | 카운터 하단 +/- 버튼 (넓은 터치 영역) |
 | `dialogs.dart` | 공통 다이얼로그 유틸리티 함수 |
@@ -67,6 +68,18 @@ if (confirmed) {
 
 - `ads/` - 광고 관련 위젯
 - `common/` - 범용 공통 위젯
+
+## ad_banner_widget.dart
+
+하단 배너 광고 위젯. 프리미엄 사용자는 자동으로 숨김 처리.
+
+```dart
+// 기본 (하단 패딩 8px)
+const AdBannerWidget()
+
+// 커스텀 패딩
+const AdBannerWidget(bottomPadding: 0)
+```
 
 ## widget_extensions.dart
 

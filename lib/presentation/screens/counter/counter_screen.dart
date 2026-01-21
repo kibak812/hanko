@@ -11,6 +11,7 @@ import '../../../core/constants/app_strings.dart';
 import '../../../data/datasources/local_storage.dart';
 import '../../../router/app_router.dart';
 import '../../providers/app_providers.dart';
+import '../../widgets/ad_banner_widget.dart';
 import '../../providers/project_provider.dart';
 import '../../providers/voice_provider.dart';
 import '../../../data/models/counter.dart';
@@ -393,13 +394,36 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text('${AppStrings.voiceLimitReached} (3/3 사용)'),
+                                  content: Text('${AppStrings.voiceLimitReached} (5/5 사용)'),
                                   duration: const Duration(seconds: 3),
                                   behavior: SnackBarBehavior.floating,
                                   action: SnackBarAction(
                                     label: AppStrings.watchAdForVoice,
-                                    onPressed: () {
-                                      // 광고 시청 로직
+                                    onPressed: () async {
+                                      final adService = ref.read(adServiceProvider);
+                                      final shown = await adService.showRewardedAd(
+                                        onRewarded: (amount) {
+                                          ref.read(voiceUsageProvider.notifier).addBonus(5);
+                                          if (context.mounted) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              const SnackBar(
+                                                content: Text('음성 명령 5회가 추가되었어요!'),
+                                                duration: Duration(seconds: 2),
+                                                behavior: SnackBarBehavior.floating,
+                                              ),
+                                            );
+                                          }
+                                        },
+                                      );
+                                      if (!shown && context.mounted) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(
+                                            content: Text('광고를 준비 중이에요. 잠시 후 다시 시도해주세요.'),
+                                            duration: Duration(seconds: 2),
+                                            behavior: SnackBarBehavior.floating,
+                                          ),
+                                        );
+                                      }
                                     },
                                   ),
                                 ),
@@ -425,6 +449,9 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
                 ),
               ),
             ),
+
+            // 배너 광고 (하단) - SafeArea 내이므로 패딩 불필요
+            const AdBannerWidget(bottomPadding: 0),
           ],
         ),
       ),

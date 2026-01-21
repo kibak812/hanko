@@ -4,6 +4,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../providers/app_providers.dart';
+import '../../widgets/ad_banner_widget.dart';
 
 /// 앱 설정 화면
 class AppSettingsScreen extends ConsumerStatefulWidget {
@@ -40,73 +41,81 @@ class _AppSettingsScreenState extends ConsumerState<AppSettingsScreen> {
         title: const Text(AppStrings.settings),
         centerTitle: true,
       ),
-      body: ListView(
+      body: Column(
         children: [
-          const SizedBox(height: 16),
-
-          // 피드백 섹션
-          _buildSectionHeader(context, '피드백'),
-          _buildSwitchTile(
-            context,
-            icon: Icons.vibration,
-            title: AppStrings.hapticFeedback,
-            subtitle: '탭할 때 진동 피드백',
-            value: settings.hapticFeedback,
-            onChanged: (value) => settingsNotifier.setHapticFeedback(value),
-          ),
-
-          const SizedBox(height: 24),
-
-          // 화면 섹션
-          _buildSectionHeader(context, '화면'),
-          _buildSwitchTile(
-            context,
-            icon: Icons.screen_lock_portrait,
-            title: AppStrings.keepScreenOn,
-            subtitle: '뜨개질하는 동안 화면이 꺼지지 않아요',
-            value: settings.keepScreenOn,
-            onChanged: (value) => settingsNotifier.setKeepScreenOn(value),
-          ),
-
-          // 테마 선택
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          Expanded(
+            child: ListView(
               children: [
-                Row(
-                  children: [
-                    Icon(
-                      Icons.palette_outlined,
-                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
-                    ),
-                    const SizedBox(width: 16),
-                    Text(
-                      '테마',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                  ],
+                const SizedBox(height: 16),
+
+                // 피드백 섹션
+                _buildSectionHeader(context, '피드백'),
+                _buildSwitchTile(
+                  context,
+                  icon: Icons.vibration,
+                  title: AppStrings.hapticFeedback,
+                  subtitle: '탭할 때 진동 피드백',
+                  value: settings.hapticFeedback,
+                  onChanged: (value) => settingsNotifier.setHapticFeedback(value),
                 ),
-                const SizedBox(height: 12),
-                _buildThemeSelector(context, settings.themeMode, settingsNotifier),
+
+                const SizedBox(height: 24),
+
+                // 화면 섹션
+                _buildSectionHeader(context, '화면'),
+                _buildSwitchTile(
+                  context,
+                  icon: Icons.screen_lock_portrait,
+                  title: AppStrings.keepScreenOn,
+                  subtitle: '뜨개질하는 동안 화면이 꺼지지 않아요',
+                  value: settings.keepScreenOn,
+                  onChanged: (value) => settingsNotifier.setKeepScreenOn(value),
+                ),
+
+                // 테마 선택
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.palette_outlined,
+                            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                          ),
+                          const SizedBox(width: 16),
+                          Text(
+                            '테마',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      _buildThemeSelector(context, settings.themeMode, settingsNotifier),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                // 앱 정보 섹션
+                _buildSectionHeader(context, AppStrings.about),
+                ListTile(
+                  leading: Icon(
+                    Icons.info_outline,
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                  ),
+                  title: const Text(AppStrings.appName),
+                  subtitle: Text(_appVersion.isEmpty ? '버전 정보 로딩 중...' : '버전 $_appVersion'),
+                ),
+
+                const SizedBox(height: 32),
               ],
             ),
           ),
-
-          const SizedBox(height: 24),
-
-          // 앱 정보 섹션
-          _buildSectionHeader(context, AppStrings.about),
-          ListTile(
-            leading: Icon(
-              Icons.info_outline,
-              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
-            ),
-            title: const Text(AppStrings.appName),
-            subtitle: Text(_appVersion.isEmpty ? '버전 정보 로딩 중...' : '버전 $_appVersion'),
-          ),
-
-          const SizedBox(height: 32),
+          // 배너 광고 (하단)
+          const AdBannerWidget(),
         ],
       ),
     );

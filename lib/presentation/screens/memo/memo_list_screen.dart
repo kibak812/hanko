@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../data/models/row_memo.dart';
+import '../../providers/app_providers.dart';
 import '../../providers/project_provider.dart';
+import '../../widgets/ad_banner_widget.dart';
 
 /// 메모 목록 화면
 class MemoListScreen extends ConsumerStatefulWidget {
@@ -41,9 +43,17 @@ class _MemoListScreenState extends ConsumerState<MemoListScreen> {
           ),
         ],
       ),
-      body: memos.isEmpty
-          ? _buildEmptyState(context)
-          : _buildMemoList(context, memos),
+      body: Column(
+        children: [
+          Expanded(
+            child: memos.isEmpty
+                ? _buildEmptyState(context)
+                : _buildMemoList(context, memos),
+          ),
+          // 배너 광고 (하단)
+          const AdBannerWidget(),
+        ],
+      ),
     );
   }
 
@@ -196,7 +206,7 @@ class _MemoListScreenState extends ConsumerState<MemoListScreen> {
               child: const Text(AppStrings.delete),
             ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               final row = int.tryParse(rowController.text);
               final content = contentController.text.trim();
 
@@ -211,6 +221,8 @@ class _MemoListScreenState extends ConsumerState<MemoListScreen> {
                       .addMemo(row, content);
                 }
                 Navigator.pop(context);
+                // 메모 저장 후 전면 광고 표시
+                await ref.read(interstitialAdControllerProvider)?.tryShowAd();
               }
             },
             child: const Text(AppStrings.save),

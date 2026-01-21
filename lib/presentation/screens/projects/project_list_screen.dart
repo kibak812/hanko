@@ -7,6 +7,7 @@ import '../../../data/models/project.dart';
 import '../../../router/app_router.dart';
 import '../../providers/app_providers.dart';
 import '../../providers/project_provider.dart';
+import '../../widgets/ad_banner_widget.dart';
 import 'widgets/project_card.dart';
 
 /// 프로젝트 목록 화면
@@ -27,51 +28,66 @@ class ProjectListScreen extends ConsumerWidget {
           onPressed: () => context.pop(),
         ),
       ),
-      body: projects.isEmpty
-          ? _buildEmptyState(context)
-          : ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: projects.length,
-              itemBuilder: (context, index) {
-                final project = projects[index];
-                final isActive = project.id == activeProjectId;
+      body: Column(
+        children: [
+          Expanded(
+            child: projects.isEmpty
+                ? _buildEmptyState(context)
+                : ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
+                    itemCount: projects.length,
+                    itemBuilder: (context, index) {
+                      final project = projects[index];
+                      final isActive = project.id == activeProjectId;
 
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: ProjectCard(
-                    project: project,
-                    isActive: isActive,
-                    onTap: () {
-                      ref
-                          .read(activeProjectIdProvider.notifier)
-                          .setActiveProject(project.id);
-                      context.pop();
-                    },
-                    onEdit: () {
-                      context.push(AppRoutes.projectSettings, extra: project.id);
-                    },
-                    onDelete: () {
-                      _showDeleteDialog(context, ref, project);
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: ProjectCard(
+                          project: project,
+                          isActive: isActive,
+                          onTap: () async {
+                            ref
+                                .read(activeProjectIdProvider.notifier)
+                                .setActiveProject(project.id);
+                            // 프로젝트 선택 시 전면 광고 표시
+                            await ref.read(interstitialAdControllerProvider)?.tryShowAd();
+                            if (context.mounted) {
+                              context.pop();
+                            }
+                          },
+                          onEdit: () {
+                            context.push(AppRoutes.projectSettings, extra: project.id);
+                          },
+                          onDelete: () {
+                            _showDeleteDialog(context, ref, project);
+                          },
+                        ),
+                      );
                     },
                   ),
-                );
-              },
-            ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          // 프로젝트 생성 가능 여부 체크
-          final canCreate = ref
-              .read(projectRepositoryProvider)
-              .canCreateProject(isPremium: isPremium);
+          ),
+          // 배너 광고 (하단)
+          const AdBannerWidget(),
+        ],
+      ),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 48),
+        child: FloatingActionButton.extended(
+          onPressed: () {
+            // 프로젝트 생성 가능 여부 체크
+            final canCreate = ref
+                .read(projectRepositoryProvider)
+                .canCreateProject(isPremium: isPremium);
 
-          if (canCreate) {
-            context.push(AppRoutes.newProject);
-          } else {
-            _showProjectLimitDialog(context);
-          }
-        },
-        icon: const Icon(Icons.add),
-        label: const Text(AppStrings.newProject),
+            if (canCreate) {
+              context.push(AppRoutes.newProject);
+            } else {
+              _showProjectLimitDialog(context);
+            }
+          },
+          icon: const Icon(Icons.add),
+          label: const Text(AppStrings.newProject),
+        ),
       ),
     );
   }

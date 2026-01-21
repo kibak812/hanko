@@ -6,6 +6,7 @@ import '../../../core/constants/app_strings.dart';
 import '../../../data/models/counter.dart';
 import '../../providers/app_providers.dart';
 import '../../providers/project_provider.dart';
+import '../../widgets/ad_banner_widget.dart';
 import '../../widgets/dialogs.dart';
 import 'widgets/add_secondary_counter_sheet.dart';
 
@@ -71,7 +72,7 @@ class _ProjectSettingsScreenState extends ConsumerState<ProjectSettingsScreen> {
     super.dispose();
   }
 
-  void _save() {
+  Future<void> _save() async {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -121,8 +122,13 @@ class _ProjectSettingsScreenState extends ConsumerState<ProjectSettingsScreen> {
           .read(activeProjectIdProvider.notifier)
           .setActiveProject(newProject.id);
 
+      // 프로젝트 생성 완료 후 전면 광고 표시
+      await ref.read(interstitialAdControllerProvider)?.tryShowAd();
+
       // 새 프로젝트 생성 후 메인 카운터 화면으로 이동
-      context.go('/');
+      if (mounted) {
+        context.go('/');
+      }
     }
   }
 
@@ -198,7 +204,10 @@ class _ProjectSettingsScreenState extends ConsumerState<ProjectSettingsScreen> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -338,6 +347,11 @@ class _ProjectSettingsScreenState extends ConsumerState<ProjectSettingsScreen> {
             ),
           ],
         ),
+      ),
+          ),
+          // 배너 광고 (하단)
+          const AdBannerWidget(),
+        ],
       ),
     );
   }

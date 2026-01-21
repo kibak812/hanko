@@ -4,6 +4,18 @@
 
 ## [Unreleased]
 
+### Added
+- **AdMob 광고 시스템 구현**
+  - 배너 광고: 모든 화면 하단에 배치 (프리미엄 사용자 제외)
+  - 전면 광고: 프로젝트 선택, 생성, 메모 저장 시 표시 (3분 간격, 세션당 5회 제한)
+  - 리워드 광고: 음성 명령 제한 도달 시 광고 시청으로 +5회 추가
+  - `AdBannerWidget` - 하단 배너 광고 위젯 (레이아웃 안정성 보장)
+  - `InterstitialAdController` - 전면 광고 빈도 제어
+  - `adServiceProvider`, `interstitialAdControllerProvider` 추가
+
+### Changed
+- 음성 명령 일일 제한: 999회(개발용) → 5회 (광고 시청 시 최대 10회)
+
 ### Changed
 - **메인 카운터 UI 개선**
   - 프로젝트명 영역 위아래 간격 확대 (vertical padding 8 추가)
@@ -151,7 +163,6 @@
 - 설정에서 "음성 피드백" 옵션 제거
 
 ### Dev
-- 음성 제한 999회로 변경 (개발용)
 - 보조 카운터 제한 999개로 변경 (개발용)
 
 ---

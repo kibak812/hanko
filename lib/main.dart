@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'app.dart';
 import 'data/datasources/migration_utils.dart';
 import 'data/datasources/objectbox_database.dart';
+import 'domain/services/ad_service.dart';
 import 'presentation/providers/app_providers.dart';
 
 void main() async {
@@ -25,11 +26,16 @@ void main() async {
   // 데이터 마이그레이션 실행
   await MigrationUtils.runMigrationIfNeeded(sharedPreferences, objectBoxDatabase);
 
+  // AdService 초기화
+  final adService = AdService();
+  await adService.initialize();
+
   runApp(
     ProviderScope(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(sharedPreferences),
         objectBoxDatabaseProvider.overrideWithValue(objectBoxDatabase),
+        adServiceProvider.overrideWithValue(adService),
       ],
       child: const HankoHankoApp(),
     ),
