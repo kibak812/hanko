@@ -1,9 +1,12 @@
+import 'dart:io';
 import 'package:purchases_flutter/purchases_flutter.dart';
 
 /// 프리미엄 서비스
 /// RevenueCat을 사용한 인앱결제 관리
 class PremiumService {
-  static const String _apiKey = 'YOUR_REVENUECAT_API_KEY'; // 실제 배포 시 교체
+  // RevenueCat API 키
+  static const String _iosApiKey = 'appl_BgDZjcXlpJRjziYrsTMrwWtuQrZ';
+  static const String _androidApiKey = 'appl_BgDZjcXlpJRjziYrsTMrwWtuQrZ';
 
   // 상품 ID
   static const String proMonthly = 'hanko_pro_monthly';
@@ -14,12 +17,20 @@ class PremiumService {
 
   bool _isInitialized = false;
 
+  static String get _apiKey {
+    if (Platform.isIOS) {
+      return _iosApiKey;
+    } else if (Platform.isAndroid) {
+      return _androidApiKey;
+    }
+    throw UnsupportedError('Unsupported platform');
+  }
+
   /// RevenueCat 초기화
   Future<void> initialize() async {
     if (_isInitialized) return;
 
-    // TODO: 실제 API 키 설정 시 주석 해제
-    // await Purchases.configure(PurchasesConfiguration(_apiKey));
+    await Purchases.configure(PurchasesConfiguration(_apiKey));
     _isInitialized = true;
   }
 

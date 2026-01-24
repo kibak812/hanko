@@ -5,6 +5,12 @@
 ## [Unreleased]
 
 ### Added
+- **RevenueCat 프리미엄 결제 시스템**
+  - `PremiumService`: RevenueCat SDK 래핑 (초기화, 구매, 복원, 상태 확인)
+  - `PremiumPurchaseSheet`: 프리미엄 구매 바텀시트 UI (월간/연간 구독 선택)
+  - `premiumServiceProvider`: Riverpod Provider로 서비스 주입
+  - 앱 시작 시 RevenueCat에서 구독 상태 자동 동기화
+  - 프로젝트 제한 다이얼로그에서 구매 시트 연결
 - **AdMob 광고 시스템 구현**
   - 배너 광고: 모든 화면 하단에 배치 (프리미엄 사용자 제외)
   - 전면 광고: 프로젝트 선택, 생성, 메모 저장 시 표시 (3분 간격, 세션당 5회 제한)
@@ -14,6 +20,11 @@
   - `adServiceProvider`, `interstitialAdControllerProvider` 추가
 
 ### Changed
+- **AdService 개선**
+  - 프로덕션 광고 ID 추가 (iOS/Android)
+  - `kReleaseMode`로 테스트/프로덕션 광고 자동 전환
+  - 광고 로드 실패 시 최대 3회 재시도 후 중단
+- `HankoHankoApp`을 `ConsumerStatefulWidget`으로 변경 (동기화 지원)
 - 음성 명령 일일 제한: 999회(개발용) → 5회 (광고 시청 시 최대 10회)
 
 ### Changed

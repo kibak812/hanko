@@ -7,11 +7,29 @@ import 'presentation/providers/app_providers.dart';
 import 'router/app_router.dart';
 
 /// 한코한코 메인 앱 위젯
-class HankoHankoApp extends ConsumerWidget {
+class HankoHankoApp extends ConsumerStatefulWidget {
   const HankoHankoApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HankoHankoApp> createState() => _HankoHankoAppState();
+}
+
+class _HankoHankoAppState extends ConsumerState<HankoHankoApp> {
+  @override
+  void initState() {
+    super.initState();
+    // 앱 시작 시 RevenueCat에서 프리미엄 상태 동기화
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _syncPremiumStatus();
+    });
+  }
+
+  Future<void> _syncPremiumStatus() async {
+    await ref.read(premiumStatusProvider.notifier).syncWithRevenueCat();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final router = ref.watch(routerProvider);
     final settings = ref.watch(appSettingsProvider);
 

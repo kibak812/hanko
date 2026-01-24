@@ -1,9 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../data/datasources/local_storage.dart';
 import '../../data/datasources/objectbox_database.dart';
 import '../../data/repositories/project_repository.dart';
 import '../../domain/services/ad_service.dart';
+import '../../domain/services/premium_service.dart';
 
 /// SharedPreferences Provider
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
@@ -30,6 +32,11 @@ final projectRepositoryProvider = Provider<ProjectRepository>((ref) {
 /// AdService Provider
 final adServiceProvider = Provider<AdService>((ref) {
   throw UnimplementedError('AdService must be initialized');
+});
+
+/// PremiumService Provider
+final premiumServiceProvider = Provider<PremiumService>((ref) {
+  throw UnimplementedError('PremiumService must be initialized');
 });
 
 /// 전면 광고 표시 컨트롤러
@@ -95,18 +102,32 @@ class AppSettingsNotifier extends StateNotifier<AppSettings> {
   }
 }
 
-/// Premium Status Provider (간단한 로컬 캐시 기반)
+/// Premium Status Provider (RevenueCat 연동)
 final premiumStatusProvider =
     StateNotifierProvider<PremiumStatusNotifier, bool>((ref) {
   final localStorage = ref.watch(localStorageProvider);
-  return PremiumStatusNotifier(localStorage);
+  final premiumService = ref.watch(premiumServiceProvider);
+  return PremiumStatusNotifier(localStorage, premiumService);
 });
 
 class PremiumStatusNotifier extends StateNotifier<bool> {
   final LocalStorage _localStorage;
+  final PremiumService _premiumService;
 
-  PremiumStatusNotifier(this._localStorage)
+  PremiumStatusNotifier(this._localStorage, this._premiumService)
       : super(_localStorage.getCachedPremiumStatus());
+
+  /// RevenueCat에서 실제 구독 상태 동기화
+  Future<void> syncWithRevenueCat() async {
+    try {
+      final isPremium = await _premiumService.isPremium();
+      state = isPremium;
+      await _localStorage.cachePremiumStatus(isPremium);
+    } catch (e) {
+      // 오류 시 캐시된 상태 유지 (네트워크 오류 등)
+      debugPrint('Failed to sync premium status: $e');
+    }
+  }
 
   void setPremium(bool value) {
     state = value;
@@ -120,15 +141,13 @@ class PremiumStatusNotifier extends StateNotifier<bool> {
     await _localStorage.cachePremiumStatus(true);
   }
 
-  /// 무료 체험 종료 체크
-  void checkTrialExpiry() {
+  /// 무료 체험 종료 체크 및 구독 상태 확인
+  Future<void> checkTrialExpiry() async {
     if (!state) return; // 이미 무료 상태면 무시
 
-    // RevenueCat 구독이 없고 무료 체험이 끝났으면 프리미엄 해제
-    // 실제로는 RevenueCat에서 체크해야 함
+    // 무료 체험이 끝났으면 RevenueCat에서 실제 구독 상태 확인
     if (_localStorage.isFreeTrialExpired()) {
-      // 구독 상태 확인 필요 (RevenueCat)
-      // 여기서는 일단 로컬 체크만
+      await syncWithRevenueCat();
     }
   }
 }

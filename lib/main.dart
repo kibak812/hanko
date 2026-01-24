@@ -6,6 +6,7 @@ import 'app.dart';
 import 'data/datasources/migration_utils.dart';
 import 'data/datasources/objectbox_database.dart';
 import 'domain/services/ad_service.dart';
+import 'domain/services/premium_service.dart';
 import 'presentation/providers/app_providers.dart';
 
 void main() async {
@@ -30,12 +31,17 @@ void main() async {
   final adService = AdService();
   await adService.initialize();
 
+  // PremiumService 초기화
+  final premiumService = PremiumService();
+  await premiumService.initialize();
+
   runApp(
     ProviderScope(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(sharedPreferences),
         objectBoxDatabaseProvider.overrideWithValue(objectBoxDatabase),
         adServiceProvider.overrideWithValue(adService),
+        premiumServiceProvider.overrideWithValue(premiumService),
       ],
       child: const HankoHankoApp(),
     ),

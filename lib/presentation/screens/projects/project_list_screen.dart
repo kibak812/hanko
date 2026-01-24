@@ -8,6 +8,7 @@ import '../../../router/app_router.dart';
 import '../../providers/app_providers.dart';
 import '../../providers/project_provider.dart';
 import '../../widgets/ad_banner_widget.dart';
+import '../../widgets/premium_purchase_sheet.dart';
 import 'widgets/project_card.dart';
 
 /// 프로젝트 목록 화면
@@ -173,7 +174,7 @@ class ProjectListScreen extends ConsumerWidget {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              // TODO: 프리미엄 구매 화면으로 이동
+              showPremiumPurchaseSheet(context);
             },
             child: const Text(AppStrings.yearlyPrice),
           ),
