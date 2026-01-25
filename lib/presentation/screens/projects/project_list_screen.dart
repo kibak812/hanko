@@ -8,7 +8,6 @@ import '../../../router/app_router.dart';
 import '../../providers/app_providers.dart';
 import '../../providers/project_provider.dart';
 import '../../widgets/ad_banner_widget.dart';
-import '../../widgets/premium_purchase_sheet.dart';
 import 'widgets/project_card.dart';
 
 /// 프로젝트 목록 화면
@@ -19,7 +18,6 @@ class ProjectListScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final projects = ref.watch(projectsProvider);
     final activeProjectId = ref.watch(activeProjectIdProvider);
-    final isPremium = ref.watch(premiumStatusProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -51,7 +49,7 @@ class ProjectListScreen extends ConsumerWidget {
                                 .read(activeProjectIdProvider.notifier)
                                 .setActiveProject(project.id);
                             // 프로젝트 선택 시 전면 광고 표시
-                            await ref.read(interstitialAdControllerProvider)?.tryShowAd();
+                            await ref.read(interstitialAdControllerProvider).tryShowAd();
                             if (context.mounted) {
                               context.pop();
                             }
@@ -74,18 +72,7 @@ class ProjectListScreen extends ConsumerWidget {
       floatingActionButton: Padding(
         padding: const EdgeInsets.only(bottom: 48),
         child: FloatingActionButton.extended(
-          onPressed: () {
-            // 프로젝트 생성 가능 여부 체크
-            final canCreate = ref
-                .read(projectRepositoryProvider)
-                .canCreateProject(isPremium: isPremium);
-
-            if (canCreate) {
-              context.push(AppRoutes.newProject);
-            } else {
-              _showProjectLimitDialog(context);
-            }
-          },
+          onPressed: () => context.push(AppRoutes.newProject),
           icon: const Icon(Icons.add),
           label: const Text(AppStrings.newProject),
         ),
@@ -141,58 +128,4 @@ class ProjectListScreen extends ConsumerWidget {
     );
   }
 
-  void _showProjectLimitDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text(AppStrings.projectLimitTitle),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('프리미엄으로 업그레이드하면:'),
-            const SizedBox(height: 12),
-            _buildFeatureRow(Icons.check, AppStrings.unlimitedProjects),
-            _buildFeatureRow(Icons.check, AppStrings.unlimitedVoice),
-            _buildFeatureRow(Icons.check, AppStrings.noAds),
-            _buildFeatureRow(Icons.check, AppStrings.widget),
-            const SizedBox(height: 16),
-            Text(
-              AppStrings.yearlyPricePerDay,
-              style: TextStyle(
-                fontSize: 14,
-                color: AppColors.textSecondary,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text(AppStrings.later),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              showPremiumPurchaseSheet(context);
-            },
-            child: const Text(AppStrings.yearlyPrice),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFeatureRow(IconData icon, String text) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          Icon(icon, size: 16, color: AppColors.success),
-          const SizedBox(width: 8),
-          Expanded(child: Text(text)),
-        ],
-      ),
-    );
-  }
 }

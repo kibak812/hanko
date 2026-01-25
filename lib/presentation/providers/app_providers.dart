@@ -1,11 +1,9 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../data/datasources/local_storage.dart';
 import '../../data/datasources/objectbox_database.dart';
 import '../../data/repositories/project_repository.dart';
 import '../../domain/services/ad_service.dart';
-import '../../domain/services/premium_service.dart';
 
 /// SharedPreferences Provider
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
@@ -34,11 +32,6 @@ final adServiceProvider = Provider<AdService>((ref) {
   throw UnimplementedError('AdService must be initialized');
 });
 
-/// PremiumService Provider
-final premiumServiceProvider = Provider<PremiumService>((ref) {
-  throw UnimplementedError('PremiumService must be initialized');
-});
-
 /// 전면 광고 표시 컨트롤러
 class InterstitialAdController {
   final AdService _adService;
@@ -59,10 +52,7 @@ class InterstitialAdController {
 }
 
 /// 전면 광고 컨트롤러 Provider
-/// 프리미엄 사용자는 null 반환 (광고 없음)
-final interstitialAdControllerProvider = Provider<InterstitialAdController?>((ref) {
-  final isPremium = ref.watch(premiumStatusProvider);
-  if (isPremium) return null;
+final interstitialAdControllerProvider = Provider<InterstitialAdController>((ref) {
   return InterstitialAdController(
     ref.read(adServiceProvider),
     ref.read(localStorageProvider),
@@ -102,89 +92,33 @@ class AppSettingsNotifier extends StateNotifier<AppSettings> {
   }
 }
 
-/// Premium Status Provider (RevenueCat 연동)
-final premiumStatusProvider =
-    StateNotifierProvider<PremiumStatusNotifier, bool>((ref) {
-  final localStorage = ref.watch(localStorageProvider);
-  final premiumService = ref.watch(premiumServiceProvider);
-  return PremiumStatusNotifier(localStorage, premiumService);
-});
-
-class PremiumStatusNotifier extends StateNotifier<bool> {
-  final LocalStorage _localStorage;
-  final PremiumService _premiumService;
-
-  PremiumStatusNotifier(this._localStorage, this._premiumService)
-      : super(_localStorage.getCachedPremiumStatus());
-
-  /// RevenueCat에서 실제 구독 상태 동기화
-  Future<void> syncWithRevenueCat() async {
-    try {
-      final isPremium = await _premiumService.isPremium();
-      state = isPremium;
-      await _localStorage.cachePremiumStatus(isPremium);
-    } catch (e) {
-      // 오류 시 캐시된 상태 유지 (네트워크 오류 등)
-      debugPrint('Failed to sync premium status: $e');
-    }
-  }
-
-  void setPremium(bool value) {
-    state = value;
-    _localStorage.cachePremiumStatus(value);
-  }
-
-  /// 무료 체험 시작
-  Future<void> startFreeTrial() async {
-    await _localStorage.setFreeTrialStartDate(DateTime.now());
-    state = true;
-    await _localStorage.cachePremiumStatus(true);
-  }
-
-  /// 무료 체험 종료 체크 및 구독 상태 확인
-  Future<void> checkTrialExpiry() async {
-    if (!state) return; // 이미 무료 상태면 무시
-
-    // 무료 체험이 끝났으면 RevenueCat에서 실제 구독 상태 확인
-    if (_localStorage.isFreeTrialExpired()) {
-      await syncWithRevenueCat();
-    }
-  }
-}
-
-/// 음성 사용량 Provider
+/// 음성 사용량 Provider (5회마다 리워드 광고)
+/// state: 다음 광고까지 남은 음성 사용 횟수 (5~0)
 final voiceUsageProvider =
     StateNotifierProvider<VoiceUsageNotifier, int>((ref) {
-  final localStorage = ref.watch(localStorageProvider);
-  return VoiceUsageNotifier(localStorage);
+  return VoiceUsageNotifier();
 });
 
 class VoiceUsageNotifier extends StateNotifier<int> {
-  final LocalStorage _localStorage;
-  static const int dailyLimit = 5; // 기본 5회, 광고 시청 시 +5회
+  static const int adInterval = 5; // 5회마다 광고
 
-  VoiceUsageNotifier(this._localStorage)
-      : super(_localStorage.getRemainingVoiceCount(dailyLimit: dailyLimit));
+  VoiceUsageNotifier() : super(adInterval);
 
-  /// 음성 사용
-  Future<bool> useVoice() async {
-    if (state <= 0) return false;
-
-    await _localStorage.incrementVoiceUsage();
-    state = _localStorage.getRemainingVoiceCount(dailyLimit: dailyLimit);
-    return true;
+  /// 음성 사용 후 호출 - 카운터 감소
+  /// 0이 되면 광고 표시 필요
+  void decrementCounter() {
+    if (state > 0) {
+      state = state - 1;
+    }
   }
 
-  /// 보너스 추가 (광고 시청 후)
-  Future<void> addBonus(int count) async {
-    await _localStorage.addBonusVoiceUsage(count);
-    state = _localStorage.getRemainingVoiceCount(dailyLimit: dailyLimit);
+  /// 광고 표시 후 호출 - 카운터 리셋
+  void resetAfterAd() {
+    state = adInterval;
   }
 
-  /// 새로고침
-  void refresh() {
-    state = _localStorage.getRemainingVoiceCount(dailyLimit: dailyLimit);
-  }
+  /// 광고 표시 필요 여부
+  bool get shouldShowAd => state == 0;
 }
 
 /// 온보딩 완료 여부 Provider

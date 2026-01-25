@@ -4,17 +4,37 @@
 
 ## [Unreleased]
 
+### Changed
+- **무료 + 광고 모델로 전환**: 프리미엄 구독 → 완전 무료 (광고 수익 모델)
+  - 프로젝트 개수 무제한
+  - 보조 카운터 개수 무제한
+  - 음성 명령 무제한 (5회마다 리워드 광고)
+- **음성 리워드 광고**: 음성 명령 5회 사용마다 리워드 광고 자동 표시
+- **광고 표시 단순화**: 프리미엄 체크 제거, 모든 사용자에게 광고 표시
+
+### Removed
+- **RevenueCat 프리미엄 시스템 완전 제거**
+  - `purchases_flutter` 패키지 제거
+  - `PremiumService`, `PremiumPurchaseSheet` 삭제
+  - `premiumServiceProvider`, `premiumStatusProvider` 제거
+  - 프로젝트 생성 제한 다이얼로그 제거
+  - 보조 카운터 추가 제한 경고 제거
+  - 온보딩 화면 무료 체험 안내 제거
+- 프리미엄 관련 문자열 제거 (`app_strings.dart`)
+
+### Fixed
+- **메모 삭제 시 ObjectBox 에러 수정** (404 에러)
+  - ToMany 관계 저장 순서 수정: 프로젝트 저장 → 메모 삭제
+
+---
+
+## [1.0.1] - RevenueCat + AdMob
+
 ### Added
-- **RevenueCat 프리미엄 결제 시스템**
-  - `PremiumService`: RevenueCat SDK 래핑 (초기화, 구매, 복원, 상태 확인)
-  - `PremiumPurchaseSheet`: 프리미엄 구매 바텀시트 UI (월간/연간 구독 선택)
-  - `premiumServiceProvider`: Riverpod Provider로 서비스 주입
-  - 앱 시작 시 RevenueCat에서 구독 상태 자동 동기화
-  - 프로젝트 제한 다이얼로그에서 구매 시트 연결
 - **AdMob 광고 시스템 구현**
-  - 배너 광고: 모든 화면 하단에 배치 (프리미엄 사용자 제외)
-  - 전면 광고: 프로젝트 선택, 생성, 메모 저장 시 표시 (3분 간격, 세션당 5회 제한)
-  - 리워드 광고: 음성 명령 제한 도달 시 광고 시청으로 +5회 추가
+  - 배너 광고: 모든 화면 하단에 배치
+  - 전면 광고: 프로젝트 선택, 생성 시 표시 (3분 간격, 세션당 5회 제한)
+  - 리워드 광고: 음성 명령 보너스 획득용
   - `AdBannerWidget` - 하단 배너 광고 위젯 (레이아웃 안정성 보장)
   - `InterstitialAdController` - 전면 광고 빈도 제어
   - `adServiceProvider`, `interstitialAdControllerProvider` 추가
@@ -24,8 +44,6 @@
   - 프로덕션 광고 ID 추가 (iOS/Android)
   - `kReleaseMode`로 테스트/프로덕션 광고 자동 전환
   - 광고 로드 실패 시 최대 3회 재시도 후 중단
-- `HankoHankoApp`을 `ConsumerStatefulWidget`으로 변경 (동기화 지원)
-- 음성 명령 일일 제한: 999회(개발용) → 5회 (광고 시청 시 최대 10회)
 
 ### Changed
 - **메인 카운터 UI 개선**

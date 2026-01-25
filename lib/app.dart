@@ -16,19 +16,6 @@ class HankoHankoApp extends ConsumerStatefulWidget {
 
 class _HankoHankoAppState extends ConsumerState<HankoHankoApp> {
   @override
-  void initState() {
-    super.initState();
-    // 앱 시작 시 RevenueCat에서 프리미엄 상태 동기화
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _syncPremiumStatus();
-    });
-  }
-
-  Future<void> _syncPremiumStatus() async {
-    await ref.read(premiumStatusProvider.notifier).syncWithRevenueCat();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final router = ref.watch(routerProvider);
     final settings = ref.watch(appSettingsProvider);

@@ -4,7 +4,6 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../providers/app_providers.dart';
 
 /// 하단 배너 광고 위젯
-/// - 프리미엄 사용자는 표시 안 함
 /// - 광고 로드 실패 시 빈 공간 유지 (레이아웃 점프 방지)
 class AdBannerWidget extends ConsumerStatefulWidget {
   final double bottomPadding;
@@ -35,9 +34,6 @@ class _AdBannerWidgetState extends ConsumerState<AdBannerWidget> {
   }
 
   void _loadBannerAd() {
-    final isPremium = ref.read(premiumStatusProvider);
-    if (isPremium) return;
-
     final adService = ref.read(adServiceProvider);
     _bannerAd = adService.createBannerAd(
       onLoaded: () {
@@ -60,13 +56,6 @@ class _AdBannerWidgetState extends ConsumerState<AdBannerWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final isPremium = ref.watch(premiumStatusProvider);
-
-    // 프리미엄 사용자는 광고 표시 안 함
-    if (isPremium) {
-      return const SizedBox.shrink();
-    }
-
     // 광고 높이 고정 (레이아웃 안정성)
     const adHeight = 50.0;
 

@@ -204,44 +204,6 @@ class LocalStorage {
     return await _prefs.setBool('onboarding_completed', completed);
   }
 
-  // ============ 프리미엄 관련 (로컬 캐시) ============
-
-  /// 프리미엄 상태 캐시 저장
-  Future<bool> cachePremiumStatus(bool isPremium) async {
-    return await _prefs.setBool('premium_status_cache', isPremium);
-  }
-
-  /// 프리미엄 상태 캐시 조회
-  bool getCachedPremiumStatus() {
-    return _prefs.getBool('premium_status_cache') ?? false;
-  }
-
-  /// 무료 체험 시작일 저장
-  Future<bool> setFreeTrialStartDate(DateTime date) async {
-    return await _prefs.setInt('free_trial_start', date.millisecondsSinceEpoch);
-  }
-
-  /// 무료 체험 시작일 조회
-  DateTime? getFreeTrialStartDate() {
-    final timestamp = _prefs.getInt('free_trial_start');
-    if (timestamp == null) return null;
-    return DateTime.fromMillisecondsSinceEpoch(timestamp);
-  }
-
-  /// 무료 체험 남은 일수
-  int getFreeTrialDaysRemaining() {
-    final startDate = getFreeTrialStartDate();
-    if (startDate == null) return 7; // 아직 시작 안 함
-
-    final daysPassed = DateTime.now().difference(startDate).inDays;
-    return (7 - daysPassed).clamp(0, 7);
-  }
-
-  /// 무료 체험 종료 여부
-  bool isFreeTrialExpired() {
-    return getFreeTrialDaysRemaining() <= 0;
-  }
-
   // ============ 유틸리티 ============
 
   String _getTodayKey() {

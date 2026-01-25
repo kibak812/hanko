@@ -123,7 +123,7 @@ class _ProjectSettingsScreenState extends ConsumerState<ProjectSettingsScreen> {
           .setActiveProject(newProject.id);
 
       // 프로젝트 생성 완료 후 전면 광고 표시
-      await ref.read(interstitialAdControllerProvider)?.tryShowAd();
+      await ref.read(interstitialAdControllerProvider).tryShowAd();
 
       // 새 프로젝트 생성 후 메인 카운터 화면으로 이동
       if (mounted) {
@@ -139,14 +139,9 @@ class _ProjectSettingsScreenState extends ConsumerState<ProjectSettingsScreen> {
           ref.read(projectRepositoryProvider).getProject(widget.projectId!);
       if (project == null) return;
 
-      final isPremium = ref.read(premiumStatusProvider);
-      final canAdd = ref
-          .read(projectsProvider.notifier)
-          .canAddSecondaryCounter(project, isPremium: isPremium);
-
       showAddSecondaryCounterSheet(
         context: context,
-        canAdd: canAdd,
+        canAdd: true,
         onAdd: (label, type, value) {
           final notifier = ref.read(projectsProvider.notifier);
           if (type == SecondaryCounterType.goal) {

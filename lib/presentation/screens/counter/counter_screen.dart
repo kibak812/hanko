@@ -191,6 +191,13 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
       }
     });
 
+    // 음성 5회 사용마다 리워드 광고 표시
+    ref.listen<int>(voiceUsageProvider, (previous, next) {
+      if (next == 0 && previous != null && previous > 0) {
+        _showVoiceRewardedAd();
+      }
+    });
+
     // 프로젝트가 없으면 생성 유도
     if (project == null) {
       return _buildNoProjectScreen(context);
@@ -275,13 +282,8 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
                               builder: (context, constraints) {
                                 const spacing = 8.0;
 
-                                // 프리미엄 사용자 또는 보조 카운터 2개 미만이면 추가 가능
-                                final isPremium = ref.watch(premiumStatusProvider);
-                                final canAddMore = isPremium ||
-                                    counterState.secondaryCounters.length < 2;
-
                                 // 보조 카운터가 없을 때: 전체 너비 추가 버튼
-                                if (counterState.secondaryCounters.isEmpty && canAddMore) {
+                                if (counterState.secondaryCounters.isEmpty) {
                                   return AddCounterButton(
                                     onTap: () => _showAddSecondaryCounterSheet(project),
                                     isFullWidth: true,
@@ -324,10 +326,9 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
                                             .toggleSecondaryCounterLink(counter.id);
                                       },
                                     ),
-                                  if (canAddMore)
-                                    AddCounterButton(
-                                      onTap: () => _showAddSecondaryCounterSheet(project),
-                                    ),
+                                  AddCounterButton(
+                                    onTap: () => _showAddSecondaryCounterSheet(project),
+                                  ),
                                 ];
 
                                 // 2열 그리드로 배치 (IntrinsicHeight로 높이 맞춤)
@@ -384,53 +385,6 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
                               .read(voiceStateProvider.notifier)
                               .stopVoiceCommand();
                           return;
-                        }
-
-                        // 프리미엄이 아닌 경우 사용량 체크
-                        final isPremium = ref.read(premiumStatusProvider);
-                        if (!isPremium) {
-                          final remaining = ref.read(voiceUsageProvider);
-                          if (remaining <= 0) {
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('${AppStrings.voiceLimitReached} (5/5 사용)'),
-                                  duration: const Duration(seconds: 3),
-                                  behavior: SnackBarBehavior.floating,
-                                  action: SnackBarAction(
-                                    label: AppStrings.watchAdForVoice,
-                                    onPressed: () async {
-                                      final adService = ref.read(adServiceProvider);
-                                      final shown = await adService.showRewardedAd(
-                                        onRewarded: (amount) {
-                                          ref.read(voiceUsageProvider.notifier).addBonus(5);
-                                          if (context.mounted) {
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              const SnackBar(
-                                                content: Text('음성 명령 5회가 추가되었어요!'),
-                                                duration: Duration(seconds: 2),
-                                                behavior: SnackBarBehavior.floating,
-                                              ),
-                                            );
-                                          }
-                                        },
-                                      );
-                                      if (!shown && context.mounted) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(
-                                            content: Text('광고를 준비 중이에요. 잠시 후 다시 시도해주세요.'),
-                                            duration: Duration(seconds: 2),
-                                            behavior: SnackBarBehavior.floating,
-                                          ),
-                                        );
-                                      }
-                                    },
-                                  ),
-                                ),
-                              );
-                            }
-                            return;
-                          }
                         }
 
                         await ref
@@ -550,13 +504,9 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
 
   /// 보조 카운터 추가 바텀시트
   void _showAddSecondaryCounterSheet(Project project) {
-    final isPremium = ref.read(premiumStatusProvider);
-    final counterCount = ref.read(activeProjectCounterProvider).secondaryCounters.length;
-    final canAdd = isPremium || counterCount < 2;
-
     showAddSecondaryCounterSheet(
       context: context,
-      canAdd: canAdd,
+      canAdd: true,
       onAdd: (label, type, value) {
         final notifier = ref.read(projectsProvider.notifier);
         if (type == SecondaryCounterType.goal) {
@@ -697,5 +647,20 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
         ],
       ),
     );
+  }
+
+  /// 음성 5회 사용 후 리워드 광고 표시
+  Future<void> _showVoiceRewardedAd() async {
+    final adService = ref.read(adServiceProvider);
+    await adService.showRewardedAd(
+      onRewarded: (amount) {
+        // 광고 시청 완료
+        ref.read(voiceUsageProvider.notifier).resetAfterAd();
+      },
+    );
+    // 광고 표시 실패해도 카운터 리셋 (사용자 경험 위해)
+    if (ref.read(voiceUsageProvider) == 0) {
+      ref.read(voiceUsageProvider.notifier).resetAfterAd();
+    }
   }
 }

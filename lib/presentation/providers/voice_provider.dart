@@ -46,20 +46,6 @@ class VoiceStateNotifier extends StateNotifier<VoiceState> {
   Future<void> _startListeningInternal() async {
     if (!_continuousMode) return;
 
-    final isPremium = _ref.read(premiumStatusProvider);
-    final voiceUsage = _ref.read(voiceUsageProvider.notifier);
-
-    // 무료 사용자는 횟수 제한 체크
-    if (!isPremium) {
-      final remaining = _ref.read(voiceUsageProvider);
-      if (remaining <= 0) {
-        _lastError = '오늘 음성 사용 횟수를 다 썼어요';
-        state = VoiceState.error;
-        _continuousMode = false;
-        return;
-      }
-    }
-
     final voiceService = _ref.read(voiceServiceProvider);
     final counterNotifier = _ref.read(activeProjectCounterProvider.notifier);
     final counterState = _ref.read(activeProjectCounterProvider);
@@ -70,13 +56,11 @@ class VoiceStateNotifier extends StateNotifier<VoiceState> {
       onCommand: (command) async {
         state = VoiceState.processing;
 
-        // 무료 사용자는 횟수 차감
-        if (!isPremium) {
-          await voiceUsage.useVoice();
-        }
-
         // 명령 실행
         await _executeCommand(command, counterNotifier, counterState);
+
+        // 음성 사용 카운터 감소 (5회마다 광고 표시용)
+        _ref.read(voiceUsageProvider.notifier).decrementCounter();
 
         // 연속 모드면 다시 듣기 시작
         if (_continuousMode) {

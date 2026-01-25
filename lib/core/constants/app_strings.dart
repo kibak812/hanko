@@ -10,7 +10,6 @@ class AppStrings {
   static const String welcomeTitle = '한코한코에 오신 것을 환영합니다!';
   static const String welcomeSubtitle = '뜨개질에만 집중하세요.\n카운팅은 제가 할게요';
   static const String startFirstProject = '첫 프로젝트 시작하기';
-  static const String freeTrialNotice = '7일 프리미엄 무료 체험 중';
 
   // ============ 프로젝트 ============
   static const String newProject = '새 프로젝트';
@@ -53,27 +52,9 @@ class AppStrings {
   static const String voiceLimitTomorrow = '내일 다시 사용 가능해요';
   static const String watchAdForVoice = '광고 보고 추가하기';
 
-  // ============ 프리미엄 ============
-  static const String premium = '프리미엄';
-  static const String premiumFeatures = '프리미엄 기능';
-  static const String unlimitedProjects = '무제한 프로젝트';
-  static const String unlimitedVoice = '무제한 음성 제어';
-  static const String noAds = '광고 제거';
-  static const String widget = '위젯 (잠금화면 카운트)';
-  static const String cloudBackup = '클라우드 백업';
-  static const String patternAutoReset = '패턴 반복 자동 리셋';
-  static const String yearlyPrice = '₩9,900/년';
-  static const String monthlyPrice = '₩1,500/월';
-  static const String yearlyPricePerDay = '하루 ₩27, 커피 한 잔보다 저렴!';
-  static const String startFreeTrial = '7일 무료 체험 시작';
-  static const String restorePurchase = '구매 복원';
-
   // ============ 광고 ============
   static const String watchAdForMore = '광고 보고 추가하기';
 
-  // ============ 제한 ============
-  static const String projectLimitTitle = '프로젝트 2개까지 무료예요';
-  static const String voiceLimitTitle = '음성 제어 3회/일';
 
   // ============ 축하 ============
   static const String congratulations = '축하합니다!';
@@ -132,7 +113,6 @@ class AppStrings {
   static const String goal = '목표';
   static const String everyNRows = '단마다';
   static const String totalNTimes = '총 N번';
-  static const String secondaryCounterLimit = '무료 사용자는 보조 카운터를 2개까지 추가할 수 있어요';
   static const String editCounter = '카운터 편집';
 
   // ============ 타이머/작업 시간 ============

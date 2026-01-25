@@ -121,9 +121,9 @@ class ProjectsNotifier extends StateNotifier<List<Project>> {
 
   // ============ 동적 보조 카운터 관리 ============
 
-  /// 보조 카운터 추가 가능 여부
-  bool canAddSecondaryCounter(Project project, {required bool isPremium}) {
-    return _repository.canAddSecondaryCounter(project, isPremium: isPremium);
+  /// 보조 카운터 추가 가능 여부 (항상 가능)
+  bool canAddSecondaryCounter(Project project) {
+    return _repository.canAddSecondaryCounter(project);
   }
 
   /// 보조 카운터 추가 (반복 유형)

@@ -189,14 +189,8 @@ class ProjectRepository {
 
   // ============ 동적 보조 카운터 관리 ============
 
-  /// 무료 사용자 보조 카운터 제한 (개발용: 999)
-  static const int freeSecondaryCounterLimit = 999;
-
-  /// 보조 카운터 추가 가능 여부
-  bool canAddSecondaryCounter(Project project, {required bool isPremium}) {
-    if (isPremium) return true;
-    return project.secondaryCounters.length < freeSecondaryCounterLimit;
-  }
+  /// 보조 카운터 추가 가능 여부 (항상 가능)
+  bool canAddSecondaryCounter(Project project) => true;
 
   /// 보조 카운터 추가 (반복 유형)
   Counter addSecondaryRepetitionCounter(
@@ -350,8 +344,8 @@ class ProjectRepository {
   /// 메모 삭제
   void removeMemo(Project project, int memoId) {
     project.memos.removeWhere((m) => m.id == memoId);
-    _db.deleteMemo(memoId);
-    _db.saveProject(project);
+    _db.saveProject(project); // 먼저 관계 업데이트
+    _db.deleteMemo(memoId);   // 그 다음 실제 삭제
   }
 
   /// 메모 수정
@@ -404,14 +398,8 @@ class ProjectRepository {
 
   // ============ 제한 확인 ============
 
-  /// 무료 사용자 프로젝트 개수 제한 (2개)
-  static const int freeProjectLimit = 2;
-
-  /// 프로젝트 생성 가능 여부 (무료 사용자)
-  bool canCreateProject({required bool isPremium}) {
-    if (isPremium) return true;
-    return getAllProjects().length < freeProjectLimit;
-  }
+  /// 프로젝트 생성 가능 여부 (항상 가능)
+  bool canCreateProject() => true;
 
   // ============ 타이머 관련 ============
 
