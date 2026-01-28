@@ -85,6 +85,39 @@ class AppStrings {
   static const String errorOccurred = '오류가 발생했어요';
   static const String tryAgain = '다시 시도해주세요';
 
+  // ============ 튜토리얼 ============
+  static const String tutorialTitle = '기능 둘러보기';
+  static const String tutorialSubtitle = '1분이면 충분해요';
+  static const String tutorialSkip = '건너뛰기';
+  static const String tutorialNext = '다음';
+  static const String tutorialDone = '완료';
+  static const String tutorialTryIt = '직접 해보기';
+  static const String tutorialRewatch = '튜토리얼 다시 보기';
+
+  // 튜토리얼 Step 1: ProgressHeader
+  static const String tutorialStep1Title = '프로젝트 편집';
+  static const String tutorialStep1Description = '여기를 길게 누르면\n프로젝트명과 목표를 수정할 수 있어요';
+
+  // 튜토리얼 Step 2: ProjectInfoBar
+  static const String tutorialStep2Title = '날짜 편집';
+  static const String tutorialStep2Description = '여기를 길게 누르면\n시작일과 완료일을 설정할 수 있어요';
+
+  // 튜토리얼 Step 3: SecondaryCounter
+  static const String tutorialStep3Title = '보조 카운터 편집';
+  static const String tutorialStep3Description = '보조 카운터를 길게 누르면\n이름과 목표를 수정할 수 있어요';
+
+  // 튜토리얼 Step 4: Timer
+  static const String tutorialStep4Title = '작업 시간 리셋';
+  static const String tutorialStep4Description = '타이머 버튼을 길게 누르면\n작업 시간을 리셋할 수 있어요';
+
+  // 튜토리얼 Step 5: Voice Commands
+  static const String tutorialStep5Title = '음성 명령';
+  static const String tutorialStep5Description = '"다음", "이전"으로 카운터 조작\n"취소"로 되돌리기가 가능해요';
+
+  // 튜토리얼 완료
+  static const String tutorialCompleteTitle = '준비 완료!';
+  static const String tutorialCompleteDescription = '주요 기능을 모두 알게 되셨어요\n이제 첫 프로젝트를 시작해볼까요?';
+
   // ============ 보조 카운터 설정 ============
   static const String stitchCounterSettings = '코 카운터 설정';
   static const String patternCounterSettings = '패턴 카운터 설정';

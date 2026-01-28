@@ -68,7 +68,28 @@ class OnboardingScreen extends ConsumerWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 16),
+              // 튜토리얼 버튼
+              TextButton(
+                onPressed: () async {
+                  // 온보딩 완료 처리
+                  final localStorage = ref.read(localStorageProvider);
+                  await localStorage.setOnboardingCompleted(true);
+
+                  // 튜토리얼 화면으로 이동
+                  if (context.mounted) {
+                    context.go(AppRoutes.tutorial);
+                  }
+                },
+                child: Text(
+                  '${AppStrings.tutorialTitle} (${AppStrings.tutorialSubtitle})',
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
             ],
           ),
         ),

@@ -8,10 +8,12 @@ import '../presentation/screens/projects/project_list_screen.dart';
 import '../presentation/screens/settings/project_settings_screen.dart';
 import '../presentation/screens/settings/app_settings_screen.dart';
 import '../presentation/screens/onboarding/onboarding_screen.dart';
+import '../presentation/screens/onboarding/tutorial_screen.dart';
 
 /// 라우트 이름
 class AppRoutes {
   static const String onboarding = '/onboarding';
+  static const String tutorial = '/tutorial';
   static const String counter = '/';
   static const String projects = '/projects';
   static const String projectSettings = '/projects/settings';
@@ -30,6 +32,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.onboarding,
         builder: (context, state) => const OnboardingScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.tutorial,
+        builder: (context, state) => const TutorialScreen(),
       ),
       GoRoute(
         path: AppRoutes.counter,

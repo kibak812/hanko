@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
+import '../../../router/app_router.dart';
 import '../../providers/app_providers.dart';
+import '../../providers/tutorial_provider.dart';
 import '../../widgets/ad_banner_widget.dart';
 
 /// 앱 설정 화면
@@ -95,6 +98,36 @@ class _AppSettingsScreenState extends ConsumerState<AppSettingsScreen> {
                       _buildThemeSelector(context, settings.themeMode, settingsNotifier),
                     ],
                   ),
+                ),
+
+                const SizedBox(height: 24),
+
+                // 도움말 섹션
+                _buildSectionHeader(context, '도움말'),
+                ListTile(
+                  leading: Icon(
+                    Icons.school_outlined,
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                  ),
+                  title: const Text(AppStrings.tutorialRewatch),
+                  subtitle: Text(
+                    '롱프레스 기능 다시 배우기',
+                    style: TextStyle(
+                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                      fontSize: 12,
+                    ),
+                  ),
+                  trailing: Icon(
+                    Icons.chevron_right,
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                  ),
+                  onTap: () async {
+                    // 튜토리얼 리셋 후 화면 이동
+                    await ref.read(tutorialProvider.notifier).resetTutorial();
+                    if (context.mounted) {
+                      context.go(AppRoutes.tutorial);
+                    }
+                  },
                 ),
 
                 const SizedBox(height: 24),

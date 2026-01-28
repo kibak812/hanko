@@ -5,6 +5,18 @@
 ## [Unreleased]
 
 ### Added
+- **인터랙티브 온보딩 튜토리얼**: 첫 사용자를 위한 앱 기능 안내
+  - 5단계 튜토리얼: 프로젝트 편집, 날짜 편집, 보조 카운터 편집, 타이머 리셋, 음성 명령
+  - 스포트라이트 오버레이 + 툴팁 UI로 대상 위젯 강조
+  - 데모 프로젝트 자동 생성/삭제
+  - 각 단계에서 건너뛰기 및 다음 버튼 제공
+  - 완료 시 축하 애니메이션 (컨페티 효과)
+  - 설정에서 "튜토리얼 다시 보기" 옵션 추가
+  - `tutorial_provider.dart` - 튜토리얼 상태 관리
+  - `tutorial_screen.dart` - 튜토리얼 전용 화면
+  - `tutorial_overlay.dart` - 스포트라이트 오버레이
+  - `tutorial_tooltip.dart` - 말풍선 UI
+  - `tutorial_celebration.dart` - 완료 애니메이션
 - **앱 아이콘 디자인**: Apple 스타일의 미니멀한 V 스티치 아이콘
   - SVG 소스 파일 (`assets/app_icon.svg`)
   - iOS 15개 사이즈, Android 5개 사이즈 자동 생성

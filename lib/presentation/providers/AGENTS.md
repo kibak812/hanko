@@ -10,6 +10,7 @@ Riverpod Provider 정의
 | `app_providers.dart` | 앱 설정, 프리미엄, 음성 사용량 Provider |
 | `project_provider.dart` | 프로젝트 및 카운터 상태 Provider |
 | `voice_provider.dart` | 음성 인식 상태 Provider |
+| `tutorial_provider.dart` | 튜토리얼 상태 관리 (TutorialStep, TutorialState) |
 | `providers.dart` | 모든 Provider export |
 
 ## 주요 Providers
@@ -27,6 +28,10 @@ activeProjectCounterProvider // 카운터 상태 (단/코/패턴)
 
 // 음성
 voiceStateProvider          // VoiceState (idle/listening/...)
+
+// 튜토리얼
+tutorialProvider            // TutorialState (currentStep, isActive, demoProjectId)
+tutorialCompletedProvider   // 튜토리얼 완료 여부
 ```
 
 ## For AI Agents

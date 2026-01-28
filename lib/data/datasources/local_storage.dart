@@ -204,6 +204,18 @@ class LocalStorage {
     return await _prefs.setBool('onboarding_completed', completed);
   }
 
+  // ============ 튜토리얼 관련 ============
+
+  /// 튜토리얼 완료 여부
+  bool isTutorialCompleted() {
+    return _prefs.getBool('tutorial_completed') ?? false;
+  }
+
+  /// 튜토리얼 완료 설정
+  Future<bool> setTutorialCompleted(bool completed) async {
+    return await _prefs.setBool('tutorial_completed', completed);
+  }
+
   // ============ 유틸리티 ============
 
   String _getTodayKey() {
