@@ -102,6 +102,46 @@ lib/
 - 아키텍처 변경 → Architecture Overview
 - 새 개발 설정 → Dev Notes
 
+## Fastlane 배포
+
+### Ruby 환경 (Homebrew Ruby 사용)
+
+시스템 Ruby(2.6)는 호환성 문제가 있어 Homebrew Ruby를 사용합니다:
+
+```bash
+# Homebrew Ruby 경로
+/opt/homebrew/opt/ruby/bin/ruby
+/opt/homebrew/opt/ruby/bin/bundle
+
+# iOS 배포
+cd ios
+/opt/homebrew/opt/ruby/bin/bundle install
+/opt/homebrew/opt/ruby/bin/bundle exec fastlane beta
+
+# Android 배포
+cd android
+/opt/homebrew/opt/ruby/bin/bundle install
+/opt/homebrew/opt/ruby/bin/bundle exec fastlane internal
+```
+
+### 배포 Lane 요약
+
+| 플랫폼 | Lane | 설명 |
+|--------|------|------|
+| iOS | `beta` | TestFlight 배포 |
+| iOS | `release` | App Store 배포 |
+| Android | `internal` | Google Play 내부 테스트 |
+| Android | `beta` | Google Play 베타 트랙 |
+| Android | `release` | Google Play 프로덕션 |
+
+### 필요한 인증 파일
+
+| 플랫폼 | 파일 | 설명 |
+|--------|------|------|
+| iOS | `~/.appstoreconnect/AuthKey_*.p8` | App Store Connect API Key |
+| Android | `android/fastlane/play-store-credentials.json` | Google Play 서비스 계정 키 |
+| Android | `android/key.properties` | 앱 서명 키스토어 정보 |
+
 ## Dev Notes
 
 - 음성 제한: 개발용 999회 설정 (`lib/presentation/providers/app_providers.dart:109`)

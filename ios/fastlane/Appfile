@@ -1,0 +1,20 @@
+# App Store Connect 정보
+app_identifier("com.hankohanko.hankoHanko")  # 번들 ID
+apple_id("kibak812@naver.com")               # Apple ID
+
+# App Store Connect Team 정보
+itc_team_id("126893871")  # App Store Connect Team ID (필요시 수정)
+
+# Developer Portal Team 정보
+team_id("3Z4656PPCM")  # Developer Portal Team ID
+
+# 환경별 설정
+for_platform :ios do
+  for_lane :beta do
+    app_identifier("com.hankohanko.hankoHanko")
+  end
+
+  for_lane :release do
+    app_identifier("com.hankohanko.hankoHanko")
+  end
+end

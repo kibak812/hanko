@@ -5,6 +5,11 @@
 ## [Unreleased]
 
 ### Added
+- **Fastlane 배포 자동화**: iOS/Android 앱 스토어 배포 자동화 설정
+  - iOS: TestFlight 베타, App Store 릴리즈 레인
+  - Android: 내부 테스트, 베타, 프로덕션 레인
+  - Gemfile로 Ruby 의존성 관리
+- **app-ads.txt**: AdMob 광고 인벤토리 인증 파일 추가
 - **인터랙티브 온보딩 튜토리얼**: 첫 사용자를 위한 앱 기능 안내
   - 5단계 튜토리얼: 프로젝트 편집, 날짜 편집, 보조 카운터 편집, 타이머 리셋, 음성 명령
   - 스포트라이트 오버레이 + 툴팁 UI로 대상 위젯 강조
@@ -43,6 +48,9 @@
 ### Fixed
 - **메모 삭제 시 ObjectBox 에러 수정** (404 에러)
   - ToMany 관계 저장 순서 수정: 프로젝트 저장 → 메모 삭제
+
+### Dev
+- CLAUDE.md에 Fastlane 배포 가이드 추가
 
 ---
 

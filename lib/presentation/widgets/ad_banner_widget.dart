@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -56,6 +57,9 @@ class _AdBannerWidgetState extends ConsumerState<AdBannerWidget> {
 
   @override
   Widget build(BuildContext context) {
+    // 디버그 모드에서는 광고 숨김 (스크린샷용)
+    if (kDebugMode) return const SizedBox.shrink();
+
     // 광고 높이 고정 (레이아웃 안정성)
     const adHeight = 50.0;
 

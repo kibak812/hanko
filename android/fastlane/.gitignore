@@ -1,0 +1,40 @@
+# fastlane specific
+*.cer
+*.certSigningRequest
+*.mobileprovision
+*.orig.*
+*.p12
+Appfile.swift
+Deliverfile.swift
+Fastfile.swift
+Gymfile.swift
+Matchfile.swift
+Scanfile.swift
+Screengrabfile.swift
+Snapshotfile.swift
+
+# Google Play Console credentials
+play-store-credentials.json
+
+# Metadata screenshots and images (대용량 파일)
+metadata/**/images/
+metadata/**/screenshots/
+
+# Test output
+test_output/
+fastlane/test_output/
+
+# Report files
+report.xml
+fastlane/report.xml
+
+# Preview HTML
+preview.html
+fastlane/preview.html
+
+# Crash logs
+*.crash
+
+# Temporary files
+*.tmp
+*.log

@@ -12,3 +12,10 @@ GeneratedPluginRegistrant.java
 key.properties
 **/*.keystore
 **/*.jks
+play-store-credentials.json
+fastlane/play-store-credentials.json
+
+# Ruby/Bundler
+.bundle/
+vendor/bundle/
+Gemfile.lock

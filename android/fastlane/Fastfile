@@ -1,0 +1,127 @@
+# 한코한코 Android Fastlane 설정
+# 문서: https://docs.fastlane.tools
+
+default_platform(:android)
+
+platform :android do
+
+  # ==================== 빌드 전 공통 작업 ====================
+
+  before_all do
+    Dir.chdir("..") do
+      sh("cd .. && flutter pub get")
+    end
+  end
+
+  # ==================== 테스트 ====================
+
+  desc "테스트 실행"
+  lane :test do
+    Dir.chdir("..") do
+      sh("cd .. && flutter test")
+    end
+  end
+
+  # ==================== 내부 테스트 배포 ====================
+
+  desc "Google Play 내부 테스트에 배포"
+  lane :internal do
+    # Flutter Android 빌드 (App Bundle)
+    Dir.chdir("..") do
+      sh("cd .. && flutter build appbundle --release")
+    end
+
+    # Google Play 내부 테스트 트랙에 업로드
+    upload_to_play_store(
+      track: "internal",
+      aab: "../build/app/outputs/bundle/release/app-release.aab",
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+
+  # ==================== 베타 배포 ====================
+
+  desc "Google Play 베타 트랙에 배포"
+  lane :beta do
+    # Flutter Android 빌드 (App Bundle)
+    Dir.chdir("..") do
+      sh("cd .. && flutter build appbundle --release")
+    end
+
+    # Google Play 베타 트랙에 업로드
+    upload_to_play_store(
+      track: "beta",
+      aab: "../build/app/outputs/bundle/release/app-release.aab",
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+
+  # ==================== 프로덕션 배포 ====================
+
+  desc "Google Play 프로덕션에 배포"
+  lane :release do
+    # Flutter Android 빌드 (App Bundle)
+    Dir.chdir("..") do
+      sh("cd .. && flutter build appbundle --release")
+    end
+
+    # Google Play 프로덕션에 업로드
+    upload_to_play_store(
+      track: "production",
+      aab: "../build/app/outputs/bundle/release/app-release.aab",
+      skip_upload_metadata: false,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+
+  # ==================== 메타데이터 관리 ====================
+
+  desc "Google Play에 메타데이터만 업로드"
+  lane :upload_metadata do
+    upload_to_play_store(
+      skip_upload_aab: true,
+      skip_upload_apk: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+
+  desc "Google Play에 스크린샷만 업로드"
+  lane :upload_screenshots do
+    upload_to_play_store(
+      skip_upload_aab: true,
+      skip_upload_apk: true,
+      skip_upload_metadata: true
+    )
+  end
+
+  # ==================== 버전 정보 ====================
+
+  desc "현재 Google Play 버전 정보 확인"
+  lane :version do
+    google_play_track_version_codes(
+      track: "internal"
+    )
+  end
+
+  # ==================== 유틸리티 ====================
+
+  desc "Google Play 서비스 계정 인증 확인"
+  lane :check_auth do
+    validate_play_store_json_key(
+      json_key: "fastlane/play-store-credentials.json"
+    )
+    UI.success("서비스 계정 인증 완료!")
+  end
+
+  # ==================== 에러 핸들링 ====================
+
+  error do |lane, exception|
+    UI.error("에러 발생: #{exception.message}")
+  end
+end

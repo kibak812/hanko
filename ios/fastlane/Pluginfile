@@ -1,0 +1,6 @@
+# Fastlane 플러그인
+# 설치: bundle exec fastlane install_plugins
+
+# 필요시 추가 플러그인 설정
+# gem 'fastlane-plugin-firebase_app_distribution'
+# gem 'fastlane-plugin-versioning'

@@ -1,0 +1,47 @@
+{
+  "device_frame_version": "latest",
+  "default": {
+    "keyword": {
+      "fonts": [
+        {
+          "font": "../fonts/Pretendard-Bold.ttf",
+          "supported": ["ko"]
+        }
+      ],
+      "font_size": 100,
+      "color": "#2D3436"
+    },
+    "title": {
+      "fonts": [
+        {
+          "font": "../fonts/Pretendard-Regular.ttf",
+          "supported": ["ko"]
+        }
+      ],
+      "font_size": 48,
+      "color": "#636E72"
+    },
+    "background": "../backgrounds/gradient.png",
+    "padding": 80,
+    "show_complete_frame": true,
+    "stack_title": true,
+    "title_below_image": true
+  },
+  "data": [
+    {
+      "filter": "01_"
+    },
+    {
+      "filter": "02_"
+    },
+    {
+      "filter": "03_"
+    },
+    {
+      "filter": "04_"
+    },
+    {
+      "filter": "05_"
+    }
+  ]
+}

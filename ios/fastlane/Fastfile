@@ -1,0 +1,248 @@
+# 한코한코 iOS Fastlane 설정
+# 문서: https://docs.fastlane.tools
+
+default_platform(:ios)
+
+platform :ios do
+
+  # ==================== 빌드 전 공통 작업 ====================
+
+  before_all do
+    # Flutter 빌드
+    Dir.chdir("..") do
+      sh("cd .. && flutter pub get")
+    end
+  end
+
+  # ==================== 테스트 ====================
+
+  desc "테스트 실행"
+  lane :test do
+    Dir.chdir("..") do
+      sh("cd .. && flutter test")
+    end
+  end
+
+  # ==================== 스크린샷 ====================
+
+  desc "앱 스크린샷 캡처"
+  lane :screenshots do
+    capture_screenshots(
+      workspace: "Runner.xcworkspace",
+      scheme: "Runner"
+    )
+  end
+
+  desc "스크린샷에 디바이스 프레임 적용"
+  lane :frames do
+    frameit(
+      white: false,
+      path: "./fastlane/screenshots"
+    )
+  end
+
+  desc "스크린샷 캡처 + 프레임 적용"
+  lane :screenshots_with_frames do
+    screenshots
+    frames
+  end
+
+  # ==================== 베타 배포 (TestFlight) ====================
+
+  desc "TestFlight에 베타 버전 배포"
+  lane :beta do
+    # API 키 설정
+    api_key = app_store_connect_api_key(
+      key_id: ENV["APP_STORE_CONNECT_API_KEY_ID"],
+      issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
+      key_filepath: ENV["APP_STORE_CONNECT_API_KEY_PATH"],
+      in_house: false
+    )
+
+    # 빌드 번호 증가
+    increment_build_number(
+      xcodeproj: "Runner.xcodeproj"
+    )
+
+    # Flutter iOS 빌드
+    Dir.chdir("..") do
+      sh("cd .. && flutter build ios --release")
+    end
+
+    # 앱 빌드
+    build_app(
+      workspace: "Runner.xcworkspace",
+      scheme: "Runner",
+      export_method: "app-store",
+      output_directory: "./build",
+      output_name: "hankohanko.ipa",
+      export_xcargs: "-allowProvisioningUpdates"
+    )
+
+    # TestFlight 업로드
+    upload_to_testflight(
+      api_key: api_key,
+      skip_waiting_for_build_processing: true
+    )
+
+    # 슬랙 알림 (선택사항 - 설정 시 주석 해제)
+    # slack(
+    #   message: "한코한코 베타 버전이 TestFlight에 업로드되었습니다!",
+    #   success: true
+    # )
+  end
+
+  # ==================== 프로덕션 배포 (App Store) ====================
+
+  desc "App Store에 프로덕션 버전 배포"
+  lane :release do
+    # API 키 설정
+    api_key = app_store_connect_api_key(
+      key_id: ENV["APP_STORE_CONNECT_API_KEY_ID"],
+      issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
+      key_filepath: ENV["APP_STORE_CONNECT_API_KEY_PATH"],
+      in_house: false
+    )
+
+    # 빌드 번호 증가
+    increment_build_number(
+      xcodeproj: "Runner.xcodeproj"
+    )
+
+    # Flutter iOS 빌드
+    Dir.chdir("..") do
+      sh("cd .. && flutter build ios --release")
+    end
+
+    # 앱 빌드
+    build_app(
+      workspace: "Runner.xcworkspace",
+      scheme: "Runner",
+      export_method: "app-store",
+      output_directory: "./build",
+      output_name: "hankohanko.ipa",
+      export_xcargs: "-allowProvisioningUpdates"
+    )
+
+    # App Store 업로드
+    upload_to_app_store(
+      api_key: api_key,
+      skip_screenshots: true,
+      skip_metadata: false,
+      submit_for_review: false,  # 자동 심사 제출 원하면 true
+      automatic_release: false,  # 자동 릴리즈 원하면 true
+      force: true  # HTML 리포트 스킵
+    )
+  end
+
+  desc "App Store에 스크린샷만 업로드"
+  lane :upload_screenshots do
+    api_key = app_store_connect_api_key(
+      key_id: ENV["APP_STORE_CONNECT_API_KEY_ID"],
+      issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
+      key_filepath: ENV["APP_STORE_CONNECT_API_KEY_PATH"],
+      in_house: false
+    )
+
+    deliver(
+      api_key: api_key,
+      skip_binary_upload: true,
+      skip_metadata: true,
+      overwrite_screenshots: true,
+      force: true,
+      precheck_include_in_app_purchases: false
+    )
+  end
+
+  desc "App Store에 메타데이터만 업로드"
+  lane :upload_metadata do
+    deliver(
+      skip_binary_upload: true,
+      skip_screenshots: true,
+      force: true
+    )
+  end
+
+  desc "App Store 심사 제출"
+  lane :submit_review do
+    api_key = app_store_connect_api_key(
+      key_id: ENV["APP_STORE_CONNECT_API_KEY_ID"],
+      issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
+      key_filepath: ENV["APP_STORE_CONNECT_API_KEY_PATH"],
+      in_house: false
+    )
+
+    deliver(
+      api_key: api_key,
+      skip_binary_upload: true,
+      skip_screenshots: true,
+      skip_metadata: true,
+      submit_for_review: true,
+      force: true,
+      run_precheck_before_submit: false,
+      submission_information: {
+        add_id_info_uses_idfa: false,
+        export_compliance_uses_encryption: false,
+        content_rights_contains_third_party_content: false
+      }
+    )
+  end
+
+  # ==================== 인증서 관리 ====================
+
+  desc "인증서 및 프로비저닝 프로파일 동기화 (match)"
+  lane :sync_certs do
+    match(
+      type: "appstore",
+      readonly: true
+    )
+  end
+
+  desc "새 인증서 생성 (주의: 기존 인증서 무효화될 수 있음)"
+  lane :create_certs do
+    match(
+      type: "appstore",
+      force: true
+    )
+  end
+
+  # ==================== 버전 관리 ====================
+
+  desc "버전 번호 확인"
+  lane :version do
+    version = get_version_number(xcodeproj: "Runner.xcodeproj")
+    build = get_build_number(xcodeproj: "Runner.xcodeproj")
+    UI.message("현재 버전: #{version} (#{build})")
+  end
+
+  desc "버전 번호 증가 (major.minor.patch)"
+  lane :bump_version do |options|
+    increment_version_number(
+      xcodeproj: "Runner.xcodeproj",
+      bump_type: options[:type] || "patch"  # major, minor, patch
+    )
+  end
+
+  # ==================== 유틸리티 ====================
+
+  desc "App Store Connect API 키 설정 확인"
+  lane :check_api_key do
+    app_store_connect_api_key(
+      key_id: ENV["APP_STORE_CONNECT_API_KEY_ID"],
+      issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
+      key_filepath: ENV["APP_STORE_CONNECT_API_KEY_PATH"],
+      in_house: false
+    )
+    UI.success("API 키 설정 완료!")
+  end
+
+  # ==================== 에러 핸들링 ====================
+
+  error do |lane, exception|
+    # 슬랙 알림 (선택사항)
+    # slack(
+    #   message: "에러 발생: #{exception.message}",
+    #   success: false
+    # )
+  end
+end
