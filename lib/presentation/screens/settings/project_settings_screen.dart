@@ -122,8 +122,11 @@ class _ProjectSettingsScreenState extends ConsumerState<ProjectSettingsScreen> {
           .read(activeProjectIdProvider.notifier)
           .setActiveProject(newProject.id);
 
-      // 프로젝트 생성 완료 후 전면 광고 표시
-      await ref.read(interstitialAdControllerProvider).tryShowAd();
+      // 첫 프로젝트가 아닐 때만 전면 광고 표시 (온보딩 경험 개선)
+      final projectCount = ref.read(projectsProvider).length;
+      if (projectCount > 1) {
+        await ref.read(interstitialAdControllerProvider).tryShowAd();
+      }
 
       // 새 프로젝트 생성 후 메인 카운터 화면으로 이동
       if (mounted) {
