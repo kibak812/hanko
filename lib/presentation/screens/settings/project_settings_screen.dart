@@ -89,9 +89,13 @@ class _ProjectSettingsScreenState extends ConsumerState<ProjectSettingsScreen> {
           ref.read(projectRepositoryProvider).getProject(widget.projectId!);
       if (project != null) {
         final notifier = ref.read(projectsProvider.notifier);
-        notifier.renameProject(project, name);
+        notifier.updateProject(
+          project.id,
+          name: name,
+          targetRow: targetRow,
+        );
       }
-      context.pop();
+      if (mounted) context.pop();
     } else {
       // 새 프로젝트 생성
       final newProject = ref.read(projectsProvider.notifier).createProject(

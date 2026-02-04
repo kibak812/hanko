@@ -1,4 +1,3 @@
-import 'dart:ui' show VoidCallback;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/counter.dart';
 import '../../data/models/models.dart';
@@ -61,6 +60,21 @@ class ProjectsNotifier extends StateNotifier<List<Project>> {
 
   void refresh() {
     state = _repository.getAllProjects();
+  }
+
+  void refreshProject(int projectId) {
+    final updated = _repository.getProject(projectId);
+    if (updated == null) return;
+
+    final index = state.indexWhere((p) => p.id == projectId);
+    if (index == -1) {
+      state = [...state, updated];
+      return;
+    }
+
+    final next = [...state];
+    next[index] = updated;
+    state = next;
   }
 
   Project createProject({
@@ -199,9 +213,11 @@ class ProjectsNotifier extends StateNotifier<List<Project>> {
   }
 
   void updateProject(int projectId, {String? name, int? targetRow}) {
-    final project = state.firstWhere((p) => p.id == projectId);
+    final index = state.indexWhere((p) => p.id == projectId);
+    if (index == -1) return;
+    final project = state[index];
     _repository.updateProject(project, name: name, targetRow: targetRow);
-    refresh();
+    refreshProject(projectId);
   }
 
   void completeProject(Project project) {
@@ -255,7 +271,7 @@ final activeProjectCounterProvider =
   return ActiveProjectCounterNotifier(
     repository,
     activeProject,
-    projectsNotifier.refresh,
+    projectsNotifier.refreshProject,
   );
 });
 
@@ -371,12 +387,12 @@ class ProjectCounterState {
 class ActiveProjectCounterNotifier extends StateNotifier<ProjectCounterState> {
   final ProjectRepository _repository;
   final Project? _project;
-  final VoidCallback _refreshProjects;
+  final void Function(int projectId) _refreshProject;
 
   ActiveProjectCounterNotifier(
     this._repository,
     this._project,
-    this._refreshProjects,
+    this._refreshProject,
   ) : super(_buildState(_project));
 
   static ProjectCounterState _buildState(Project? project, {
@@ -429,6 +445,7 @@ class ActiveProjectCounterNotifier extends StateNotifier<ProjectCounterState> {
     bool patternWasReset = false,
     int? goalReachedCounterId,
     int? resetTriggeredCounterId,
+    bool refreshProject = false,
   }) {
     state = _buildState(
       _project,
@@ -437,7 +454,9 @@ class ActiveProjectCounterNotifier extends StateNotifier<ProjectCounterState> {
       goalReachedCounterId: goalReachedCounterId,
       resetTriggeredCounterId: resetTriggeredCounterId,
     );
-    _refreshProjects();
+    if (refreshProject && _project != null) {
+      _refreshProject(_project.id);
+    }
   }
 
   /// 이벤트 플래그 초기화 (피드백 표시 후 호출)
@@ -542,21 +561,21 @@ class ActiveProjectCounterNotifier extends StateNotifier<ProjectCounterState> {
   void addMemo(int rowNumber, String content) {
     if (_project == null) return;
     _repository.addMemo(_project, rowNumber, content);
-    _updateState();
+    _updateState(refreshProject: true);
   }
 
   /// 메모 삭제
   void removeMemo(int memoId) {
     if (_project == null) return;
     _repository.removeMemo(_project, memoId);
-    _updateState();
+    _updateState(refreshProject: true);
   }
 
   /// 메모 수정
   void updateMemo(int memoId, int rowNumber, String content) {
     if (_project == null) return;
     _repository.updateMemo(_project, memoId, rowNumber, content);
-    _updateState();
+    _updateState(refreshProject: true);
   }
 
   // ============ 동적 보조 카운터 조작 ============

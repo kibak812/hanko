@@ -11,11 +11,22 @@ import '../../widgets/ad_banner_widget.dart';
 import 'widgets/project_card.dart';
 
 /// 프로젝트 목록 화면
-class ProjectListScreen extends ConsumerWidget {
+class ProjectListScreen extends ConsumerStatefulWidget {
   const ProjectListScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProjectListScreen> createState() => _ProjectListScreenState();
+}
+
+class _ProjectListScreenState extends ConsumerState<ProjectListScreen> {
+  @override
+  void initState() {
+    super.initState();
+    ref.read(projectsProvider.notifier).refresh();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final projects = ref.watch(projectsProvider);
     final activeProjectId = ref.watch(activeProjectIdProvider);
 

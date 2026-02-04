@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
+import '../../../data/models/project.dart';
 import '../../../data/models/row_memo.dart';
 import '../../providers/app_providers.dart';
 import '../../providers/project_provider.dart';
@@ -18,9 +19,19 @@ class MemoListScreen extends ConsumerStatefulWidget {
 }
 
 class _MemoListScreenState extends ConsumerState<MemoListScreen> {
+  /// projectId로 프로젝트 조회 (projectsProvider 우선, 없으면 DB 조회)
+  Project? _getProject({bool watch = false}) {
+    final projects = watch
+        ? ref.watch(projectsProvider)
+        : ref.read(projectsProvider);
+    final index = projects.indexWhere((p) => p.id == widget.projectId);
+    if (index != -1) return projects[index];
+    return ref.read(projectRepositoryProvider).getProject(widget.projectId);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final project = ref.watch(activeProjectProvider);
+    final project = _getProject(watch: true);
 
     if (project == null) {
       return Scaffold(
@@ -147,7 +158,11 @@ class _MemoListScreenState extends ConsumerState<MemoListScreen> {
     );
 
     if (result == true) {
-      ref.read(activeProjectCounterProvider.notifier).removeMemo(memo.id);
+      final project = _getProject();
+      if (project != null) {
+        ref.read(projectRepositoryProvider).removeMemo(project, memo.id);
+        ref.read(projectsProvider.notifier).refreshProject(widget.projectId);
+      }
     }
 
     return false; // Don't dismiss automatically, we handle it manually
@@ -155,9 +170,10 @@ class _MemoListScreenState extends ConsumerState<MemoListScreen> {
 
   void _showMemoDialog(BuildContext context, RowMemo? memo) {
     final isEditing = memo != null;
+    final project = _getProject();
     final rowController = TextEditingController(
       text: memo?.rowNumber.toString() ??
-          (ref.read(activeProjectCounterProvider).currentRow + 1).toString(),
+          ((project?.currentRow ?? 0) + 1).toString(),
     );
     final contentController = TextEditingController(text: memo?.content ?? '');
 
@@ -210,19 +226,18 @@ class _MemoListScreenState extends ConsumerState<MemoListScreen> {
               final row = int.tryParse(rowController.text);
               final content = contentController.text.trim();
 
-              if (row != null && content.isNotEmpty) {
+              if (project != null && row != null && content.isNotEmpty) {
                 if (isEditing) {
                   ref
-                      .read(activeProjectCounterProvider.notifier)
-                      .updateMemo(memo.id, row, content);
+                      .read(projectRepositoryProvider)
+                      .updateMemo(project, memo.id, row, content);
                 } else {
-                  ref
-                      .read(activeProjectCounterProvider.notifier)
-                      .addMemo(row, content);
+                  ref.read(projectRepositoryProvider).addMemo(project, row, content);
                 }
+                ref.read(projectsProvider.notifier).refreshProject(widget.projectId);
                 Navigator.pop(context);
                 // 메모 저장 후 전면 광고 표시
-                await ref.read(interstitialAdControllerProvider)?.tryShowAd();
+                await ref.read(interstitialAdControllerProvider).tryShowAd();
               }
             },
             child: const Text(AppStrings.save),
