@@ -1,0 +1,23 @@
+HankoHanko is a smart stitch counting app designed for knitters and crocheters.
+
+Key Features
+
+Voice-Activated Counting
+Count stitches hands-free with voice commands like "one stitch", "two stitch". Keep your focus on your craft!
+
+Multiple Project Management
+Manage all your ongoing knitting projects in one place. Each project maintains its own independent counter and notes.
+
+Row Counter
+Automatically reset the count and increment the row number for each row. Easily track complex patterns.
+
+Notification Settings
+Receive alerts when you reach your target stitch count. Supports vibration and voice feedback.
+
+Dark Mode
+Comfortable dark mode for nighttime crafting sessions.
+
+Free with Ads
+All basic features are free to use. Support app development by watching ads.
+
+Enjoy more convenient and enjoyable knitting time with HankoHanko!
