@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
-import '../../../router/app_router.dart';
+import '../../../router/app_routes.dart';
 import '../../providers/app_providers.dart';
 
 /// 온보딩 화면

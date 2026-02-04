@@ -1,4 +1,3 @@
-import 'dart:io' show Platform;
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import '../../core/constants/voice_commands.dart';
@@ -78,7 +77,7 @@ class VoiceService {
 
     try {
       _isListening = true;
-      bool _commandProcessed = false;  // 명령어 중복 처리 방지
+      bool commandProcessed = false; // 명령어 중복 처리 방지
 
       // 콜백 저장 (글로벌 핸들러에서 사용)
       _currentOnDone = onDone;
@@ -86,7 +85,7 @@ class VoiceService {
 
       await _speechToText.listen(
         onResult: (result) async {
-          if (_commandProcessed) return;  // 이미 처리됨
+          if (commandProcessed) return; // 이미 처리됨
 
           final text = result.recognizedWords;
           if (text.isEmpty) return;
@@ -98,7 +97,7 @@ class VoiceService {
           final command = VoiceCommands.parseCommand(text);
 
           if (command != null) {
-            _commandProcessed = true;
+            commandProcessed = true;
 
             // 인식 중지 후 명령 처리
             await _speechToText.stop();
@@ -109,9 +108,11 @@ class VoiceService {
           // finalResult는 무시 - onStatus 'done'에서 처리
         },
         localeId: 'ko-KR',
-        listenMode: ListenMode.dictation,  // dictation 모드: 더 오래 듣기
-        cancelOnError: false,
-        partialResults: true,
+        listenOptions: SpeechListenOptions(
+          listenMode: ListenMode.dictation, // dictation 모드: 더 오래 듣기
+          cancelOnError: false,
+          partialResults: true,
+        ),
         listenFor: const Duration(seconds: 30),  // 30초간 듣기 (끝나면 연속모드에서 자동 재시작)
       );
     } catch (e) {

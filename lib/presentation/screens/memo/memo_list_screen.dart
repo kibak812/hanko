@@ -78,7 +78,7 @@ class _MemoListScreenState extends ConsumerState<MemoListScreen> {
             Icon(
               Icons.note_alt_outlined,
               size: 64,
-              color: AppColors.textSecondary.withOpacity(0.5),
+              color: AppColors.textSecondary.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(
@@ -118,7 +118,7 @@ class _MemoListScreenState extends ConsumerState<MemoListScreen> {
           ),
           child: ListTile(
             leading: CircleAvatar(
-              backgroundColor: AppColors.primary.withOpacity(0.1),
+              backgroundColor: AppColors.primary.withValues(alpha: 0.1),
               child: Text(
                 '${memo.rowNumber}',
                 style: TextStyle(

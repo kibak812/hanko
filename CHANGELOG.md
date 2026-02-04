@@ -56,6 +56,18 @@
   - 다른 프로젝트의 메모가 표시될 수 있던 버그 해결
 - **프로젝트 설정 편집 버그 수정**: 목표 단수(`targetRow`)가 저장되지 않던 문제
 - **앱 설정 화면 안정성 개선**: async 작업 후 `mounted` 체크 추가
+- **튜토리얼 화면 안정성 개선**: async 콜백에서 `mounted` 체크 추가
+- **순환 import 해결**: `app_routes.dart` 분리로 라우터-화면 간 순환 참조 방지
+- **Deprecated API 전면 교체**:
+  - `withOpacity()` → `withValues(alpha:)` (Flutter 3.27+)
+  - Switch 위젯 `activeColor` → `activeThumbColor`
+  - `SpeechListenOptions` 사용 (speech_to_text 패키지)
+- **Lint 경고 해결**: 모든 정적 분석 경고 해결 (`dart analyze` 통과)
+  - 미사용 import 제거 (`dart:io` in voice_service)
+  - private 필드 public 전환 (`_commandProcessed` → `commandProcessed`)
+
+### Removed
+- **미사용 패키지 제거**: `cupertino_icons`, `uuid`, `flutter_animate`
 
 ### Dev
 - CLAUDE.md에 Fastlane 배포 가이드 추가

@@ -245,7 +245,7 @@ class _TypeChip extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.primary.withOpacity(0.1)
+              ? AppColors.primary.withValues(alpha: 0.1)
               : (isDark ? AppColors.backgroundDark : AppColors.background),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(

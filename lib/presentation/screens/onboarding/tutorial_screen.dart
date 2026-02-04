@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
-import '../../../router/app_router.dart';
+import '../../../router/app_routes.dart';
 import '../../providers/project_provider.dart';
 import '../../providers/tutorial_provider.dart';
 import '../counter/widgets/counter_display.dart';
@@ -46,6 +46,16 @@ class _TutorialScreenState extends ConsumerState<TutorialScreen> {
 
   Future<void> _skipEntireTutorial() async {
     await ref.read(tutorialProvider.notifier).skipTutorial();
+    // 활성 프로젝트 해제 및 프로젝트 목록 새로고침
+    await ref.read(activeProjectIdProvider.notifier).setActiveProject(null);
+    ref.read(projectsProvider.notifier).refresh();
+    if (mounted) {
+      context.go(AppRoutes.newProject);
+    }
+  }
+
+  Future<void> _completeTutorialAndNavigate() async {
+    await ref.read(tutorialProvider.notifier).completeTutorial();
     // 활성 프로젝트 해제 및 프로젝트 목록 새로고침
     await ref.read(activeProjectIdProvider.notifier).setActiveProject(null);
     ref.read(projectsProvider.notifier).refresh();
@@ -107,15 +117,7 @@ class _TutorialScreenState extends ConsumerState<TutorialScreen> {
     // 축하 화면
     if (_showCelebration) {
       return TutorialCelebration(
-        onComplete: () async {
-          await ref.read(tutorialProvider.notifier).completeTutorial();
-          // 활성 프로젝트 해제 및 프로젝트 목록 새로고침
-          await ref.read(activeProjectIdProvider.notifier).setActiveProject(null);
-          ref.read(projectsProvider.notifier).refresh();
-          if (mounted) {
-            context.go(AppRoutes.newProject);
-          }
-        },
+        onComplete: _completeTutorialAndNavigate,
       );
     }
 

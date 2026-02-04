@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
-import '../../../router/app_router.dart';
+import '../../../router/app_routes.dart';
 import '../../providers/app_providers.dart';
 import '../../providers/tutorial_provider.dart';
 import '../../widgets/ad_banner_widget.dart';
@@ -194,7 +194,7 @@ class _AppSettingsScreenState extends ConsumerState<AppSettingsScreen> {
       trailing: Switch.adaptive(
         value: value,
         onChanged: onChanged,
-        activeColor: AppColors.primary,
+        activeThumbColor: AppColors.primary,
       ),
     );
   }

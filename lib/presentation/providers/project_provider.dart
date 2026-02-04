@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../data/models/counter.dart';
 import '../../data/models/models.dart';
 import '../../data/repositories/project_repository.dart';
 import '../../data/datasources/local_storage.dart';

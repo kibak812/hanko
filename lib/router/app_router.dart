@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'app_routes.dart';
 import '../presentation/providers/app_providers.dart';
 import '../presentation/screens/counter/counter_screen.dart';
 import '../presentation/screens/memo/memo_list_screen.dart';
@@ -9,18 +10,6 @@ import '../presentation/screens/settings/project_settings_screen.dart';
 import '../presentation/screens/settings/app_settings_screen.dart';
 import '../presentation/screens/onboarding/onboarding_screen.dart';
 import '../presentation/screens/onboarding/tutorial_screen.dart';
-
-/// 라우트 이름
-class AppRoutes {
-  static const String onboarding = '/onboarding';
-  static const String tutorial = '/tutorial';
-  static const String counter = '/';
-  static const String projects = '/projects';
-  static const String projectSettings = '/projects/settings';
-  static const String newProject = '/projects/new';
-  static const String settings = '/settings';
-  static const String memos = '/memos';
-}
 
 /// GoRouter Provider
 final routerProvider = Provider<GoRouter>((ref) {

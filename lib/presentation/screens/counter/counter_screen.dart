@@ -9,7 +9,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_icons.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../data/datasources/local_storage.dart';
-import '../../../router/app_router.dart';
+import '../../../router/app_routes.dart';
 import '../../providers/app_providers.dart';
 import '../../widgets/ad_banner_widget.dart';
 import '../../providers/project_provider.dart';

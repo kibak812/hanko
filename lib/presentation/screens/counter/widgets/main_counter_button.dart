@@ -77,7 +77,8 @@ class _MainCounterButtonState extends State<MainCounterButton>
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: AppColors.primary.withOpacity(_isPressed ? 0.2 : 0.35),
+                color: AppColors.primary
+                    .withValues(alpha: _isPressed ? 0.2 : 0.35),
                 offset: Offset(0, _isPressed ? 4 : 8),
                 blurRadius: _isPressed ? 12 : 24,
               ),

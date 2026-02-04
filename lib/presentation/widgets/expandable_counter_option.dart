@@ -117,7 +117,7 @@ class _ExpandableCounterOptionState extends State<ExpandableCounterOption>
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: widget.enabled
-              ? AppColors.primary.withOpacity(0.5)
+              ? AppColors.primary.withValues(alpha: 0.5)
               : (isDark ? AppColors.borderDark : AppColors.border),
           width: widget.enabled ? 1.5 : 1,
         ),
@@ -162,7 +162,7 @@ class _ExpandableCounterOptionState extends State<ExpandableCounterOption>
                 Switch(
                   value: widget.enabled,
                   onChanged: widget.onEnabledChanged,
-                  activeColor: AppColors.primary,
+                  activeThumbColor: AppColors.primary,
                 ),
               ],
             ),
@@ -209,8 +209,10 @@ class _ExpandableCounterOptionState extends State<ExpandableCounterOption>
                               Icons.lightbulb_outline,
                               size: 14,
                               color: isDark
-                                  ? AppColors.textSecondaryDark.withOpacity(0.7)
-                                  : AppColors.textSecondary.withOpacity(0.7),
+                                  ? AppColors.textSecondaryDark
+                                      .withValues(alpha: 0.7)
+                                  : AppColors.textSecondary
+                                      .withValues(alpha: 0.7),
                             ),
                             const SizedBox(width: 6),
                             Expanded(
@@ -220,8 +222,9 @@ class _ExpandableCounterOptionState extends State<ExpandableCounterOption>
                                   fontSize: 11,
                                   color: isDark
                                       ? AppColors.textSecondaryDark
-                                          .withOpacity(0.7)
-                                      : AppColors.textSecondary.withOpacity(0.7),
+                                          .withValues(alpha: 0.7)
+                                      : AppColors.textSecondary
+                                          .withValues(alpha: 0.7),
                                 ),
                               ),
                             ),

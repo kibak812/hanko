@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../data/models/project.dart';
-import '../../../router/app_router.dart';
+import '../../../router/app_routes.dart';
 import '../../providers/app_providers.dart';
 import '../../providers/project_provider.dart';
 import '../../widgets/ad_banner_widget.dart';
