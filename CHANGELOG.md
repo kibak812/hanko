@@ -2,18 +2,11 @@
 
 모든 주요 변경사항을 이 파일에 기록합니다.
 
-## [1.0.2] - App Store 심사 제출
-
-### Changed
-- **버전 업데이트**: 1.0.0 -> 1.0.2 (App Store 배포용)
-- **스크린샷 교체**: 5장 -> 4장 (progress 제거), 새 디자인 적용
-- **Fastfile 개선**: `upload_screenshots`, `submit_review` lane에 `app_version` 옵션 추가
-- **릴리즈 노트 갱신**: 1.0.2 업데이트 내용 반영
-- **CLAUDE.md**: iOS 배포 주의사항 및 스크린샷 관리 가이드 추가
+## [Unreleased]
 
 ---
 
-## [Unreleased]
+## [1.0.2] - App Store 심사 제출
 
 ### Added
 - **Fastlane 배포 자동화**: iOS/Android 앱 스토어 배포 자동화 설정
@@ -25,63 +18,31 @@
   - 5단계 튜토리얼: 프로젝트 편집, 날짜 편집, 보조 카운터 편집, 타이머 리셋, 음성 명령
   - 스포트라이트 오버레이 + 툴팁 UI로 대상 위젯 강조
   - 데모 프로젝트 자동 생성/삭제
-  - 각 단계에서 건너뛰기 및 다음 버튼 제공
-  - 완료 시 축하 애니메이션 (컨페티 효과)
   - 설정에서 "튜토리얼 다시 보기" 옵션 추가
-  - `tutorial_provider.dart` - 튜토리얼 상태 관리
-  - `tutorial_screen.dart` - 튜토리얼 전용 화면
-  - `tutorial_overlay.dart` - 스포트라이트 오버레이
-  - `tutorial_tooltip.dart` - 말풍선 UI
-  - `tutorial_celebration.dart` - 완료 애니메이션
 - **앱 아이콘 디자인**: Apple 스타일의 미니멀한 V 스티치 아이콘
-  - SVG 소스 파일 (`assets/app_icon.svg`)
-  - iOS 15개 사이즈, Android 5개 사이즈 자동 생성
-  - 코랄-테라코타 그라데이션 배경 + 흰색 V 심볼
 
 ### Changed
-- **첫 프로젝트 생성 시 광고 제외**: 온보딩 경험 개선을 위해 첫 번째 프로젝트 생성 시에는 전면광고를 표시하지 않음
 - **무료 + 광고 모델로 전환**: 프리미엄 구독 → 완전 무료 (광고 수익 모델)
-  - 프로젝트 개수 무제한
-  - 보조 카운터 개수 무제한
+  - 프로젝트/보조 카운터 개수 무제한
   - 음성 명령 무제한 (5회마다 리워드 광고)
-- **음성 리워드 광고**: 음성 명령 5회 사용마다 리워드 광고 자동 표시
-- **광고 표시 단순화**: 프리미엄 체크 제거, 모든 사용자에게 광고 표시
+- **첫 프로젝트 생성 시 광고 제외**: 온보딩 경험 개선
+- **스크린샷 교체**: 5장 -> 4장 (progress 제거), 새 디자인 적용
+- **Fastfile 개선**: `upload_screenshots`, `submit_review` lane에 `app_version` 옵션 추가
 
 ### Removed
 - **RevenueCat 프리미엄 시스템 완전 제거**
-  - `purchases_flutter` 패키지 제거
-  - `PremiumService`, `PremiumPurchaseSheet` 삭제
-  - `premiumServiceProvider`, `premiumStatusProvider` 제거
-  - 프로젝트 생성 제한 다이얼로그 제거
-  - 보조 카운터 추가 제한 경고 제거
-  - 온보딩 화면 무료 체험 안내 제거
-- 프리미엄 관련 문자열 제거 (`app_strings.dart`)
+- **미사용 패키지 제거**: `cupertino_icons`, `uuid`, `flutter_animate`
 
 ### Fixed
 - **메모 삭제 시 ObjectBox 에러 수정** (404 에러)
-  - ToMany 관계 저장 순서 수정: 프로젝트 저장 → 메모 삭제
-- **카운터 탭 성능 개선**: 매 탭마다 전체 프로젝트 목록 DB refresh → 개별 프로젝트만 갱신
-  - `refreshProject(projectId)` 메서드 추가
-  - 빈번한 카운팅 시 성능/배터리 소모 대폭 감소
-- **메모 화면 버그 수정**: route로 전달받은 `projectId`를 사용하지 않던 문제
-  - 다른 프로젝트의 메모가 표시될 수 있던 버그 해결
-- **프로젝트 설정 편집 버그 수정**: 목표 단수(`targetRow`)가 저장되지 않던 문제
-- **앱 설정 화면 안정성 개선**: async 작업 후 `mounted` 체크 추가
-- **튜토리얼 화면 안정성 개선**: async 콜백에서 `mounted` 체크 추가
-- **순환 import 해결**: `app_routes.dart` 분리로 라우터-화면 간 순환 참조 방지
-- **Deprecated API 전면 교체**:
-  - `withOpacity()` → `withValues(alpha:)` (Flutter 3.27+)
-  - Switch 위젯 `activeColor` → `activeThumbColor`
-  - `SpeechListenOptions` 사용 (speech_to_text 패키지)
-- **Lint 경고 해결**: 모든 정적 분석 경고 해결 (`dart analyze` 통과)
-  - 미사용 import 제거 (`dart:io` in voice_service)
-  - private 필드 public 전환 (`_commandProcessed` → `commandProcessed`)
-
-### Removed
-- **미사용 패키지 제거**: `cupertino_icons`, `uuid`, `flutter_animate`
+- **카운터 탭 성능 개선**: 개별 프로젝트만 갱신하도록 변경
+- **메모 화면 버그 수정**: 다른 프로젝트의 메모가 표시될 수 있던 문제
+- **프로젝트 설정 편집 버그 수정**: 목표 단수 저장 안 되던 문제
+- **Deprecated API 전면 교체** (`withOpacity`, `activeColor` 등)
+- **Lint 경고 해결**: `dart analyze` 통과
 
 ### Dev
-- CLAUDE.md에 Fastlane 배포 가이드 추가
+- CLAUDE.md에 Fastlane 배포 가이드 및 iOS 배포 주의사항 추가
 
 ---
 
