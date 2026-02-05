@@ -136,7 +136,7 @@ platform :ios do
   end
 
   desc "App Store에 스크린샷만 업로드"
-  lane :upload_screenshots do
+  lane :upload_screenshots do |options|
     api_key = app_store_connect_api_key(
       key_id: ENV["APP_STORE_CONNECT_API_KEY_ID"],
       issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
@@ -147,9 +147,10 @@ platform :ios do
     deliver(
       api_key: api_key,
       skip_binary_upload: true,
-      skip_metadata: true,
+      skip_metadata: options[:skip_metadata] != false,
       overwrite_screenshots: true,
       force: true,
+      app_version: options[:app_version],
       precheck_include_in_app_purchases: false
     )
   end
@@ -164,7 +165,7 @@ platform :ios do
   end
 
   desc "App Store 심사 제출"
-  lane :submit_review do
+  lane :submit_review do |options|
     api_key = app_store_connect_api_key(
       key_id: ENV["APP_STORE_CONNECT_API_KEY_ID"],
       issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
@@ -179,6 +180,7 @@ platform :ios do
       skip_metadata: true,
       submit_for_review: true,
       force: true,
+      app_version: options[:app_version],
       run_precheck_before_submit: false,
       submission_information: {
         add_id_info_uses_idfa: false,

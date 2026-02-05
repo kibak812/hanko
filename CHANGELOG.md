@@ -2,6 +2,17 @@
 
 모든 주요 변경사항을 이 파일에 기록합니다.
 
+## [1.0.2] - App Store 심사 제출
+
+### Changed
+- **버전 업데이트**: 1.0.0 -> 1.0.2 (App Store 배포용)
+- **스크린샷 교체**: 5장 -> 4장 (progress 제거), 새 디자인 적용
+- **Fastfile 개선**: `upload_screenshots`, `submit_review` lane에 `app_version` 옵션 추가
+- **릴리즈 노트 갱신**: 1.0.2 업데이트 내용 반영
+- **CLAUDE.md**: iOS 배포 주의사항 및 스크린샷 관리 가이드 추가
+
+---
+
 ## [Unreleased]
 
 ### Added

@@ -130,17 +130,35 @@ cd android
 |--------|------|------|
 | iOS | `beta` | TestFlight 배포 |
 | iOS | `release` | App Store 배포 |
+| iOS | `upload_screenshots` | 스크린샷/메타데이터 업로드 (`app_version` 옵션 지원) |
+| iOS | `submit_review` | 심사 제출 (`app_version` 옵션 지원) |
 | Android | `internal` | Google Play 내부 테스트 |
 | Android | `beta` | Google Play 베타 트랙 |
 | Android | `release` | Google Play 프로덕션 |
+
+### iOS 배포 시 주의사항
+
+1. **버전 확인 필수**: 배포 전 App Store Connect의 현재 라이브 버전을 확인하고, 그보다 높은 버전으로 `pubspec.yaml`을 업데이트해야 함. 낮은 버전으로 업로드하면 `CFBundleShortVersionString` 에러 발생.
+2. **`release` lane 실패 시 수동 업로드**: `release` lane이 `upload_to_app_store` 단계에서 실패해도 IPA는 이미 빌드됨. `xcrun altool --upload-app`으로 수동 업로드 가능.
+3. **`xcrun altool` API Key 경로**: `~/.private_keys/AuthKey_*.p8`에 키 파일이 있어야 함. 없으면 복사 필요: `cp ~/.flutter-deploy/credentials/ios/AuthKey_*.p8 ~/.private_keys/`
+4. **스크린샷 크기**: App Store iPhone 6.7" 기준 `1290x2796` 필수. 다른 크기면 `sips -z 2796 1290`으로 리사이즈.
+5. **버전 생성 타이밍**: 바이너리 업로드만으로는 App Store Connect에 새 버전이 자동 생성되지 않음. `deliver`에 `app_version` 명시 필요.
 
 ### 필요한 인증 파일
 
 | 플랫폼 | 파일 | 설명 |
 |--------|------|------|
-| iOS | `~/.appstoreconnect/AuthKey_*.p8` | App Store Connect API Key |
+| iOS | `~/.flutter-deploy/credentials/ios/AuthKey_*.p8` | App Store Connect API Key |
+| iOS | `~/.private_keys/AuthKey_*.p8` | 위 키의 복사본 (`xcrun altool`용) |
 | Android | `android/fastlane/play-store-credentials.json` | Google Play 서비스 계정 키 |
 | Android | `android/key.properties` | 앱 서명 키스토어 정보 |
+
+### iOS 스크린샷 관리
+
+- 경로: `ios/fastlane/screenshots/ko/`
+- 네이밍: `NN_description_ko_framed.png` (프레임 포함 최종본)
+- 현재 4장: counter, projects, memo, settings
+- `keyword.strings` / `title.strings`도 스크린샷과 함께 갱신
 
 ## Dev Notes
 

@@ -1,7 +1,7 @@
 name: hanko_hanko
 description: "한코한코 - 뜨개질 카운터 앱. 한국어 음성 제어와 위젯으로 편리한 카운팅."
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.0.2+9
 
 environment:
   sdk: ^3.10.4
