@@ -55,7 +55,7 @@ class ProjectCard extends StatelessWidget {
             Row(
               children: [
                 if (isCompleted) ...[
-                  const Text('✅', style: TextStyle(fontSize: 20)),
+                  Icon(Icons.check_circle, size: 20, color: AppColors.success),
                   const SizedBox(width: 8),
                 ],
                 Expanded(

@@ -422,9 +422,10 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
-                  '🧶',
-                  style: const TextStyle(fontSize: 64),
+                Icon(
+                  Icons.texture,
+                  size: 64,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
                 const SizedBox(height: 24),
                 Text(

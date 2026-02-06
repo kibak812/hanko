@@ -24,6 +24,17 @@ AppColors.surface      // #FFFFFF (White)
 // 다크모드
 AppColors.primaryDark
 AppColors.backgroundDark
+
+// 메모 카드
+AppColors.memoBackground / memoBackgroundDark
+AppColors.memoBorder / memoBorderDark
+AppColors.memoIcon / memoIconDark
+AppColors.memoShadow
+
+// BuildContext Extension (다크모드 자동 처리)
+context.memoBackground
+context.memoBorder
+context.memoIcon
 ```
 
 ## app_strings.dart

@@ -29,14 +29,20 @@ class VoiceService {
           // 에러 발생 시 현재 세션의 onError 콜백 호출
           if (_isListening && _currentOnError != null) {
             _isListening = false;
-            _currentOnError!(error.errorMsg);
+            final onError = _currentOnError;
+            _currentOnDone = null;
+            _currentOnError = null;
+            onError!(error.errorMsg);
           }
         },
         onStatus: (status) {
           // 'done' 상태에서 onDone 콜백 호출
           if (status == 'done' && _isListening) {
             _isListening = false;
-            _currentOnDone?.call();
+            final onDone = _currentOnDone;
+            _currentOnDone = null;
+            _currentOnError = null;
+            onDone?.call();
           }
         },
       );
@@ -129,6 +135,8 @@ class VoiceService {
 
     await _speechToText.stop();
     _isListening = false;
+    _currentOnDone = null;
+    _currentOnError = null;
   }
 
   /// 음성 출력 (TTS)
@@ -221,5 +229,7 @@ class VoiceService {
     _flutterTts.stop();
     _isInitialized = false;
     _isListening = false;
+    _currentOnDone = null;
+    _currentOnError = null;
   }
 }

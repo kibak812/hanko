@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,36 +10,52 @@ import 'data/datasources/objectbox_database.dart';
 import 'domain/services/ad_service.dart';
 import 'presentation/providers/app_providers.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+void main() {
+  runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
 
-  // 세로 모드 고정
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-  ]);
+    FlutterError.onError = (FlutterErrorDetails details) {
+      FlutterError.presentError(details);
+      debugPrint('FlutterError: ${details.exception}');
+      debugPrint('${details.stack}');
+    };
 
-  // SharedPreferences 초기화
-  final sharedPreferences = await SharedPreferences.getInstance();
+    // 세로 모드 고정
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
 
-  // ObjectBox 데이터베이스 초기화
-  final objectBoxDatabase = await ObjectBoxDatabase.create();
+    try {
+      // SharedPreferences 초기화
+      final sharedPreferences = await SharedPreferences.getInstance();
 
-  // 데이터 마이그레이션 실행
-  await MigrationUtils.runMigrationIfNeeded(sharedPreferences, objectBoxDatabase);
+      // ObjectBox 데이터베이스 초기화
+      final objectBoxDatabase = await ObjectBoxDatabase.create();
 
-  // AdService 초기화
-  final adService = AdService();
-  await adService.initialize();
+      // 데이터 마이그레이션 실행
+      await MigrationUtils.runMigrationIfNeeded(sharedPreferences, objectBoxDatabase);
 
-  runApp(
-    ProviderScope(
-      overrides: [
-        sharedPreferencesProvider.overrideWithValue(sharedPreferences),
-        objectBoxDatabaseProvider.overrideWithValue(objectBoxDatabase),
-        adServiceProvider.overrideWithValue(adService),
-      ],
-      child: const HankoHankoApp(),
-    ),
-  );
+      // AdService 초기화
+      final adService = AdService();
+      await adService.initialize();
+
+      runApp(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(sharedPreferences),
+            objectBoxDatabaseProvider.overrideWithValue(objectBoxDatabase),
+            adServiceProvider.overrideWithValue(adService),
+          ],
+          child: const HankoHankoApp(),
+        ),
+      );
+    } catch (e, stack) {
+      debugPrint('Initialization error: $e');
+      debugPrint('$stack');
+    }
+  }, (error, stack) {
+    debugPrint('Uncaught error: $error');
+    debugPrint('$stack');
+  });
 }

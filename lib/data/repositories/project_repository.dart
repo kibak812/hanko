@@ -36,13 +36,11 @@ class ProjectRepository {
 
     // 메인 단 카운터 생성
     final rowCounter = Counter.row(targetRow: targetRow);
-    _db.counterBox.put(rowCounter);
     project.rowCounter.target = rowCounter;
 
     // 보조 코 카운터 (선택적)
     if (includeStitchCounter) {
       final stitchCounter = Counter.stitch(targetValue: stitchTarget);
-      _db.counterBox.put(stitchCounter);
       project.stitchCounter.target = stitchCounter;
     }
 
@@ -52,17 +50,16 @@ class ProjectRepository {
         resetAt: patternResetAt,
         autoReset: patternResetAt != null,
       );
-      _db.counterBox.put(patternCounter);
       project.patternCounter.target = patternCounter;
     }
 
-    _db.saveProject(project);
+    _db.saveProjectWithRelations(project);
     return project;
   }
 
-  /// 프로젝트 저장 (업데이트)
+  /// 프로젝트 저장 (관련 엔티티 포함)
   void saveProject(Project project) {
-    _db.saveProject(project);
+    _db.saveProjectWithRelations(project);
   }
 
   /// 프로젝트 삭제
@@ -313,22 +310,7 @@ class ProjectRepository {
   }
 
   void _saveProjectAndCounters(Project project) {
-    // 카운터들 저장
-    if (project.rowCounter.target != null) {
-      _db.saveCounter(project.rowCounter.target!);
-    }
-    if (project.stitchCounter.target != null) {
-      _db.saveCounter(project.stitchCounter.target!);
-    }
-    if (project.patternCounter.target != null) {
-      _db.saveCounter(project.patternCounter.target!);
-    }
-    // 보조 카운터들 저장
-    for (final counter in project.secondaryCounters) {
-      _db.saveCounter(counter);
-    }
-    // 프로젝트 저장
-    _db.projectBox.put(project);
+    _db.saveProjectWithRelations(project);
   }
 
   // ============ 메모 관련 ============

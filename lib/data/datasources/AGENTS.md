@@ -7,8 +7,9 @@
 
 | 파일 | 역할 |
 |------|------|
-| `objectbox_database.dart` | ObjectBox Store 관리 |
+| `objectbox_database.dart` | ObjectBox Store 관리 (단순 CRUD + 트랜잭션 일괄 저장) |
 | `local_storage.dart` | SharedPreferences 래퍼 + AppSettings 모델 |
+| `migration_utils.dart` | 데이터 마이그레이션 (v2: stitch/pattern -> secondaryCounters) |
 
 ## ObjectBoxDatabase
 
@@ -18,6 +19,12 @@ await db.init();
 
 db.projectBox  // Box<Project>
 db.memoBox     // Box<RowMemo>
+
+// 단순 저장 (프로젝트 엔티티만)
+db.saveProject(project)
+
+// 트랜잭션 일괄 저장 (프로젝트 + 카운터 + 메모)
+db.saveProjectWithRelations(project)
 ```
 
 ## LocalStorage

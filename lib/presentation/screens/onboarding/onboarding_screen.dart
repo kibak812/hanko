@@ -20,9 +20,10 @@ class OnboardingScreen extends ConsumerWidget {
             children: [
               const Spacer(),
               // 앱 아이콘/로고
-              const Text(
-                '🧶',
-                style: TextStyle(fontSize: 80),
+              Icon(
+                Icons.texture,
+                size: 80,
+                color: Theme.of(context).colorScheme.primary,
               ),
               const SizedBox(height: 24),
               // 환영 메시지

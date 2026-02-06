@@ -39,30 +39,37 @@ class ObjectBoxDatabase {
     return projectBox.get(id);
   }
 
-  /// 프로젝트 저장 (생성 또는 업데이트)
+  /// 프로젝트 저장 (프로젝트 엔티티만)
   int saveProject(Project project) {
-    // 관련 카운터들도 함께 저장
-    if (project.rowCounter.target != null) {
-      counterBox.put(project.rowCounter.target!);
-    }
-    if (project.stitchCounter.target != null) {
-      counterBox.put(project.stitchCounter.target!);
-    }
-    if (project.patternCounter.target != null) {
-      counterBox.put(project.patternCounter.target!);
-    }
-
-    // 보조 카운터들 저장
-    for (final counter in project.secondaryCounters) {
-      counterBox.put(counter);
-    }
-
-    // 메모들 저장
-    for (final memo in project.memos) {
-      memoBox.put(memo);
-    }
-
     return projectBox.put(project);
+  }
+
+  /// 프로젝트와 관련 엔티티 일괄 저장 (트랜잭션)
+  int saveProjectWithRelations(Project project) {
+    return store.runInTransaction(TxMode.write, () {
+      // 관련 카운터들 저장
+      final counters = <Counter>[];
+      if (project.rowCounter.target != null) {
+        counters.add(project.rowCounter.target!);
+      }
+      if (project.stitchCounter.target != null) {
+        counters.add(project.stitchCounter.target!);
+      }
+      if (project.patternCounter.target != null) {
+        counters.add(project.patternCounter.target!);
+      }
+      counters.addAll(project.secondaryCounters);
+      if (counters.isNotEmpty) {
+        counterBox.putMany(counters);
+      }
+
+      // 메모들 저장
+      if (project.memos.isNotEmpty) {
+        memoBox.putMany(project.memos.toList());
+      }
+
+      return projectBox.put(project);
+    });
   }
 
   /// 프로젝트 삭제

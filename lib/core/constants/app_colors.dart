@@ -38,6 +38,18 @@ class AppColors {
   /// Error
   static const Color error = Color(0xFFE74C3C);
 
+  /// Memo Background - Warm Yellow Tint: 메모 카드 배경
+  static const Color memoBackground = Color(0xFFFFF3D4);
+
+  /// Memo Border - Muted Gold: 메모 카드 테두리
+  static const Color memoBorder = Color(0xFFDCC99A);
+
+  /// Memo Icon - Warm Brown: 메모 핀 아이콘
+  static const Color memoIcon = Color(0xFFB8956E);
+
+  /// Memo Shadow - Warm Beige: 메모 카드 그림자
+  static const Color memoShadow = Color(0xFFD4C4A8);
+
   /// Border
   static const Color border = Color(0xFFE0E0E0);
 
@@ -60,6 +72,15 @@ class AppColors {
 
   /// Text Sub Dark
   static const Color textSecondaryDark = Color(0xFFB0B0B0);
+
+  /// Memo Background Dark
+  static const Color memoBackgroundDark = Color(0xFF3A3526);
+
+  /// Memo Border Dark - Golden
+  static const Color memoBorderDark = Color(0xFFD4A84B);
+
+  /// Memo Icon Dark
+  static const Color memoIconDark = Color(0xFFD4A84B);
 
   /// Border Dark
   static const Color borderDark = Color(0xFF3A3D4A);
@@ -109,4 +130,13 @@ extension AppColorsExtension on BuildContext {
   Color get primary => _isDark ? AppColors.primaryDark : AppColors.primary;
 
   Color get success => _isDark ? AppColors.successDark : AppColors.success;
+
+  Color get memoBackground =>
+      _isDark ? AppColors.memoBackgroundDark : AppColors.memoBackground;
+
+  Color get memoBorder =>
+      _isDark ? AppColors.memoBorderDark : AppColors.memoBorder;
+
+  Color get memoIcon =>
+      _isDark ? AppColors.memoIconDark : AppColors.memoIcon;
 }

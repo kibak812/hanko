@@ -4,6 +4,18 @@
 
 ## [Unreleased]
 
+### Fixed
+- **이모지 제거 (No Emoji Policy)**: counter_screen, project_list_screen, project_card, onboarding_screen의 이모지를 Material Icons로 교체
+- **VoiceService 메모리 누수**: 콜백 참조(`_currentOnDone`/`_currentOnError`)가 정상 종료 시 해제되지 않던 문제 수정
+- **main() 에러 핸들링 부재**: `runZonedGuarded` + `FlutterError.onError` + try-catch 추가로 초기화 실패 시 앱 크래시 방지
+- **MigrationUtils 안전성 강화**: 프로젝트별 try-catch로 한 프로젝트 실패 시 나머지 계속 진행, 전체 성공 시에만 완료 플래그 설정
+- **DB/Repository 저장 로직 이중 저장**: `ObjectBoxDatabase.saveProject()` 단순화 + `saveProjectWithRelations()` 트랜잭션 저장 추가
+
+### Changed
+- **MemoCard 하드코딩 색상 상수화**: 6개 Color 리터럴을 `AppColors` + `AppColorsExtension`으로 이동
+- **providers.dart barrel export**: `tutorial_provider.dart` export 추가
+- **빈 디렉토리 정리**: `core/utils/`, `widgets/ads/`, `widgets/common/` 삭제
+
 ---
 
 ## [1.0.2] - App Store 심사 제출

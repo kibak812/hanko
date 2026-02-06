@@ -98,7 +98,7 @@ class _ProjectListScreenState extends ConsumerState<ProjectListScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text('🧶', style: TextStyle(fontSize: 64)),
+            Icon(Icons.texture, size: 64, color: AppColors.textSecondary),
             const SizedBox(height: 24),
             Text(
               AppStrings.noProjects,
