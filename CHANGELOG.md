@@ -26,6 +26,7 @@
 - **Fastlane --dart-define 추가**: iOS/Android Fastfile에 광고 ID dart-define 파라미터 전달
 
 ### Fixed
+- **프로젝트 목록 진입 시 StateNotifier 에러**: `initState`에서 동기적 `refresh()` 호출이 빌드 중 state 변경을 유발하는 문제 수정 (`Future.microtask`로 지연)
 - **이모지 제거 (No Emoji Policy)**: counter_screen, project_list_screen, project_card, onboarding_screen의 이모지를 Material Icons로 교체
 - **VoiceService 메모리 누수**: 콜백 참조(`_currentOnDone`/`_currentOnError`)가 정상 종료 시 해제되지 않던 문제 수정
 - **main() 에러 핸들링 부재**: `runZonedGuarded` + `FlutterError.onError` + try-catch 추가로 초기화 실패 시 앱 크래시 방지

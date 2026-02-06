@@ -22,7 +22,7 @@ class _ProjectListScreenState extends ConsumerState<ProjectListScreen> {
   @override
   void initState() {
     super.initState();
-    ref.read(projectsProvider.notifier).refresh();
+    Future.microtask(() => ref.read(projectsProvider.notifier).refresh());
   }
 
   @override
