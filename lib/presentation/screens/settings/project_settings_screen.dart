@@ -76,7 +76,7 @@ class _ProjectSettingsScreenState extends ConsumerState<ProjectSettingsScreen> {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('프로젝트 이름을 입력해주세요')),
+        const SnackBar(content: Text(AppStrings.enterProjectName)),
       );
       return;
     }
@@ -187,7 +187,6 @@ class _ProjectSettingsScreenState extends ConsumerState<ProjectSettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final project = isEditing
         ? ref.read(projectRepositoryProvider).getProject(widget.projectId!)
         : null;
@@ -220,9 +219,7 @@ class _ProjectSettingsScreenState extends ConsumerState<ProjectSettingsScreen> {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: isDark
-                    ? AppColors.textSecondaryDark
-                    : AppColors.textSecondary,
+                color: context.textSecondary,
               ),
             ),
             const SizedBox(height: 8),
@@ -242,9 +239,7 @@ class _ProjectSettingsScreenState extends ConsumerState<ProjectSettingsScreen> {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: isDark
-                    ? AppColors.textSecondaryDark
-                    : AppColors.textSecondary,
+                color: context.textSecondary,
               ),
             ),
             const SizedBox(height: 8),
@@ -260,9 +255,7 @@ class _ProjectSettingsScreenState extends ConsumerState<ProjectSettingsScreen> {
               AppStrings.targetRowTip,
               style: TextStyle(
                 fontSize: 12,
-                color: isDark
-                    ? AppColors.textSecondaryDark.withValues(alpha: 0.7)
-                    : AppColors.textSecondary.withValues(alpha: 0.7),
+                color: context.textSecondary.withValues(alpha: 0.7),
               ),
             ),
 
@@ -272,13 +265,11 @@ class _ProjectSettingsScreenState extends ConsumerState<ProjectSettingsScreen> {
 
             // 보조 카운터 섹션
             Text(
-              '보조 카운터',
+              AppStrings.secondaryCounters,
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: isDark
-                    ? AppColors.textSecondaryDark
-                    : AppColors.textSecondary,
+                color: context.textSecondary,
               ),
             ),
             const SizedBox(height: 12),
@@ -301,7 +292,7 @@ class _ProjectSettingsScreenState extends ConsumerState<ProjectSettingsScreen> {
                             .removeSecondaryCounter(project, counter.id);
                         setState(() {});
                       },
-                      isDark: isDark,
+
                     ),
                   );
                 }),
@@ -330,7 +321,7 @@ class _ProjectSettingsScreenState extends ConsumerState<ProjectSettingsScreen> {
                           _pendingSecondaryCounters.removeAt(index);
                         });
                       },
-                      isDark: isDark,
+
                     ),
                   );
                 }),
@@ -367,7 +358,6 @@ class _SecondaryCounterListItem extends StatelessWidget {
   final int? targetValue;
   final int? resetAt;
   final VoidCallback onRemove;
-  final bool isDark;
 
   const _SecondaryCounterListItem({
     required this.label,
@@ -376,7 +366,6 @@ class _SecondaryCounterListItem extends StatelessWidget {
     this.targetValue,
     this.resetAt,
     required this.onRemove,
-    required this.isDark,
   });
 
   bool get isGoal => type == SecondaryCounterType.goal;
@@ -386,10 +375,10 @@ class _SecondaryCounterListItem extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceDark : Colors.white,
+        color: context.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isDark ? AppColors.borderDark : AppColors.border,
+          color: context.border,
         ),
       ),
       child: Row(
@@ -409,9 +398,7 @@ class _SecondaryCounterListItem extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: isDark
-                        ? AppColors.textPrimaryDark
-                        : AppColors.textPrimary,
+                    color: context.textPrimary,
                   ),
                 ),
                 Text(
@@ -420,9 +407,7 @@ class _SecondaryCounterListItem extends StatelessWidget {
                       : '반복: $value${resetAt != null ? ' / $resetAt' : ''}',
                   style: TextStyle(
                     fontSize: 12,
-                    color: isDark
-                        ? AppColors.textSecondaryDark
-                        : AppColors.textSecondary,
+                    color: context.textSecondary,
                   ),
                 ),
               ],

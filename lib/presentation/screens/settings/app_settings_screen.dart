@@ -38,7 +38,6 @@ class _AppSettingsScreenState extends ConsumerState<AppSettingsScreen> {
   Widget build(BuildContext context) {
     final settings = ref.watch(appSettingsProvider);
     final settingsNotifier = ref.read(appSettingsProvider.notifier);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
@@ -53,12 +52,12 @@ class _AppSettingsScreenState extends ConsumerState<AppSettingsScreen> {
                 const SizedBox(height: 16),
 
                 // 피드백 섹션
-                _buildSectionHeader(context, '피드백'),
+                _buildSectionHeader(context, AppStrings.feedbackSection),
                 _buildSwitchTile(
                   context,
                   icon: Icons.vibration,
                   title: AppStrings.hapticFeedback,
-                  subtitle: '탭할 때 진동 피드백',
+                  subtitle: AppStrings.hapticFeedbackDesc,
                   value: settings.hapticFeedback,
                   onChanged: (value) => settingsNotifier.setHapticFeedback(value),
                 ),
@@ -66,12 +65,12 @@ class _AppSettingsScreenState extends ConsumerState<AppSettingsScreen> {
                 const SizedBox(height: 24),
 
                 // 화면 섹션
-                _buildSectionHeader(context, '화면'),
+                _buildSectionHeader(context, AppStrings.displaySection),
                 _buildSwitchTile(
                   context,
                   icon: Icons.screen_lock_portrait,
                   title: AppStrings.keepScreenOn,
-                  subtitle: '뜨개질하는 동안 화면이 꺼지지 않아요',
+                  subtitle: AppStrings.keepScreenOnDesc,
                   value: settings.keepScreenOn,
                   onChanged: (value) => settingsNotifier.setKeepScreenOn(value),
                 ),
@@ -86,11 +85,11 @@ class _AppSettingsScreenState extends ConsumerState<AppSettingsScreen> {
                         children: [
                           Icon(
                             Icons.palette_outlined,
-                            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                            color: context.textSecondary,
                           ),
                           const SizedBox(width: 16),
                           Text(
-                            '테마',
+                            AppStrings.themeSection,
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                         ],
@@ -104,23 +103,23 @@ class _AppSettingsScreenState extends ConsumerState<AppSettingsScreen> {
                 const SizedBox(height: 24),
 
                 // 도움말 섹션
-                _buildSectionHeader(context, '도움말'),
+                _buildSectionHeader(context, AppStrings.helpSection),
                 ListTile(
                   leading: Icon(
                     Icons.school_outlined,
-                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                    color: context.textSecondary,
                   ),
                   title: const Text(AppStrings.tutorialRewatch),
                   subtitle: Text(
-                    '롱프레스 기능 다시 배우기',
+                    AppStrings.tutorialRewatchDesc,
                     style: TextStyle(
-                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                      color: context.textSecondary,
                       fontSize: 12,
                     ),
                   ),
                   trailing: Icon(
                     Icons.chevron_right,
-                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                    color: context.textSecondary,
                   ),
                   onTap: () async {
                     // 튜토리얼 리셋 후 화면 이동
@@ -138,10 +137,10 @@ class _AppSettingsScreenState extends ConsumerState<AppSettingsScreen> {
                 ListTile(
                   leading: Icon(
                     Icons.info_outline,
-                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                    color: context.textSecondary,
                   ),
                   title: const Text(AppStrings.appName),
-                  subtitle: Text(_appVersion.isEmpty ? '버전 정보 로딩 중...' : '버전 $_appVersion'),
+                  subtitle: Text(_appVersion.isEmpty ? AppStrings.versionLoading : '버전 $_appVersion'),
                 ),
 
                 const SizedBox(height: 32),
@@ -176,18 +175,16 @@ class _AppSettingsScreenState extends ConsumerState<AppSettingsScreen> {
     required bool value,
     required ValueChanged<bool> onChanged,
   }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return ListTile(
       leading: Icon(
         icon,
-        color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+        color: context.textSecondary,
       ),
       title: Text(title),
       subtitle: Text(
         subtitle,
         style: TextStyle(
-          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+          color: context.textSecondary,
           fontSize: 12,
         ),
       ),
@@ -208,17 +205,17 @@ class _AppSettingsScreenState extends ConsumerState<AppSettingsScreen> {
       segments: const [
         ButtonSegment<String>(
           value: 'light',
-          label: Text('라이트'),
+          label: Text(AppStrings.themeLight),
           icon: Icon(Icons.light_mode),
         ),
         ButtonSegment<String>(
           value: 'dark',
-          label: Text('다크'),
+          label: Text(AppStrings.themeDark),
           icon: Icon(Icons.dark_mode),
         ),
         ButtonSegment<String>(
           value: 'system',
-          label: Text('시스템'),
+          label: Text(AppStrings.themeSystem),
           icon: Icon(Icons.settings_suggest),
         ),
       ],

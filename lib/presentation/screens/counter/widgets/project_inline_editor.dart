@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_strings.dart';
 
 /// 프로젝트 인라인 편집기
 /// - 상단바 롱프레스 시 표시
@@ -140,7 +141,6 @@ class _ProjectInlineEditorState extends State<ProjectInlineEditor>
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final screenSize = MediaQuery.of(context).size;
 
     _initializePositionAnimation(screenSize);
@@ -185,7 +185,7 @@ class _ProjectInlineEditorState extends State<ProjectInlineEditor>
                     scale: 0.8 + (0.2 * _controller.value),
                     child: GestureDetector(
                       onTap: () {},
-                      child: _buildEditCard(isDark),
+                      child: _buildEditCard(),
                     ),
                   ),
                 ),
@@ -197,19 +197,17 @@ class _ProjectInlineEditorState extends State<ProjectInlineEditor>
     );
   }
 
-  Widget _buildEditCard(bool isDark) {
-    final textPrimary =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
-    final textSecondary =
-        isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+  Widget _buildEditCard() {
+    final textPrimary = context.textPrimary;
+    final textSecondary = context.textSecondary;
     final progressPercent = (widget.progress * 100).round();
-    final successColor = isDark ? AppColors.successDark : AppColors.success;
+    final successColor = context.success;
 
     return Container(
       width: 280,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceDark : Colors.white,
+        color: context.surface,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
@@ -226,7 +224,7 @@ class _ProjectInlineEditorState extends State<ProjectInlineEditor>
           Align(
             alignment: Alignment.centerLeft,
             child: Text(
-              '프로젝트 편집',
+              AppStrings.projectEdit,
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -249,20 +247,20 @@ class _ProjectInlineEditorState extends State<ProjectInlineEditor>
             ),
             decoration: InputDecoration(
               isDense: true,
-              hintText: '프로젝트명',
+              hintText: AppStrings.projectName,
               hintStyle: TextStyle(color: textSecondary.withAlpha(100)),
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide(
-                  color: isDark ? AppColors.borderDark : AppColors.border,
+                  color: context.border,
                 ),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide(
-                  color: isDark ? AppColors.borderDark : AppColors.border,
+                  color: context.border,
                 ),
               ),
               focusedBorder: OutlineInputBorder(
@@ -284,7 +282,7 @@ class _ProjectInlineEditorState extends State<ProjectInlineEditor>
               child: LinearProgressIndicator(
                 value: widget.progress,
                 minHeight: 6,
-                backgroundColor: isDark ? AppColors.borderDark : AppColors.border,
+                backgroundColor: context.border,
                 valueColor: AlwaysStoppedAnimation<Color>(
                   widget.progress >= 1.0 ? successColor : AppColors.primary,
                 ),
@@ -292,7 +290,7 @@ class _ProjectInlineEditorState extends State<ProjectInlineEditor>
             ),
             const SizedBox(height: 8),
             Text(
-              '${widget.currentRow}단 완료 ($progressPercent%)',
+              AppStrings.rowCompleted(widget.currentRow, progressPercent),
               style: TextStyle(
                 fontSize: 14,
                 color: textSecondary,
@@ -305,7 +303,7 @@ class _ProjectInlineEditorState extends State<ProjectInlineEditor>
           Row(
             children: [
               Text(
-                '목표',
+                AppStrings.goal,
                 style: TextStyle(
                   fontSize: 14,
                   color: textSecondary,
@@ -325,11 +323,11 @@ class _ProjectInlineEditorState extends State<ProjectInlineEditor>
                   ),
                   decoration: InputDecoration(
                     isDense: true,
-                    hintText: '없음',
+                    hintText: AppStrings.none,
                     hintStyle: TextStyle(color: textSecondary.withAlpha(100)),
                     contentPadding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    suffixText: '단',
+                    suffixText: AppStrings.row,
                     suffixStyle: TextStyle(
                       fontSize: 14,
                       color: textSecondary,
@@ -337,13 +335,13 @@ class _ProjectInlineEditorState extends State<ProjectInlineEditor>
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: BorderSide(
-                        color: isDark ? AppColors.borderDark : AppColors.border,
+                        color: context.border,
                       ),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: BorderSide(
-                        color: isDark ? AppColors.borderDark : AppColors.border,
+                        color: context.border,
                       ),
                     ),
                     focusedBorder: OutlineInputBorder(
@@ -363,7 +361,7 @@ class _ProjectInlineEditorState extends State<ProjectInlineEditor>
 
           // 힌트 텍스트
           Text(
-            '배경을 탭하면 자동 저장됩니다',
+            AppStrings.autoSaveHint,
             style: TextStyle(
               fontSize: 12,
               color: textSecondary.withAlpha(150),

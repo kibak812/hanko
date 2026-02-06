@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/utils/formatters.dart';
 
 /// 프로젝트 정보 바
 /// 시작일 + 누적 작업 시간 표시
@@ -68,27 +68,6 @@ class _ProjectInfoBarState extends State<ProjectInfoBar> {
     return widget.totalWorkSeconds + sessionSeconds;
   }
 
-  /// 시간 포맷팅 (예: "2시간 30분 15초", "45분 30초", "30초")
-  String _formatDuration(int totalSeconds) {
-    if (totalSeconds <= 0) return '';
-
-    final hours = totalSeconds ~/ 3600;
-    final minutes = (totalSeconds % 3600) ~/ 60;
-    final seconds = totalSeconds % 60;
-
-    final parts = <String>[];
-    if (hours > 0) parts.add('$hours시간');
-    if (minutes > 0) parts.add('$minutes분');
-    if (seconds > 0 || parts.isEmpty) parts.add('$seconds초');
-
-    return parts.join(' ');
-  }
-
-  /// 날짜 포맷팅 (예: "2026/1/19")
-  String _formatDate(DateTime date) {
-    return DateFormat('yyyy/M/d').format(date);
-  }
-
   /// 날짜 텍스트 생성
   String? _buildDateText() {
     final startDate = widget.startDate;
@@ -96,10 +75,10 @@ class _ProjectInfoBarState extends State<ProjectInfoBar> {
 
     if (startDate == null) return null;
 
-    final dateStr = _formatDate(startDate);
+    final dateStr = formatDateFull(startDate);
 
     if (completedDate != null) {
-      final completedStr = _formatDate(completedDate);
+      final completedStr = formatDateFull(completedDate);
       return '$dateStr → $completedStr';
     }
 
@@ -108,7 +87,7 @@ class _ProjectInfoBarState extends State<ProjectInfoBar> {
 
   /// 시간 텍스트 생성
   String? _buildTimeText() {
-    final workTime = _formatDuration(_currentWorkSeconds);
+    final workTime = formatDuration(_currentWorkSeconds);
     if (workTime.isEmpty) return null;
 
     final completedDate = widget.completedDate;
@@ -131,8 +110,7 @@ class _ProjectInfoBarState extends State<ProjectInfoBar> {
 
     if (dateText == null && timeText == null) return const SizedBox.shrink();
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textColor = isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+    final textColor = context.textSecondary;
     final activeColor = widget.isTimerRunning ? AppColors.primary : textColor;
     final textStyle = TextStyle(fontSize: 13, color: activeColor);
 

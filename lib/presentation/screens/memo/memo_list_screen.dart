@@ -36,7 +36,7 @@ class _MemoListScreenState extends ConsumerState<MemoListScreen> {
     if (project == null) {
       return Scaffold(
         appBar: AppBar(title: const Text(AppStrings.memos)),
-        body: const Center(child: Text('프로젝트를 찾을 수 없어요')),
+        body: const Center(child: Text(AppStrings.projectNotFound)),
       );
     }
 

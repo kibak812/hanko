@@ -17,10 +17,8 @@ class AddCounterButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final borderColor = isDark ? AppColors.borderDark : AppColors.border;
-    final textSecondary =
-        isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+    final borderColor = context.border;
+    final textSecondary = context.textSecondary;
 
     // 전체 너비일 때는 높이를 고정, 아닐 때는 부모에 맞춤
     final minHeight = isFullWidth ? 72.0 : 0.0;

@@ -11,6 +11,7 @@
 | `expandable_counter_option.dart` | 확장형 토글 카드 (프로젝트 설정용) |
 | `large_area_button.dart` | 카운터 하단 +/- 버튼 (넓은 터치 영역) |
 | `dialogs.dart` | 공통 다이얼로그 유틸리티 함수 |
+| `progress_indicator_bar.dart` | 진행률 바 + 단수 텍스트 + 퍼센트 뱃지 (ProgressHeader, ProjectCard 공용) |
 | `widget_extensions.dart` | BuildContext extension (getWidgetRect 등) |
 
 ## expandable_counter_option.dart

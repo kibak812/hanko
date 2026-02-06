@@ -22,13 +22,12 @@ class CounterDisplay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textSecondary =
-        isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+    final textSecondary = context.textSecondary;
 
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceDark : Colors.white,
+        color: context.surface,
         borderRadius: BorderRadius.circular(32),
         boxShadow: isDark
             ? null
@@ -79,9 +78,7 @@ class CounterDisplay extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 96,
                         fontWeight: FontWeight.w800,
-                        color: isDark
-                            ? AppColors.textPrimaryDark
-                            : AppColors.textPrimary,
+                        color: context.textPrimary,
                         height: 1.0,
                       ),
                     ),
@@ -104,7 +101,7 @@ class CounterDisplay extends StatelessWidget {
           Divider(
             height: 1,
             thickness: 1,
-            color: isDark ? AppColors.borderDark : AppColors.border,
+            color: context.border,
           ),
 
           // 하단 영역 (30%): -/+ 버튼 좌우 분할
@@ -127,7 +124,7 @@ class CounterDisplay extends StatelessWidget {
                 VerticalDivider(
                   width: 1,
                   thickness: 1,
-                  color: isDark ? AppColors.borderDark : AppColors.border,
+                  color: context.border,
                 ),
 
                 // + 버튼 (오른쪽 절반)

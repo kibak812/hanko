@@ -92,11 +92,10 @@ class _DateEditSheetState extends State<_DateEditSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final backgroundColor = isDark ? AppColors.surfaceDark : Colors.white;
-    final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
-    final secondaryColor = isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
-    final borderColor = isDark ? AppColors.borderDark : AppColors.border;
+    final backgroundColor = context.surface;
+    final textColor = context.textPrimary;
+    final secondaryColor = context.textSecondary;
+    final borderColor = context.border;
 
     return Container(
       decoration: BoxDecoration(

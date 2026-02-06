@@ -154,7 +154,6 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
   Widget build(BuildContext context) {
     final project = ref.watch(activeProjectProvider);
     final counterState = ref.watch(activeProjectCounterProvider);
-    final voiceState = ref.watch(voiceStateProvider);
 
     // 설정 변경 감지 - 화면 유지 설정
     ref.listen<AppSettings>(appSettingsProvider, (previous, next) {
@@ -362,39 +361,43 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
                       ),
                     ),
 
-                    // 보조 액션 버튼
-                    ActionButtons(
-                      onUndo: counterState.canUndo ? _onUndo : null,
-                      onMemo: () {
-                        _triggerHaptic(duration: 10, amplitude: 40);
-                        context.push(AppRoutes.memos, extra: project.id);
-                      },
-                      onTimer: () {
-                        _triggerHaptic(duration: 15, amplitude: 50);
-                        ref.read(activeProjectCounterProvider.notifier).toggleTimer();
-                      },
-                      onTimerLongPress: () => _showResetWorkTimeDialog(),
-                      isTimerRunning: counterState.isTimerRunning,
-                      onVoice: () async {
-                        _triggerHaptic(duration: 10, amplitude: 40);
+                    // 보조 액션 버튼 (voiceState만 Consumer로 격리)
+                    Consumer(
+                      builder: (context, ref, _) {
+                        final voiceState = ref.watch(voiceStateProvider);
+                        return ActionButtons(
+                          onUndo: counterState.canUndo ? _onUndo : null,
+                          onMemo: () {
+                            _triggerHaptic(duration: 10, amplitude: 40);
+                            context.push(AppRoutes.memos, extra: project.id);
+                          },
+                          onTimer: () {
+                            _triggerHaptic(duration: 15, amplitude: 50);
+                            ref.read(activeProjectCounterProvider.notifier).toggleTimer();
+                          },
+                          onTimerLongPress: () => _showResetWorkTimeDialog(),
+                          isTimerRunning: counterState.isTimerRunning,
+                          onVoice: () async {
+                            _triggerHaptic(duration: 10, amplitude: 40);
 
-                        // 토글: 이미 듣고 있으면 중지
-                        final currentState = ref.read(voiceStateProvider);
-                        if (currentState == VoiceState.listening) {
-                          await ref
-                              .read(voiceStateProvider.notifier)
-                              .stopVoiceCommand();
-                          return;
-                        }
+                            // 토글: 이미 듣고 있으면 중지
+                            if (voiceState == VoiceState.listening) {
+                              await ref
+                                  .read(voiceStateProvider.notifier)
+                                  .stopVoiceCommand();
+                              return;
+                            }
 
-                        await ref
-                            .read(voiceStateProvider.notifier)
-                            .startVoiceCommand();
-                      },
-                      isListening: voiceState == VoiceState.listening,
-                      onSettings: () {
-                        _triggerHaptic(duration: 10, amplitude: 40);
-                        context.push(AppRoutes.settings);
+                            await ref
+                                .read(voiceStateProvider.notifier)
+                                .startVoiceCommand();
+                          },
+                          isListening: voiceState == VoiceState.listening,
+                          onSettings: () {
+                            _triggerHaptic(duration: 10, amplitude: 40);
+                            context.push(AppRoutes.settings);
+                          },
+                        );
                       },
                     ),
 
@@ -437,7 +440,7 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
                 Text(
                   AppStrings.welcomeSubtitle,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: AppColors.textSecondary,
+                        color: context.textSecondary,
                       ),
                   textAlign: TextAlign.center,
                 ),
@@ -465,19 +468,19 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
       context: context,
       builder: (context) => AlertDialog(
         icon: AppIcons.goalIcon(size: 48, color: AppColors.success),
-        title: Text('$target코 완료!'),
-        content: const Text('목표에 도달했어요. 계속하시겠어요?'),
+        title: Text(AppStrings.stitchGoalCompleted(target)),
+        content: const Text(AppStrings.goalReachedMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('확인'),
+            child: const Text(AppStrings.confirm),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
               ref.read(activeProjectCounterProvider.notifier).resetStitch();
             },
-            child: const Text('리셋하고 계속'),
+            child: const Text(AppStrings.resetAndContinue),
           ),
         ],
       ),
@@ -493,7 +496,7 @@ class _CounterScreenState extends ConsumerState<CounterScreen>
           children: [
             AppIcons.patternIcon(size: 20, color: Colors.white),
             const SizedBox(width: 8),
-            Text('패턴 $resetAt회 완료 → 리셋됨'),
+            Text(AppStrings.patternAutoReset(resetAt)),
           ],
         ),
         duration: const Duration(seconds: 2),

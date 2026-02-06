@@ -36,7 +36,7 @@ class _AddSecondaryCounterSheetState extends State<AddSecondaryCounterSheet> {
     final label = _labelController.text.trim();
     if (label.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('카운터 이름을 입력해주세요')),
+        const SnackBar(content: Text(AppStrings.enterCounterName)),
       );
       return;
     }
@@ -48,7 +48,6 @@ class _AddSecondaryCounterSheetState extends State<AddSecondaryCounterSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
     return GestureDetector(
@@ -57,7 +56,7 @@ class _AddSecondaryCounterSheetState extends State<AddSecondaryCounterSheet> {
         height: 540 + (widget.canAdd ? 0 : 60),
         margin: EdgeInsets.only(bottom: bottomInset),
         decoration: BoxDecoration(
-          color: isDark ? AppColors.surfaceDark : Colors.white,
+          color: context.surface,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         ),
         child: Column(
@@ -70,7 +69,7 @@ class _AddSecondaryCounterSheetState extends State<AddSecondaryCounterSheet> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: isDark ? AppColors.borderDark : AppColors.border,
+                  color: context.border,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -92,7 +91,7 @@ class _AddSecondaryCounterSheetState extends State<AddSecondaryCounterSheet> {
               fontSize: 18,
               fontWeight: FontWeight.w600,
               color:
-                  isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                  context.textPrimary,
             ),
           ),
 
@@ -104,9 +103,7 @@ class _AddSecondaryCounterSheetState extends State<AddSecondaryCounterSheet> {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
-              color: isDark
-                  ? AppColors.textSecondaryDark
-                  : AppColors.textSecondary,
+              color: context.textSecondary,
             ),
           ),
           const SizedBox(height: 8),
@@ -127,9 +124,7 @@ class _AddSecondaryCounterSheetState extends State<AddSecondaryCounterSheet> {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
-              color: isDark
-                  ? AppColors.textSecondaryDark
-                  : AppColors.textSecondary,
+              color: context.textSecondary,
             ),
           ),
           const SizedBox(height: 12),
@@ -148,7 +143,7 @@ class _AddSecondaryCounterSheetState extends State<AddSecondaryCounterSheet> {
                           });
                         }
                       : null,
-                  isDark: isDark,
+
                 ),
               ),
               const SizedBox(width: 12),
@@ -165,7 +160,7 @@ class _AddSecondaryCounterSheetState extends State<AddSecondaryCounterSheet> {
                           });
                         }
                       : null,
-                  isDark: isDark,
+
                 ),
               ),
             ],
@@ -181,9 +176,7 @@ class _AddSecondaryCounterSheetState extends State<AddSecondaryCounterSheet> {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
-              color: isDark
-                  ? AppColors.textSecondaryDark
-                  : AppColors.textSecondary,
+              color: context.textSecondary,
             ),
           ),
           const SizedBox(height: 8),
@@ -205,7 +198,7 @@ class _AddSecondaryCounterSheetState extends State<AddSecondaryCounterSheet> {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: widget.canAdd ? _onAdd : null,
-                      child: const Text('추가'),
+                      child: const Text(AppStrings.add),
                     ),
                   ),
                 ],
@@ -225,7 +218,6 @@ class _TypeChip extends StatelessWidget {
   final String subtitle;
   final bool isSelected;
   final VoidCallback? onTap;
-  final bool isDark;
 
   const _TypeChip({
     required this.icon,
@@ -233,7 +225,6 @@ class _TypeChip extends StatelessWidget {
     required this.subtitle,
     required this.isSelected,
     required this.onTap,
-    required this.isDark,
   });
 
   @override
@@ -246,12 +237,12 @@ class _TypeChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected
               ? AppColors.primary.withValues(alpha: 0.1)
-              : (isDark ? AppColors.backgroundDark : AppColors.background),
+              : context.background,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected
                 ? AppColors.primary
-                : (isDark ? AppColors.borderDark : AppColors.border),
+                : (context.border),
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -262,9 +253,7 @@ class _TypeChip extends StatelessWidget {
               size: 28,
               color: isSelected
                   ? AppColors.primary
-                  : (isDark
-                      ? AppColors.textSecondaryDark
-                      : AppColors.textSecondary),
+                  : context.textSecondary,
             ),
             const SizedBox(height: 8),
             Text(
@@ -274,18 +263,14 @@ class _TypeChip extends StatelessWidget {
                 fontWeight: FontWeight.w600,
                 color: isSelected
                     ? AppColors.primary
-                    : (isDark
-                        ? AppColors.textPrimaryDark
-                        : AppColors.textPrimary),
+                    : context.textPrimary,
               ),
             ),
             Text(
               subtitle,
               style: TextStyle(
                 fontSize: 12,
-                color: isDark
-                    ? AppColors.textSecondaryDark
-                    : AppColors.textSecondary,
+                color: context.textSecondary,
               ),
             ),
           ],

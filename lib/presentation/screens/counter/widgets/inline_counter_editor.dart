@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_strings.dart';
 import '../../../../data/models/counter.dart';
 
 /// 인라인 카운터 편집기
@@ -177,7 +178,6 @@ class _InlineCounterEditorState extends State<InlineCounterEditor>
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final screenSize = MediaQuery.of(context).size;
 
     _initializePositionAnimation(screenSize);
@@ -224,7 +224,7 @@ class _InlineCounterEditorState extends State<InlineCounterEditor>
                     scale: 0.8 + (0.2 * _controller.value),
                     child: GestureDetector(
                       onTap: () {},
-                      child: _buildEditCard(isDark),
+                      child: _buildEditCard(),
                     ),
                   ),
                 ),
@@ -236,11 +236,9 @@ class _InlineCounterEditorState extends State<InlineCounterEditor>
     );
   }
 
-  Widget _buildEditCard(bool isDark) {
-    final textPrimary =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
-    final textSecondary =
-        isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+  Widget _buildEditCard() {
+    final textPrimary = context.textPrimary;
+    final textSecondary = context.textSecondary;
     final hasTarget = displayTarget != null;
     final isCompleted = widget.type == SecondaryCounterType.goal &&
         widget.targetValue != null &&
@@ -253,7 +251,7 @@ class _InlineCounterEditorState extends State<InlineCounterEditor>
       width: 240,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceDark : Colors.white,
+        color: context.surface,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
@@ -267,7 +265,7 @@ class _InlineCounterEditorState extends State<InlineCounterEditor>
         mainAxisSize: MainAxisSize.min,
         children: [
           // 타입 선택 (세그먼트)
-          _buildTypeSegment(isDark),
+          _buildTypeSegment(),
 
           const SizedBox(height: 16),
 
@@ -283,20 +281,20 @@ class _InlineCounterEditorState extends State<InlineCounterEditor>
             ),
             decoration: InputDecoration(
               isDense: true,
-              hintText: '라벨',
+              hintText: AppStrings.label,
               hintStyle: TextStyle(color: textSecondary.withAlpha(100)),
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
                 borderSide: BorderSide(
-                  color: isDark ? AppColors.borderDark : AppColors.border,
+                  color: context.border,
                 ),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
                 borderSide: BorderSide(
-                  color: isDark ? AppColors.borderDark : AppColors.border,
+                  color: context.border,
                 ),
               ),
             ),
@@ -322,7 +320,7 @@ class _InlineCounterEditorState extends State<InlineCounterEditor>
               child: LinearProgressIndicator(
                 value: progress,
                 minHeight: 6,
-                backgroundColor: isDark ? AppColors.borderDark : AppColors.border,
+                backgroundColor: context.border,
                 valueColor: AlwaysStoppedAnimation<Color>(
                   AppColors.primary,
                 ),
@@ -336,7 +334,7 @@ class _InlineCounterEditorState extends State<InlineCounterEditor>
           Row(
             children: [
               Text(
-                isGoalType ? '목표' : '주기',
+                isGoalType ? AppStrings.goal : AppStrings.period,
                 style: TextStyle(
                   fontSize: 14,
                   color: textSecondary,
@@ -356,20 +354,20 @@ class _InlineCounterEditorState extends State<InlineCounterEditor>
                   ),
                   decoration: InputDecoration(
                     isDense: true,
-                    hintText: '없음',
+                    hintText: AppStrings.none,
                     hintStyle: TextStyle(color: textSecondary.withAlpha(100)),
                     contentPadding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: BorderSide(
-                        color: isDark ? AppColors.borderDark : AppColors.border,
+                        color: context.border,
                       ),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: BorderSide(
-                        color: isDark ? AppColors.borderDark : AppColors.border,
+                        color: context.border,
                       ),
                     ),
                   ),
@@ -385,20 +383,18 @@ class _InlineCounterEditorState extends State<InlineCounterEditor>
             children: [
               Expanded(
                 child: _buildActionButton(
-                  label: '리셋',
+                  label: AppStrings.reset,
                   icon: Icons.refresh,
                   onTap: _handleReset,
-                  isDark: isDark,
                 ),
               ),
               if (widget.onRemove != null) ...[
                 const SizedBox(width: 12),
                 Expanded(
                   child: _buildActionButton(
-                    label: '제거',
+                    label: AppStrings.remove,
                     icon: Icons.delete_outline,
                     onTap: _handleRemove,
-                    isDark: isDark,
                     isDestructive: true,
                   ),
                 ),
@@ -410,12 +406,9 @@ class _InlineCounterEditorState extends State<InlineCounterEditor>
     );
   }
 
-  Widget _buildTypeSegment(bool isDark) {
-    final unselectedColor =
-        isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
-    final bgColor = isDark
-        ? AppColors.borderDark.withAlpha(100)
-        : AppColors.border.withAlpha(100);
+  Widget _buildTypeSegment() {
+    final unselectedColor = context.textSecondary;
+    final bgColor = context.border.withAlpha(100);
 
     return Container(
       padding: const EdgeInsets.all(4),
@@ -432,7 +425,7 @@ class _InlineCounterEditorState extends State<InlineCounterEditor>
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 decoration: BoxDecoration(
                   color: isGoalType
-                      ? (isDark ? AppColors.surfaceDark : Colors.white)
+                      ? context.surface
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(8),
                   boxShadow: isGoalType
@@ -454,7 +447,7 @@ class _InlineCounterEditorState extends State<InlineCounterEditor>
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      '목표',
+                      AppStrings.goal,
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight:
@@ -475,7 +468,7 @@ class _InlineCounterEditorState extends State<InlineCounterEditor>
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 decoration: BoxDecoration(
                   color: !isGoalType
-                      ? (isDark ? AppColors.surfaceDark : Colors.white)
+                      ? context.surface
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(8),
                   boxShadow: !isGoalType
@@ -497,7 +490,7 @@ class _InlineCounterEditorState extends State<InlineCounterEditor>
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      '반복',
+                      AppStrings.repetitionType,
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight:
@@ -519,12 +512,11 @@ class _InlineCounterEditorState extends State<InlineCounterEditor>
     required String label,
     required IconData icon,
     required VoidCallback onTap,
-    required bool isDark,
     bool isDestructive = false,
   }) {
     final color = isDestructive
         ? AppColors.error
-        : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondary);
+        : context.textSecondary;
 
     return GestureDetector(
       onTap: onTap,
@@ -533,9 +525,7 @@ class _InlineCounterEditorState extends State<InlineCounterEditor>
         decoration: BoxDecoration(
           color: isDestructive
               ? AppColors.error.withAlpha(20)
-              : (isDark
-                  ? AppColors.borderDark.withAlpha(100)
-                  : AppColors.border.withAlpha(100)),
+              : context.border.withAlpha(100),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Row(

@@ -15,12 +15,17 @@ class AppStrings {
   static const String newProject = '새 프로젝트';
   static const String projectName = '프로젝트 이름';
   static const String projectNameHint = '예: 첫 목도리';
+  static const String projectEdit = '프로젝트 편집';
+  static const String enterProjectName = '프로젝트 이름을 입력해주세요';
+  static const String secondaryCounters = '보조 카운터';
+  static const String enterCounterName = '카운터 이름을 입력해주세요';
   static const String targetRow = '목표 단수';
   static const String targetRowHint = '몇 줄 뜰 건가요?';
   static const String targetRowTip = '팁: 목도리는 보통 150-200단이에요';
   static const String startProject = '시작하기';
   static const String myProjects = '내 프로젝트';
   static const String noProjects = '아직 프로젝트가 없어요\n첫 프로젝트를 시작해보세요!';
+  static const String deleteProjectConfirm = '프로젝트를 삭제할까요?\n이 작업은 되돌릴 수 없습니다.';
 
   // ============ 카운터 ============
   static const String row = '단';
@@ -65,10 +70,21 @@ class AppStrings {
   // ============ 설정 ============
   static const String settings = '설정';
   static const String hapticFeedback = '햅틱 피드백';
+  static const String hapticFeedbackDesc = '탭할 때 진동 피드백';
   static const String voiceFeedback = '음성 피드백';
   static const String keepScreenOn = '화면 유지';
+  static const String keepScreenOnDesc = '뜨개질하는 동안 화면이 꺼지지 않아요';
   static const String darkMode = '다크 모드';
   static const String about = '앱 정보';
+  static const String feedbackSection = '피드백';
+  static const String displaySection = '화면';
+  static const String themeSection = '테마';
+  static const String themeLight = '라이트';
+  static const String themeDark = '다크';
+  static const String themeSystem = '시스템';
+  static const String helpSection = '도움말';
+  static const String tutorialRewatchDesc = '롱프레스 기능 다시 배우기';
+  static const String versionLoading = '버전 정보 로딩 중...';
 
   // ============ 일반 ============
   static const String cancel = '취소';
@@ -79,6 +95,14 @@ class AppStrings {
   static const String later = '나중에';
   static const String today = '오늘';
   static const String yesterday = '어제';
+
+  // ============ 일반 (추가) ============
+  static const String remove = '제거';
+  static const String add = '추가';
+  static const String numberInput = '숫자 입력';
+  static const String autoSaveHint = '배경을 탭하면 자동 저장됩니다';
+  static const String label = '라벨';
+  static const String projectNotFound = '프로젝트를 찾을 수 없어요';
 
   // ============ 에러 ============
   static const String error = '오류';
@@ -135,6 +159,33 @@ class AppStrings {
   static const String changeTarget = '목표 변경';
   static const String current = '현재';
   static const String none = '없음';
+
+  // ============ 카운터 (추가) ============
+  static const String stitchCounterSettingsTitle = '코 카운터 설정';
+  static const String patternCounterSettingsTitle = '패턴 카운터 설정';
+  static const String targetStitchCount = '목표 코 수';
+  static const String autoReset = '자동 리셋';
+  static const String goalCounterLabel = '횟수 카운터';
+  static const String repetitionCounterLabel = '반복 카운터';
+  static const String goalOptional = '목표 (선택)';
+  static const String periodOptional = '주기 (선택)';
+  static const String goalHintExample = '예: 10';
+  static const String periodHintExample = '예: 4';
+  static const String goalReachedMessage = '목표에 도달했어요. 계속하시겠어요?';
+
+  /// 코 카운터 목표 완료 제목
+  static String stitchGoalCompleted(int target) => '$target코 완료!';
+
+  /// 패턴 자동 리셋 토스트
+  static String patternAutoReset(int resetAt) => '패턴 $resetAt회 완료 → 리셋됨';
+
+  /// 프로젝트 삭제 확인 (이름 포함)
+  static String deleteProjectConfirmNamed(String name) =>
+      '\'$name\' 프로젝트를 삭제할까요?\n이 작업은 되돌릴 수 없습니다.';
+
+  /// 진행률 텍스트
+  static String rowCompleted(int currentRow, int progressPercent) =>
+      '$currentRow단 완료 ($progressPercent%)';
 
   // ============ 동적 보조 카운터 ============
   static const String repetitionType = '반복';

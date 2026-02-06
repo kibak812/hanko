@@ -4,17 +4,35 @@
 
 ## [Unreleased]
 
+### Added
+- **ProgressIndicatorBar 공통 위젯**: ProgressHeader와 ProjectCard에서 공유하는 진행률 바 위젯 추출
+- **formatters.dart 공통 유틸**: 날짜/시간 포맷팅 함수 3개 (`formatDuration`, `formatDateFull`, `formatDateCompact`)
+- **AppSettings 모델 분리**: `local_storage.dart`에서 `AppSettings` 클래스를 독립 파일로 분리
+- **AppStrings 상수 25개 추가**: 동적 문자열 메서드 포함 (`stitchGoalCompleted`, `patternAutoReset`, `deleteProjectConfirmNamed`, `rowCompleted`)
+
+### Changed
+- **광고 ID dart-define 분리**: 하드코딩된 프로덕션 AdMob ID 6개를 `--dart-define`으로 주입, 테스트 ID를 기본값으로 설정
+- **AdService Timer 안전성 강화**: `_isDisposed` 가드 추가, 성공 로드 시 retry Timer cancel
+- **Future.delayed -> Timer 전환**: `ad_service.dart`, `voice_provider.dart`에서 `Timer` + dispose cancel 패턴으로 전환
+- **VoiceStateNotifier dispose 추가**: `_retryTimer?.cancel()` 호출로 리소스 누수 방지
+- **isDark 분기 30회+ -> context extension**: 15개+ presentation 파일에서 `isDark` 수동 분기를 `context.textPrimary`, `context.surface` 등으로 대체
+- **하드코딩 문자열 -> AppStrings**: 11개 presentation 파일에서 한국어 문자열을 `AppStrings` 상수로 교체
+- **CounterScreen Consumer 최적화**: voiceState watch를 ActionButtons만 Consumer로 감싸 불필요한 리빌드 제거
+- **ProjectCounterState 레거시 필드 정리**: 미사용 5개 필드 제거 (`currentStitch`, `currentPattern` 등)
+- **counterHistoryJson 캐싱**: `@Transient` 캐시 + dirty 플래그로 불필요한 JSON 파싱/직렬화 제거
+- **Project.status @Index 추가**: 프로젝트 상태별 쿼리 성능 최적화
+- **ProjectCard/ProjectInfoBar 공통화**: 중복 날짜/시간 포맷팅 로직을 `formatters.dart`로 추출
+- **catch 에러 무시 -> debugPrint 로깅**: `local_storage.dart` 8곳의 빈 catch에 디버그 로깅 추가
+- **Fastlane --dart-define 추가**: iOS/Android Fastfile에 광고 ID dart-define 파라미터 전달
+
 ### Fixed
 - **이모지 제거 (No Emoji Policy)**: counter_screen, project_list_screen, project_card, onboarding_screen의 이모지를 Material Icons로 교체
 - **VoiceService 메모리 누수**: 콜백 참조(`_currentOnDone`/`_currentOnError`)가 정상 종료 시 해제되지 않던 문제 수정
 - **main() 에러 핸들링 부재**: `runZonedGuarded` + `FlutterError.onError` + try-catch 추가로 초기화 실패 시 앱 크래시 방지
 - **MigrationUtils 안전성 강화**: 프로젝트별 try-catch로 한 프로젝트 실패 시 나머지 계속 진행, 전체 성공 시에만 완료 플래그 설정
 - **DB/Repository 저장 로직 이중 저장**: `ObjectBoxDatabase.saveProject()` 단순화 + `saveProjectWithRelations()` 트랜잭션 저장 추가
-
-### Changed
 - **MemoCard 하드코딩 색상 상수화**: 6개 Color 리터럴을 `AppColors` + `AppColorsExtension`으로 이동
 - **providers.dart barrel export**: `tutorial_provider.dart` export 추가
-- **빈 디렉토리 정리**: `core/utils/`, `widgets/ads/`, `widgets/common/` 삭제
 
 ---
 

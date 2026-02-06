@@ -103,9 +103,7 @@ class _TutorialScreenState extends ConsumerState<TutorialScreen> {
               Text(
                 '튜토리얼 준비 중...',
                 style: TextStyle(
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? AppColors.textSecondaryDark
-                      : AppColors.textSecondary,
+                  color: context.textSecondary,
                 ),
               ),
             ],
@@ -298,19 +296,17 @@ class _TutorialScreenState extends ConsumerState<TutorialScreen> {
   }
 
   Widget _buildDisabledActionButton(IconData icon, bool isDark) {
-    final textColor = isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
-
     return Container(
       width: 48,
       height: 48,
       decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceDark : Colors.white,
+        color: context.surface,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: isDark ? AppColors.borderDark : AppColors.border,
+          color: context.border,
         ),
       ),
-      child: Icon(icon, color: textColor.withValues(alpha: 0.5), size: 22),
+      child: Icon(icon, color: context.textSecondary.withValues(alpha: 0.5), size: 22),
     );
   }
 

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/models.dart';
 import '../../data/repositories/project_repository.dart';
@@ -255,7 +256,8 @@ final activeProjectProvider = Provider<Project?>((ref) {
 
   try {
     return projects.firstWhere((p) => p.id == activeId);
-  } catch (_) {
+  } catch (e) {
+    debugPrint('activeProjectProvider lookup($activeId): $e');
     return projects.isEmpty ? null : projects.first;
   }
 });
@@ -278,18 +280,13 @@ final activeProjectCounterProvider =
 class ProjectCounterState {
   final int currentRow;
   final int? targetRow;
-  final int currentStitch;
-  final int currentPattern;
   final bool canUndo;
   final RowMemo? currentMemo;
   final double progress;
 
-  // 보조 카운터 상태 (레거시 호환용)
+  // 레거시 이벤트용 (코/패턴 카운터 피드백)
   final int? stitchTarget;
   final int? patternResetAt;
-  final double stitchProgress;
-  final bool hasStitchCounter;
-  final bool hasPatternCounter;
 
   // 동적 보조 카운터 목록
   final List<SecondaryCounterState> secondaryCounters;
@@ -310,16 +307,11 @@ class ProjectCounterState {
   ProjectCounterState({
     this.currentRow = 0,
     this.targetRow,
-    this.currentStitch = 0,
-    this.currentPattern = 0,
     this.canUndo = false,
     this.currentMemo,
     this.progress = 0.0,
     this.stitchTarget,
     this.patternResetAt,
-    this.stitchProgress = 0.0,
-    this.hasStitchCounter = false,
-    this.hasPatternCounter = false,
     this.secondaryCounters = const [],
     this.stitchGoalReached = false,
     this.patternWasReset = false,
@@ -335,16 +327,11 @@ class ProjectCounterState {
   ProjectCounterState copyWith({
     int? currentRow,
     int? targetRow,
-    int? currentStitch,
-    int? currentPattern,
     bool? canUndo,
     RowMemo? currentMemo,
     double? progress,
     int? stitchTarget,
     int? patternResetAt,
-    double? stitchProgress,
-    bool? hasStitchCounter,
-    bool? hasPatternCounter,
     List<SecondaryCounterState>? secondaryCounters,
     bool? stitchGoalReached,
     bool? patternWasReset,
@@ -359,16 +346,11 @@ class ProjectCounterState {
     return ProjectCounterState(
       currentRow: currentRow ?? this.currentRow,
       targetRow: targetRow ?? this.targetRow,
-      currentStitch: currentStitch ?? this.currentStitch,
-      currentPattern: currentPattern ?? this.currentPattern,
       canUndo: canUndo ?? this.canUndo,
       currentMemo: currentMemo,
       progress: progress ?? this.progress,
       stitchTarget: stitchTarget ?? this.stitchTarget,
       patternResetAt: patternResetAt ?? this.patternResetAt,
-      stitchProgress: stitchProgress ?? this.stitchProgress,
-      hasStitchCounter: hasStitchCounter ?? this.hasStitchCounter,
-      hasPatternCounter: hasPatternCounter ?? this.hasPatternCounter,
       secondaryCounters: secondaryCounters ?? this.secondaryCounters,
       stitchGoalReached: stitchGoalReached ?? this.stitchGoalReached,
       patternWasReset: patternWasReset ?? this.patternWasReset,
@@ -416,16 +398,11 @@ class ActiveProjectCounterNotifier extends StateNotifier<ProjectCounterState> {
     return ProjectCounterState(
       currentRow: project.currentRow,
       targetRow: project.targetRow,
-      currentStitch: stitchCounter?.value ?? 0,
-      currentPattern: patternCounter?.value ?? 0,
       canUndo: project.canUndo,
       currentMemo: project.currentMemo,
       progress: project.progress,
       stitchTarget: stitchCounter?.targetValue,
       patternResetAt: patternCounter?.resetAt,
-      stitchProgress: stitchCounter?.progress ?? 0.0,
-      hasStitchCounter: stitchCounter != null,
-      hasPatternCounter: patternCounter != null,
       secondaryCounters: secondaryCounterStates,
       stitchGoalReached: stitchGoalReached,
       patternWasReset: patternWasReset,

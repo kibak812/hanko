@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:objectbox/objectbox.dart';
 import 'counter.dart';
 import 'row_memo.dart';
@@ -52,6 +53,8 @@ class Project {
   int id;
 
   String name;
+
+  @Index()
   int statusIndex; // ProjectStatus enum index
 
   @Property(type: PropertyType.date)
@@ -106,30 +109,50 @@ class Project {
 
   set status(ProjectStatus value) => statusIndex = value.index;
 
-  // ============ Counter History ============
+  // ============ Counter History (캐싱) ============
+
+  @Transient()
+  List<CounterAction>? _counterHistoryCache;
+
+  @Transient()
+  bool _counterHistoryDirty = false;
 
   @Transient()
   List<CounterAction> get counterHistory {
+    if (_counterHistoryCache != null) return _counterHistoryCache!;
     try {
       if (counterHistoryJson == '[]' || counterHistoryJson.isEmpty) {
-        return [];
+        _counterHistoryCache = [];
+        return _counterHistoryCache!;
       }
       final List<dynamic> jsonList = jsonDecode(counterHistoryJson);
-      return jsonList
+      _counterHistoryCache = jsonList
           .map((item) => CounterAction.fromJson(item as Map<String, dynamic>))
           .toList();
-    } catch (_) {
-      return [];
+      return _counterHistoryCache!;
+    } catch (e) {
+      debugPrint('counterHistory decode: $e');
+      _counterHistoryCache = [];
+      return _counterHistoryCache!;
     }
   }
 
   set counterHistory(List<CounterAction> value) {
-    if (value.isEmpty) {
+    _counterHistoryCache = value;
+    _counterHistoryDirty = true;
+    _flushCounterHistory();
+  }
+
+  /// dirty 상태면 JSON으로 직렬화
+  void _flushCounterHistory() {
+    if (!_counterHistoryDirty) return;
+    if (_counterHistoryCache == null || _counterHistoryCache!.isEmpty) {
       counterHistoryJson = '[]';
-      return;
+    } else {
+      counterHistoryJson =
+          jsonEncode(_counterHistoryCache!.map((a) => a.toJson()).toList());
     }
-    final jsonList = value.map((a) => a.toJson()).toList();
-    counterHistoryJson = jsonEncode(jsonList);
+    _counterHistoryDirty = false;
   }
 
   void addCounterAction(String counterType, int previousValue, int newValue,
@@ -145,14 +168,16 @@ class Project {
     if (history.length > 50) {
       history.removeAt(0);
     }
-    counterHistory = history;
+    _counterHistoryDirty = true;
+    _flushCounterHistory();
   }
 
   CounterAction? popCounterAction() {
     final history = counterHistory;
     if (history.isEmpty) return null;
     final action = history.removeLast();
-    counterHistory = history;
+    _counterHistoryDirty = true;
+    _flushCounterHistory();
     return action;
   }
 
@@ -183,7 +208,8 @@ class Project {
   RowMemo? get currentMemo {
     try {
       return memos.firstWhere((m) => m.rowNumber == currentRow);
-    } catch (_) {
+    } catch (e) {
+      debugPrint('currentMemo lookup: $e');
       return null;
     }
   }
@@ -269,7 +295,8 @@ class Project {
             counter = secondaryCounters.firstWhere(
               (c) => c.id == action.counterId,
             );
-          } catch (_) {
+          } catch (e) {
+            debugPrint('undo secondaryCounter lookup: $e');
             counter = null;
           }
         }
@@ -364,7 +391,8 @@ class Project {
   Counter? getSecondaryCounter(int counterId) {
     try {
       return secondaryCounters.firstWhere((c) => c.id == counterId);
-    } catch (_) {
+    } catch (e) {
+      debugPrint('getSecondaryCounter($counterId): $e');
       return null;
     }
   }

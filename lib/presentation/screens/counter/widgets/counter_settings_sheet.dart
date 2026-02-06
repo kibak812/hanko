@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_icons.dart';
+import '../../../../core/constants/app_strings.dart';
 import '../../../../data/models/counter.dart';
 import '../../../widgets/dialogs.dart';
 
@@ -36,9 +37,9 @@ class _CounterSettingsSheetState extends State<CounterSettingsSheet> {
 
   bool get isStitch => widget.type == CounterType.stitch;
 
-  String get title => isStitch ? '코 카운터 설정' : '패턴 카운터 설정';
+  String get title => isStitch ? AppStrings.stitchCounterSettingsTitle : AppStrings.patternCounterSettingsTitle;
 
-  String get valueLabel => isStitch ? '목표 코 수' : '자동 리셋';
+  String get valueLabel => isStitch ? AppStrings.targetStitchCount : AppStrings.autoReset;
 
   List<int> get presets => isStitch ? [10, 20, 30] : [4, 6, 8];
 
@@ -91,12 +92,10 @@ class _CounterSettingsSheetState extends State<CounterSettingsSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceDark : Colors.white,
+        color: context.surface,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Column(
@@ -109,7 +108,7 @@ class _CounterSettingsSheetState extends State<CounterSettingsSheet> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: isDark ? AppColors.borderDark : AppColors.border,
+                color: context.border,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -128,9 +127,7 @@ class _CounterSettingsSheetState extends State<CounterSettingsSheet> {
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
-                  color: isDark
-                      ? AppColors.textPrimaryDark
-                      : AppColors.textPrimary,
+                  color: context.textPrimary,
                 ),
               ),
             ],
@@ -141,19 +138,17 @@ class _CounterSettingsSheetState extends State<CounterSettingsSheet> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: isDark ? AppColors.backgroundDark : AppColors.background,
+              color: context.background,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  '현재: ',
+                  '${AppStrings.current}: ',
                   style: TextStyle(
                     fontSize: 16,
-                    color: isDark
-                        ? AppColors.textSecondaryDark
-                        : AppColors.textSecondary,
+                    color: context.textSecondary,
                   ),
                 ),
                 Text(
@@ -161,9 +156,7 @@ class _CounterSettingsSheetState extends State<CounterSettingsSheet> {
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.w700,
-                    color: isDark
-                        ? AppColors.textPrimaryDark
-                        : AppColors.textPrimary,
+                    color: context.textPrimary,
                   ),
                 ),
                 if (displayTarget != null) ...[
@@ -171,9 +164,7 @@ class _CounterSettingsSheetState extends State<CounterSettingsSheet> {
                     ' / $displayTarget',
                     style: TextStyle(
                       fontSize: 16,
-                      color: isDark
-                          ? AppColors.textSecondaryDark
-                          : AppColors.textSecondary,
+                      color: context.textSecondary,
                     ),
                   ),
                 ],
@@ -188,17 +179,15 @@ class _CounterSettingsSheetState extends State<CounterSettingsSheet> {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
-              color: isDark
-                  ? AppColors.textSecondaryDark
-                  : AppColors.textSecondary,
+              color: context.textSecondary,
             ),
           ),
           const SizedBox(height: 12),
 
           if (_showCustomInput)
-            _buildCustomInput(isDark)
+            _buildCustomInput()
           else
-            _buildPresetButtons(isDark),
+            _buildPresetButtons(),
 
           const SizedBox(height: 24),
           const Divider(),
@@ -212,7 +201,7 @@ class _CounterSettingsSheetState extends State<CounterSettingsSheet> {
                 child: OutlinedButton.icon(
                   onPressed: _onReset,
                   icon: const Icon(Icons.refresh),
-                  label: const Text('리셋'),
+                  label: const Text(AppStrings.reset),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
@@ -226,7 +215,7 @@ class _CounterSettingsSheetState extends State<CounterSettingsSheet> {
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
-                  child: const Text('저장'),
+                  child: const Text(AppStrings.save),
                 ),
               ),
             ],
@@ -242,7 +231,7 @@ class _CounterSettingsSheetState extends State<CounterSettingsSheet> {
                 style: TextButton.styleFrom(
                   foregroundColor: AppColors.error,
                 ),
-                child: const Text('카운터 제거'),
+                child: const Text(AppStrings.removeCounter),
               ),
             ),
           ],
@@ -251,14 +240,14 @@ class _CounterSettingsSheetState extends State<CounterSettingsSheet> {
     );
   }
 
-  Widget _buildPresetButtons(bool isDark) {
+  Widget _buildPresetButtons() {
     return Wrap(
       spacing: 8,
       runSpacing: 8,
       children: [
         // 없음 버튼
         _buildChip(
-          label: '없음',
+          label: AppStrings.none,
           isSelected: _selectedValue == null,
           onTap: () {
             setState(() {
@@ -266,17 +255,15 @@ class _CounterSettingsSheetState extends State<CounterSettingsSheet> {
               _showCustomInput = false;
             });
           },
-          isDark: isDark,
         ),
         // 프리셋 버튼들
         ...presets.map((value) => _buildChip(
               label: '$value',
               isSelected: _selectedValue == value,
               onTap: () => _onPresetTap(value),
-              isDark: isDark,
             )),
         // 직접 입력
-        _buildCustomChip(isDark),
+        _buildCustomChip(),
       ],
     );
   }
@@ -285,7 +272,6 @@ class _CounterSettingsSheetState extends State<CounterSettingsSheet> {
     required String label,
     required bool isSelected,
     required VoidCallback onTap,
-    required bool isDark,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -295,12 +281,12 @@ class _CounterSettingsSheetState extends State<CounterSettingsSheet> {
         decoration: BoxDecoration(
           color: isSelected
               ? AppColors.primary
-              : (isDark ? AppColors.backgroundDark : AppColors.background),
+              : (context.background),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSelected
                 ? AppColors.primary
-                : (isDark ? AppColors.borderDark : AppColors.border),
+                : (context.border),
           ),
         ),
         child: Text(
@@ -310,14 +296,14 @@ class _CounterSettingsSheetState extends State<CounterSettingsSheet> {
             fontWeight: FontWeight.w500,
             color: isSelected
                 ? Colors.white
-                : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary),
+                : (context.textPrimary),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildCustomChip(bool isDark) {
+  Widget _buildCustomChip() {
     final hasCustomValue =
         _selectedValue != null && !presets.contains(_selectedValue);
 
@@ -333,12 +319,12 @@ class _CounterSettingsSheetState extends State<CounterSettingsSheet> {
         decoration: BoxDecoration(
           color: hasCustomValue
               ? AppColors.primary
-              : (isDark ? AppColors.backgroundDark : AppColors.background),
+              : (context.background),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: hasCustomValue
                 ? AppColors.primary
-                : (isDark ? AppColors.borderDark : AppColors.border),
+                : (context.border),
           ),
         ),
         child: Row(
@@ -349,21 +335,17 @@ class _CounterSettingsSheetState extends State<CounterSettingsSheet> {
               size: 14,
               color: hasCustomValue
                   ? Colors.white
-                  : (isDark
-                      ? AppColors.textSecondaryDark
-                      : AppColors.textSecondary),
+                  : context.textSecondary,
             ),
             const SizedBox(width: 4),
             Text(
-              hasCustomValue ? '$_selectedValue' : '직접 입력',
+              hasCustomValue ? '$_selectedValue' : AppStrings.customValue,
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
                 color: hasCustomValue
                     ? Colors.white
-                    : (isDark
-                        ? AppColors.textPrimaryDark
-                        : AppColors.textPrimary),
+                    : context.textPrimary,
               ),
             ),
           ],
@@ -372,7 +354,7 @@ class _CounterSettingsSheetState extends State<CounterSettingsSheet> {
     );
   }
 
-  Widget _buildCustomInput(bool isDark) {
+  Widget _buildCustomInput() {
     return Row(
       children: [
         Expanded(
@@ -381,7 +363,7 @@ class _CounterSettingsSheetState extends State<CounterSettingsSheet> {
             keyboardType: TextInputType.number,
             autofocus: true,
             decoration: InputDecoration(
-              hintText: '숫자 입력',
+              hintText: AppStrings.numberInput,
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 16,
                 vertical: 12,
@@ -510,8 +492,8 @@ class _SecondaryCounterSettingsSheetState
   bool _isEditingLabel = false;
 
   bool get isGoalType => widget.type == SecondaryCounterType.goal;
-  String get valueLabel => isGoalType ? '목표 (선택)' : '주기 (선택)';
-  String get valueHint => isGoalType ? '예: 10' : '예: 4';
+  String get valueLabel => isGoalType ? AppStrings.goalOptional : AppStrings.periodOptional;
+  String get valueHint => isGoalType ? AppStrings.goalHintExample : AppStrings.periodHintExample;
   int? get displayTarget => isGoalType ? widget.targetValue : widget.resetAt;
 
   @override
@@ -562,9 +544,7 @@ class _SecondaryCounterSettingsSheetState
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textSecondary =
-        isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+    final textSecondary = context.textSecondary;
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
     return GestureDetector(
@@ -574,7 +554,7 @@ class _SecondaryCounterSettingsSheetState
         height: 420 + (widget.onRemove != null ? 48 : 0),
         margin: EdgeInsets.only(bottom: bottomInset),
         decoration: BoxDecoration(
-          color: isDark ? AppColors.surfaceDark : Colors.white,
+          color: context.surface,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         ),
       child: Column(
@@ -587,7 +567,7 @@ class _SecondaryCounterSettingsSheetState
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: isDark ? AppColors.borderDark : AppColors.border,
+                  color: context.border,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -613,9 +593,7 @@ class _SecondaryCounterSettingsSheetState
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w600,
-                              color: isDark
-                                  ? AppColors.textPrimaryDark
-                                  : AppColors.textPrimary,
+                              color: context.textPrimary,
                             ),
                             decoration: InputDecoration(
                               isDense: true,
@@ -651,9 +629,7 @@ class _SecondaryCounterSettingsSheetState
                                   style: TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.w600,
-                                    color: isDark
-                                        ? AppColors.textPrimaryDark
-                                        : AppColors.textPrimary,
+                                    color: context.textPrimary,
                                   ),
                                 ),
                               ),
@@ -667,7 +643,7 @@ class _SecondaryCounterSettingsSheetState
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    isGoalType ? '횟수 카운터' : '반복 카운터',
+                    isGoalType ? AppStrings.goalCounterLabel : AppStrings.repetitionCounterLabel,
                     style: TextStyle(
                       fontSize: 12,
                       color: textSecondary,
@@ -681,9 +657,7 @@ class _SecondaryCounterSettingsSheetState
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     decoration: BoxDecoration(
-                      color: isDark
-                          ? AppColors.backgroundDark
-                          : AppColors.background,
+                      color: context.background,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Column(
@@ -693,9 +667,7 @@ class _SecondaryCounterSettingsSheetState
                           style: TextStyle(
                             fontSize: 36,
                             fontWeight: FontWeight.w700,
-                            color: isDark
-                                ? AppColors.textPrimaryDark
-                                : AppColors.textPrimary,
+                            color: context.textPrimary,
                           ),
                         ),
                         if (displayTarget != null)
@@ -743,7 +715,7 @@ class _SecondaryCounterSettingsSheetState
                         child: OutlinedButton.icon(
                           onPressed: _onReset,
                           icon: const Icon(Icons.refresh, size: 18),
-                          label: const Text('리셋'),
+                          label: const Text(AppStrings.reset),
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 12),
                           ),
@@ -756,7 +728,7 @@ class _SecondaryCounterSettingsSheetState
                           style: ElevatedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 12),
                           ),
-                          child: const Text('저장'),
+                          child: const Text(AppStrings.save),
                         ),
                       ),
                     ],
@@ -772,7 +744,7 @@ class _SecondaryCounterSettingsSheetState
                         style: TextButton.styleFrom(
                           foregroundColor: AppColors.error,
                         ),
-                        child: const Text('카운터 제거'),
+                        child: const Text(AppStrings.removeCounter),
                       ),
                     ),
                   ],

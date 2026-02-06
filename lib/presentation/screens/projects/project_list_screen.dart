@@ -118,7 +118,7 @@ class _ProjectListScreenState extends ConsumerState<ProjectListScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text(AppStrings.delete),
-        content: Text('\'${project.name}\' 프로젝트를 삭제할까요?\n이 작업은 되돌릴 수 없습니다.'),
+        content: Text(AppStrings.deleteProjectConfirmNamed(project.name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),

@@ -28,7 +28,10 @@ platform :android do
   lane :internal do
     # Flutter Android 빌드 (App Bundle)
     Dir.chdir("..") do
-      sh("cd .. && flutter build appbundle --release")
+      sh("cd .. && flutter build appbundle --release " \
+           "--dart-define=ANDROID_INTERSTITIAL_ID=#{ENV['ANDROID_INTERSTITIAL_ID']} " \
+           "--dart-define=ANDROID_REWARDED_ID=#{ENV['ANDROID_REWARDED_ID']} " \
+           "--dart-define=ANDROID_BANNER_ID=#{ENV['ANDROID_BANNER_ID']}")
     end
 
     # Google Play 내부 테스트 트랙에 업로드
@@ -47,7 +50,10 @@ platform :android do
   lane :beta do
     # Flutter Android 빌드 (App Bundle)
     Dir.chdir("..") do
-      sh("cd .. && flutter build appbundle --release")
+      sh("cd .. && flutter build appbundle --release " \
+           "--dart-define=ANDROID_INTERSTITIAL_ID=#{ENV['ANDROID_INTERSTITIAL_ID']} " \
+           "--dart-define=ANDROID_REWARDED_ID=#{ENV['ANDROID_REWARDED_ID']} " \
+           "--dart-define=ANDROID_BANNER_ID=#{ENV['ANDROID_BANNER_ID']}")
     end
 
     # Google Play 베타 트랙에 업로드
@@ -66,7 +72,10 @@ platform :android do
   lane :release do
     # Flutter Android 빌드 (App Bundle)
     Dir.chdir("..") do
-      sh("cd .. && flutter build appbundle --release")
+      sh("cd .. && flutter build appbundle --release " \
+           "--dart-define=ANDROID_INTERSTITIAL_ID=#{ENV['ANDROID_INTERSTITIAL_ID']} " \
+           "--dart-define=ANDROID_REWARDED_ID=#{ENV['ANDROID_REWARDED_ID']} " \
+           "--dart-define=ANDROID_BANNER_ID=#{ENV['ANDROID_BANNER_ID']}")
     end
 
     # Google Play 프로덕션에 업로드

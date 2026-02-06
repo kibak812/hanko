@@ -187,10 +187,8 @@ class _SecondaryCounterState extends State<SecondaryCounter>
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final hasTarget = displayTarget != null;
-    final textSecondary =
-        isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+    final textSecondary = context.textSecondary;
 
     return GestureDetector(
       onLongPress: () => widget.onLongPress(context.getWidgetRect()),
@@ -223,12 +221,12 @@ class _SecondaryCounterState extends State<SecondaryCounter>
         },
         child: Container(
           decoration: BoxDecoration(
-            color: isDark ? AppColors.surfaceDark : Colors.white,
+            color: context.surface,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: isHighlighted
                   ? AppColors.primary
-                  : (isDark ? AppColors.borderDark : AppColors.border),
+                  : context.border,
               width: isHighlighted ? 2 : 1,
             ),
           ),
@@ -291,8 +289,7 @@ class _SecondaryCounterState extends State<SecondaryCounter>
                         child: LinearProgressIndicator(
                           value: progress,
                           minHeight: 3,
-                          backgroundColor:
-                              isDark ? AppColors.borderDark : AppColors.border,
+                          backgroundColor: context.border,
                           valueColor: AlwaysStoppedAnimation<Color>(
                             AppColors.primary,
                           ),
@@ -324,9 +321,7 @@ class _SecondaryCounterState extends State<SecondaryCounter>
                                   fontWeight: FontWeight.w700,
                                   color: isHighlighted
                                       ? AppColors.primary
-                                      : (isDark
-                                          ? AppColors.textPrimaryDark
-                                          : AppColors.textPrimary),
+                                      : context.textPrimary,
                                 ),
                               ),
                               if (hasTarget) ...[
@@ -355,7 +350,7 @@ class _SecondaryCounterState extends State<SecondaryCounter>
               Divider(
                 height: 1,
                 thickness: 1,
-                color: isDark ? AppColors.borderDark : AppColors.border,
+                color: context.border,
               ),
 
               // 하단 영역: -/+ 버튼 좌우 분할
@@ -378,7 +373,7 @@ class _SecondaryCounterState extends State<SecondaryCounter>
                     VerticalDivider(
                       width: 1,
                       thickness: 1,
-                      color: isDark ? AppColors.borderDark : AppColors.border,
+                      color: context.border,
                     ),
 
                     // + 버튼 (오른쪽 절반)

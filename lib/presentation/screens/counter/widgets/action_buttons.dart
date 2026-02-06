@@ -27,8 +27,6 @@ class ActionButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -36,7 +34,6 @@ class ActionButtons extends StatelessWidget {
           child: _ActionButton(
             icon: Icons.undo,
             onPressed: onUndo,
-            isDark: isDark,
             enabled: onUndo != null,
           ),
         ),
@@ -45,7 +42,6 @@ class ActionButtons extends StatelessWidget {
           child: _ActionButton(
             icon: Icons.sticky_note_2_outlined,
             onPressed: onMemo,
-            isDark: isDark,
             enabled: onMemo != null,
           ),
         ),
@@ -57,7 +53,6 @@ class ActionButtons extends StatelessWidget {
             isActive: isTimerRunning,
             activeIcon: Icons.timer,
             inactiveIcon: Icons.timer_outlined,
-            isDark: isDark,
           ),
         ),
         const SizedBox(width: 8),
@@ -67,13 +62,11 @@ class ActionButtons extends StatelessWidget {
             isActive: isListening,
             activeIcon: Icons.mic,
             inactiveIcon: Icons.mic_none,
-            isDark: isDark,
           ),
         ),
         const SizedBox(width: 8),
         Flexible(
           child: _SettingsButton(
-            isDark: isDark,
             onPressed: onSettings,
           ),
         ),
@@ -85,19 +78,17 @@ class ActionButtons extends StatelessWidget {
 class _ActionButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback? onPressed;
-  final bool isDark;
   final bool enabled;
 
   const _ActionButton({
     required this.icon,
     required this.onPressed,
-    required this.isDark,
     this.enabled = true,
   });
 
   @override
   Widget build(BuildContext context) {
-    final baseColor = isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+    final baseColor = context.textSecondary;
     final color = enabled ? baseColor : baseColor.withValues(alpha: 0.3);
 
     return GestureDetector(
@@ -107,10 +98,10 @@ class _ActionButton extends StatelessWidget {
         child: Container(
           constraints: const BoxConstraints(maxWidth: 48, maxHeight: 48),
           decoration: BoxDecoration(
-            color: isDark ? AppColors.surfaceDark : Colors.white,
+            color: context.surface,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: isDark ? AppColors.borderDark : AppColors.border,
+              color: context.border,
             ),
           ),
           child: Icon(icon, color: color, size: 22),
@@ -126,7 +117,6 @@ class _ToggleActionButton extends StatelessWidget {
   final bool isActive;
   final IconData activeIcon;
   final IconData inactiveIcon;
-  final bool isDark;
 
   const _ToggleActionButton({
     required this.onPressed,
@@ -134,20 +124,19 @@ class _ToggleActionButton extends StatelessWidget {
     required this.isActive,
     required this.activeIcon,
     required this.inactiveIcon,
-    required this.isDark,
   });
 
   @override
   Widget build(BuildContext context) {
     final backgroundColor = isActive
         ? AppColors.primary
-        : (isDark ? AppColors.surfaceDark : Colors.white);
+        : context.surface;
     final borderColor = isActive
         ? AppColors.primary
-        : (isDark ? AppColors.borderDark : AppColors.border);
+        : context.border;
     final iconColor = isActive
         ? Colors.white
-        : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondary);
+        : context.textSecondary;
 
     return GestureDetector(
       onTap: onPressed,
@@ -174,18 +163,15 @@ class _ToggleActionButton extends StatelessWidget {
 }
 
 class _SettingsButton extends StatelessWidget {
-  final bool isDark;
   final VoidCallback onPressed;
 
   const _SettingsButton({
-    required this.isDark,
     required this.onPressed,
   });
 
   @override
   Widget build(BuildContext context) {
-    final textColor =
-        isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+    final textColor = context.textSecondary;
 
     return GestureDetector(
       onTap: onPressed,
@@ -194,10 +180,10 @@ class _SettingsButton extends StatelessWidget {
         child: Container(
           constraints: const BoxConstraints(maxWidth: 48, maxHeight: 48),
           decoration: BoxDecoration(
-            color: isDark ? AppColors.surfaceDark : Colors.white,
+            color: context.surface,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: isDark ? AppColors.borderDark : AppColors.border,
+              color: context.border,
             ),
           ),
           child: Icon(

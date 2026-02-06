@@ -1,6 +1,6 @@
-import 'package:flutter/foundation.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'dart:async';
 import 'dart:io';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 /// 광고 서비스
 /// Google Mobile Ads를 사용한 광고 표시
@@ -8,52 +8,56 @@ class AdService {
   InterstitialAd? _interstitialAd;
   RewardedAd? _rewardedAd;
   bool _isInitialized = false;
+  bool _isDisposed = false;
 
   // 광고 로드 재시도 관련
   static const int _maxRetryCount = 3;
   int _interstitialRetryCount = 0;
   int _rewardedRetryCount = 0;
+  Timer? _interstitialRetryTimer;
+  Timer? _rewardedRetryTimer;
 
-  // 프로덕션 광고 ID
-  static const String _androidInterstitialId = 'ca-app-pub-1068771440265964/4299582826';
-  static const String _androidRewardedId = 'ca-app-pub-1068771440265964/8398609933';
-  static const String _androidBannerId = 'ca-app-pub-1068771440265964/1599259688';
-  static const String _iosInterstitialId = 'ca-app-pub-1068771440265964/8238827831';
-  static const String _iosRewardedId = 'ca-app-pub-1068771440265964/7616845458';
-  static const String _iosBannerId = 'ca-app-pub-1068771440265964/8394740507';
-
-  // 테스트 광고 ID
-  static const String _testAndroidInterstitialId = 'ca-app-pub-3940256099942544/1033173712';
-  static const String _testAndroidRewardedId = 'ca-app-pub-3940256099942544/5224354917';
-  static const String _testAndroidBannerId = 'ca-app-pub-3940256099942544/6300978111';
-  static const String _testIosInterstitialId = 'ca-app-pub-3940256099942544/4411468910';
-  static const String _testIosRewardedId = 'ca-app-pub-3940256099942544/1712485313';
-  static const String _testIosBannerId = 'ca-app-pub-3940256099942544/2934735716';
+  // 광고 ID (--dart-define으로 주입, 기본값은 테스트 ID)
+  static const String _androidInterstitialId = String.fromEnvironment(
+    'ANDROID_INTERSTITIAL_ID',
+    defaultValue: 'ca-app-pub-3940256099942544/1033173712',
+  );
+  static const String _androidRewardedId = String.fromEnvironment(
+    'ANDROID_REWARDED_ID',
+    defaultValue: 'ca-app-pub-3940256099942544/5224354917',
+  );
+  static const String _androidBannerId = String.fromEnvironment(
+    'ANDROID_BANNER_ID',
+    defaultValue: 'ca-app-pub-3940256099942544/6300978111',
+  );
+  static const String _iosInterstitialId = String.fromEnvironment(
+    'IOS_INTERSTITIAL_ID',
+    defaultValue: 'ca-app-pub-3940256099942544/4411468910',
+  );
+  static const String _iosRewardedId = String.fromEnvironment(
+    'IOS_REWARDED_ID',
+    defaultValue: 'ca-app-pub-3940256099942544/1712485313',
+  );
+  static const String _iosBannerId = String.fromEnvironment(
+    'IOS_BANNER_ID',
+    defaultValue: 'ca-app-pub-3940256099942544/2934735716',
+  );
 
   static String get _interstitialAdUnitId {
-    if (Platform.isAndroid) {
-      return kReleaseMode ? _androidInterstitialId : _testAndroidInterstitialId;
-    } else if (Platform.isIOS) {
-      return kReleaseMode ? _iosInterstitialId : _testIosInterstitialId;
-    }
+    if (Platform.isAndroid) return _androidInterstitialId;
+    if (Platform.isIOS) return _iosInterstitialId;
     throw UnsupportedError('Unsupported platform');
   }
 
   static String get _rewardedAdUnitId {
-    if (Platform.isAndroid) {
-      return kReleaseMode ? _androidRewardedId : _testAndroidRewardedId;
-    } else if (Platform.isIOS) {
-      return kReleaseMode ? _iosRewardedId : _testIosRewardedId;
-    }
+    if (Platform.isAndroid) return _androidRewardedId;
+    if (Platform.isIOS) return _iosRewardedId;
     throw UnsupportedError('Unsupported platform');
   }
 
   static String get _bannerAdUnitId {
-    if (Platform.isAndroid) {
-      return kReleaseMode ? _androidBannerId : _testAndroidBannerId;
-    } else if (Platform.isIOS) {
-      return kReleaseMode ? _iosBannerId : _testIosBannerId;
-    }
+    if (Platform.isAndroid) return _androidBannerId;
+    if (Platform.isIOS) return _iosBannerId;
     throw UnsupportedError('Unsupported platform');
   }
 
@@ -77,7 +81,9 @@ class AdService {
       request: const AdRequest(),
       adLoadCallback: InterstitialAdLoadCallback(
         onAdLoaded: (ad) {
-          _interstitialRetryCount = 0; // 성공 시 카운터 리셋
+          if (_isDisposed) { ad.dispose(); return; }
+          _interstitialRetryCount = 0;
+          _interstitialRetryTimer?.cancel();
           _interstitialAd = ad;
           _interstitialAd?.fullScreenContentCallback = FullScreenContentCallback(
             onAdDismissedFullScreenContent: (ad) {
@@ -97,7 +103,8 @@ class AdService {
             return;
           }
           // 로드 실패 시 재시도
-          Future.delayed(const Duration(seconds: 30), _loadInterstitialAd);
+          _interstitialRetryTimer?.cancel();
+          _interstitialRetryTimer = Timer(const Duration(seconds: 30), _loadInterstitialAd);
         },
       ),
     );
@@ -125,7 +132,9 @@ class AdService {
       request: const AdRequest(),
       rewardedAdLoadCallback: RewardedAdLoadCallback(
         onAdLoaded: (ad) {
-          _rewardedRetryCount = 0; // 성공 시 카운터 리셋
+          if (_isDisposed) { ad.dispose(); return; }
+          _rewardedRetryCount = 0;
+          _rewardedRetryTimer?.cancel();
           _rewardedAd = ad;
           _rewardedAd?.fullScreenContentCallback = FullScreenContentCallback(
             onAdDismissedFullScreenContent: (ad) {
@@ -144,7 +153,8 @@ class AdService {
           if (_rewardedRetryCount >= _maxRetryCount) {
             return;
           }
-          Future.delayed(const Duration(seconds: 30), _loadRewardedAd);
+          _rewardedRetryTimer?.cancel();
+          _rewardedRetryTimer = Timer(const Duration(seconds: 30), _loadRewardedAd);
         },
       ),
     );
@@ -192,6 +202,9 @@ class AdService {
 
   /// 리소스 해제
   void dispose() {
+    _isDisposed = true;
+    _interstitialRetryTimer?.cancel();
+    _rewardedRetryTimer?.cancel();
     _interstitialAd?.dispose();
     _rewardedAd?.dispose();
   }

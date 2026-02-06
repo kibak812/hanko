@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/voice_commands.dart';
 import '../../domain/services/voice_service.dart';
@@ -30,6 +31,7 @@ class VoiceStateNotifier extends StateNotifier<VoiceState> {
   final Ref _ref;
   String? _lastError;
   bool _continuousMode = false; // 연속 듣기 모드
+  Timer? _retryTimer;
 
   VoiceStateNotifier(this._ref) : super(VoiceState.idle);
 
@@ -64,8 +66,10 @@ class VoiceStateNotifier extends StateNotifier<VoiceState> {
 
         // 연속 모드면 다시 듣기 시작
         if (_continuousMode) {
-          await Future.delayed(const Duration(milliseconds: 300));
-          await _startListeningInternal();
+          _retryTimer?.cancel();
+          _retryTimer = Timer(const Duration(milliseconds: 300), () {
+            _startListeningInternal();
+          });
         } else {
           state = VoiceState.idle;
         }
@@ -82,7 +86,8 @@ class VoiceStateNotifier extends StateNotifier<VoiceState> {
           }
           // 타임아웃이나 에러로 종료된 경우 다시 시작
           state = VoiceState.listening;
-          Future.delayed(const Duration(milliseconds: 300), () {
+          _retryTimer?.cancel();
+          _retryTimer = Timer(const Duration(milliseconds: 300), () {
             _startListeningInternal();
           });
         } else if (state == VoiceState.listening) {
@@ -94,7 +99,8 @@ class VoiceStateNotifier extends StateNotifier<VoiceState> {
         // 에러가 발생해도 연속 모드면 다시 시도
         if (_continuousMode) {
           state = VoiceState.listening;
-          Future.delayed(const Duration(milliseconds: 500), () {
+          _retryTimer?.cancel();
+          _retryTimer = Timer(const Duration(milliseconds: 500), () {
             _startListeningInternal();
           });
         } else {
@@ -107,6 +113,7 @@ class VoiceStateNotifier extends StateNotifier<VoiceState> {
   /// 음성 인식 중지
   Future<void> stopVoiceCommand() async {
     _continuousMode = false; // 연속 모드 해제
+    _retryTimer?.cancel();
     final voiceService = _ref.read(voiceServiceProvider);
     await voiceService.stopListening();
     state = VoiceState.idle;
@@ -149,5 +156,11 @@ class VoiceStateNotifier extends StateNotifier<VoiceState> {
   void clearError() {
     _lastError = null;
     state = VoiceState.idle;
+  }
+
+  @override
+  void dispose() {
+    _retryTimer?.cancel();
+    super.dispose();
   }
 }

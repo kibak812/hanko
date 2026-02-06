@@ -138,7 +138,7 @@ class _TutorialTooltipState extends State<TutorialTooltip>
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceDark : Colors.white,
+        color: context.surface,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
@@ -182,7 +182,7 @@ class _TutorialTooltipState extends State<TutorialTooltip>
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w700,
-              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+              color: context.textPrimary,
             ),
             textAlign: TextAlign.center,
           ),
@@ -194,7 +194,7 @@ class _TutorialTooltipState extends State<TutorialTooltip>
             widget.description,
             style: TextStyle(
               fontSize: 14,
-              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+              color: context.textSecondary,
               height: 1.5,
             ),
             textAlign: TextAlign.center,
@@ -223,7 +223,7 @@ class _TutorialTooltipState extends State<TutorialTooltip>
           decoration: BoxDecoration(
             color: isActive || isCurrent
                 ? AppColors.primary
-                : (isDark ? AppColors.borderDark : AppColors.border),
+                : context.border,
             borderRadius: BorderRadius.circular(4),
           ),
         );
@@ -250,7 +250,7 @@ class _TutorialTooltipState extends State<TutorialTooltip>
               child: Text(
                 widget.secondaryButtonText!,
                 style: TextStyle(
-                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                  color: context.textSecondary,
                   fontWeight: FontWeight.w500,
                 ),
               ),

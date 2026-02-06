@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../widgets/progress_indicator_bar.dart';
 import '../../../widgets/widget_extensions.dart';
 
 /// 상단 진행률 헤더
@@ -26,10 +27,6 @@ class ProgressHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final progressPercent = (progress * 100).round();
-    final successColor = isDark ? AppColors.successDark : AppColors.success;
-
     return GestureDetector(
       onTap: onTap,
       onLongPress: onLongPress != null
@@ -50,63 +47,26 @@ class ProgressHeader extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
-                        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                        color: context.textPrimary,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   Icon(
                     Icons.menu,
-                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                    color: context.textSecondary,
                   ),
                 ],
               ),
             ),
             if (targetRow != null) ...[
               const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: LinearProgressIndicator(
-                        value: progress,
-                        backgroundColor: isDark ? AppColors.borderDark : AppColors.border,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          progress >= 1.0 ? successColor : AppColors.primary,
-                        ),
-                        minHeight: 8,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    '$currentRow/$targetRow단',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: progress >= 1.0
-                          ? successColor.withAlpha(50)
-                          : AppColors.primary.withAlpha(25),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      '$progressPercent%',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: progress >= 1.0 ? successColor : AppColors.primary,
-                      ),
-                    ),
-                  ),
-                ],
+              ProgressIndicatorBar(
+                progress: progress,
+                currentRow: currentRow,
+                targetRow: targetRow!,
+                backgroundColor: context.border,
+                textColor: context.textSecondary,
               ),
             ],
           ],

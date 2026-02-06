@@ -46,7 +46,7 @@ class MemoCard extends StatelessWidget {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
-                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                color: context.textPrimary,
               ),
             ),
           ),

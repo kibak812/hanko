@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_strings.dart';
 
 /// 확장형 카운터 옵션 카드
 /// 토글 ON 시 하위 옵션이 펼쳐지는 형태
@@ -109,16 +110,14 @@ class _ExpandableCounterOptionState extends State<ExpandableCounterOption>
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceDark : Colors.white,
+        color: context.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: widget.enabled
               ? AppColors.primary.withValues(alpha: 0.5)
-              : (isDark ? AppColors.borderDark : AppColors.border),
+              : context.border,
           width: widget.enabled ? 1.5 : 1,
         ),
       ),
@@ -141,9 +140,7 @@ class _ExpandableCounterOptionState extends State<ExpandableCounterOption>
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
-                          color: isDark
-                              ? AppColors.textPrimaryDark
-                              : AppColors.textPrimary,
+                          color: context.textPrimary,
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -151,9 +148,7 @@ class _ExpandableCounterOptionState extends State<ExpandableCounterOption>
                         widget.subtitle,
                         style: TextStyle(
                           fontSize: 12,
-                          color: isDark
-                              ? AppColors.textSecondaryDark
-                              : AppColors.textSecondary,
+                          color: context.textSecondary,
                         ),
                       ),
                     ],
@@ -175,7 +170,7 @@ class _ExpandableCounterOptionState extends State<ExpandableCounterOption>
               children: [
                 Divider(
                   height: 1,
-                  color: isDark ? AppColors.borderDark : AppColors.border,
+                  color: context.border,
                 ),
                 Padding(
                   padding: const EdgeInsets.all(16),
@@ -187,18 +182,16 @@ class _ExpandableCounterOptionState extends State<ExpandableCounterOption>
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
-                          color: isDark
-                              ? AppColors.textSecondaryDark
-                              : AppColors.textSecondary,
+                          color: context.textSecondary,
                         ),
                       ),
                       const SizedBox(height: 12),
 
                       // 프리셋 버튼 + 직접 입력
                       if (_showCustomInput)
-                        _buildCustomInput(isDark)
+                        _buildCustomInput()
                       else
-                        _buildPresetButtons(isDark),
+                        _buildPresetButtons(),
 
                       // 팁 텍스트
                       if (widget.valueTip != null) ...[
@@ -208,11 +201,8 @@ class _ExpandableCounterOptionState extends State<ExpandableCounterOption>
                             Icon(
                               Icons.lightbulb_outline,
                               size: 14,
-                              color: isDark
-                                  ? AppColors.textSecondaryDark
-                                      .withValues(alpha: 0.7)
-                                  : AppColors.textSecondary
-                                      .withValues(alpha: 0.7),
+                              color: context.textSecondary
+                                  .withValues(alpha: 0.7),
                             ),
                             const SizedBox(width: 6),
                             Expanded(
@@ -220,11 +210,8 @@ class _ExpandableCounterOptionState extends State<ExpandableCounterOption>
                                 widget.valueTip!,
                                 style: TextStyle(
                                   fontSize: 11,
-                                  color: isDark
-                                      ? AppColors.textSecondaryDark
-                                          .withValues(alpha: 0.7)
-                                      : AppColors.textSecondary
-                                          .withValues(alpha: 0.7),
+                                  color: context.textSecondary
+                                      .withValues(alpha: 0.7),
                                 ),
                               ),
                             ),
@@ -242,18 +229,18 @@ class _ExpandableCounterOptionState extends State<ExpandableCounterOption>
     );
   }
 
-  Widget _buildPresetButtons(bool isDark) {
+  Widget _buildPresetButtons() {
     return Wrap(
       spacing: 8,
       runSpacing: 8,
       children: [
-        ...widget.presets.map((value) => _buildPresetChip(value, isDark)),
-        _buildCustomChip(isDark),
+        ...widget.presets.map((value) => _buildPresetChip(value)),
+        _buildCustomChip(),
       ],
     );
   }
 
-  Widget _buildPresetChip(int value, bool isDark) {
+  Widget _buildPresetChip(int value) {
     final isSelected = widget.selectedValue == value;
 
     return GestureDetector(
@@ -264,12 +251,12 @@ class _ExpandableCounterOptionState extends State<ExpandableCounterOption>
         decoration: BoxDecoration(
           color: isSelected
               ? AppColors.primary
-              : (isDark ? AppColors.backgroundDark : AppColors.background),
+              : context.background,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSelected
                 ? AppColors.primary
-                : (isDark ? AppColors.borderDark : AppColors.border),
+                : context.border,
           ),
         ),
         child: Text(
@@ -279,14 +266,14 @@ class _ExpandableCounterOptionState extends State<ExpandableCounterOption>
             fontWeight: FontWeight.w500,
             color: isSelected
                 ? Colors.white
-                : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary),
+                : context.textPrimary,
           ),
         ),
       ),
     );
   }
 
-  Widget _buildCustomChip(bool isDark) {
+  Widget _buildCustomChip() {
     final hasCustomValue = widget.selectedValue != null &&
         !widget.presets.contains(widget.selectedValue);
 
@@ -297,12 +284,12 @@ class _ExpandableCounterOptionState extends State<ExpandableCounterOption>
         decoration: BoxDecoration(
           color: hasCustomValue
               ? AppColors.primary
-              : (isDark ? AppColors.backgroundDark : AppColors.background),
+              : context.background,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: hasCustomValue
                 ? AppColors.primary
-                : (isDark ? AppColors.borderDark : AppColors.border),
+                : context.border,
           ),
         ),
         child: Row(
@@ -313,21 +300,17 @@ class _ExpandableCounterOptionState extends State<ExpandableCounterOption>
               size: 14,
               color: hasCustomValue
                   ? Colors.white
-                  : (isDark
-                      ? AppColors.textSecondaryDark
-                      : AppColors.textSecondary),
+                  : context.textSecondary,
             ),
             const SizedBox(width: 4),
             Text(
-              hasCustomValue ? '${widget.selectedValue}' : '직접 입력',
+              hasCustomValue ? '${widget.selectedValue}' : AppStrings.customValue,
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
                 color: hasCustomValue
                     ? Colors.white
-                    : (isDark
-                        ? AppColors.textPrimaryDark
-                        : AppColors.textPrimary),
+                    : context.textPrimary,
               ),
             ),
           ],
@@ -336,7 +319,7 @@ class _ExpandableCounterOptionState extends State<ExpandableCounterOption>
     );
   }
 
-  Widget _buildCustomInput(bool isDark) {
+  Widget _buildCustomInput() {
     return Row(
       children: [
         Expanded(
@@ -345,7 +328,7 @@ class _ExpandableCounterOptionState extends State<ExpandableCounterOption>
             keyboardType: TextInputType.number,
             autofocus: true,
             decoration: InputDecoration(
-              hintText: '숫자 입력',
+              hintText: AppStrings.numberInput,
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 16,
                 vertical: 12,

@@ -1,5 +1,8 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../models/app_settings.dart';
+export '../models/app_settings.dart';
 
 /// 로컬 저장소 관리 (설정, 사용량 추적 등)
 /// SharedPreferences를 사용하여 간단한 키-값 데이터 저장
@@ -41,6 +44,7 @@ class LocalStorage {
       final map = json.decode(jsonString) as Map<String, dynamic>;
       return AppSettings.fromJson(map);
     } catch (e) {
+      debugPrint('loadSettings: $e');
       return AppSettings();
     }
   }
@@ -51,6 +55,7 @@ class LocalStorage {
       final jsonString = json.encode(settings.toJson());
       return await _prefs.setString(_settingsKey, jsonString);
     } catch (e) {
+      debugPrint('saveSettings: $e');
       return false;
     }
   }
@@ -67,6 +72,7 @@ class LocalStorage {
       final today = _getTodayKey();
       return usage[today] as int? ?? 0;
     } catch (e) {
+      debugPrint('getTodayVoiceUsage: $e');
       return 0;
     }
   }
@@ -89,6 +95,7 @@ class LocalStorage {
 
       return await _prefs.setString(_voiceUsageKey, json.encode(usage));
     } catch (e) {
+      debugPrint('incrementVoiceUsage: $e');
       return false;
     }
   }
@@ -108,6 +115,7 @@ class LocalStorage {
 
       return await _prefs.setString(_voiceUsageKey, json.encode(usage));
     } catch (e) {
+      debugPrint('addBonusVoiceUsage: $e');
       return false;
     }
   }
@@ -122,6 +130,7 @@ class LocalStorage {
       final bonusKey = '${_getTodayKey()}_bonus';
       return usage[bonusKey] as int? ?? 0;
     } catch (e) {
+      debugPrint('getTodayBonusVoiceUsage: $e');
       return 0;
     }
   }
@@ -145,6 +154,7 @@ class LocalStorage {
       final today = _getTodayKey();
       return counts[today] as int? ?? 0;
     } catch (e) {
+      debugPrint('getTodayAdCount: $e');
       return 0;
     }
   }
@@ -166,6 +176,7 @@ class LocalStorage {
 
       return await _prefs.setString(_adCountKey, json.encode(counts));
     } catch (e) {
+      debugPrint('incrementAdCount: $e');
       return false;
     }
   }
@@ -253,54 +264,8 @@ class LocalStorage {
       );
       return DateTime.now().difference(date).inDays > 7;
     } catch (e) {
+      debugPrint('_isOlderThan7Days: $e');
       return true;
     }
-  }
-}
-
-/// 앱 설정 모델
-class AppSettings {
-  final bool hapticFeedback;
-  final bool voiceFeedback;
-  final bool keepScreenOn;
-  final String themeMode; // 'light', 'dark', 'system'
-
-  AppSettings({
-    this.hapticFeedback = true,
-    this.voiceFeedback = true,
-    this.keepScreenOn = true,
-    this.themeMode = 'light',
-  });
-
-  AppSettings copyWith({
-    bool? hapticFeedback,
-    bool? voiceFeedback,
-    bool? keepScreenOn,
-    String? themeMode,
-  }) {
-    return AppSettings(
-      hapticFeedback: hapticFeedback ?? this.hapticFeedback,
-      voiceFeedback: voiceFeedback ?? this.voiceFeedback,
-      keepScreenOn: keepScreenOn ?? this.keepScreenOn,
-      themeMode: themeMode ?? this.themeMode,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'hapticFeedback': hapticFeedback,
-      'voiceFeedback': voiceFeedback,
-      'keepScreenOn': keepScreenOn,
-      'themeMode': themeMode,
-    };
-  }
-
-  factory AppSettings.fromJson(Map<String, dynamic> json) {
-    return AppSettings(
-      hapticFeedback: json['hapticFeedback'] as bool? ?? true,
-      voiceFeedback: json['voiceFeedback'] as bool? ?? true,
-      keepScreenOn: json['keepScreenOn'] as bool? ?? true,
-      themeMode: json['themeMode'] as String? ?? 'light',
-    );
   }
 }
