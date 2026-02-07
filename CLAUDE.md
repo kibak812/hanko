@@ -17,11 +17,15 @@ flutter analyze
 # ObjectBox 코드 생성 (모델 변경 시 필수)
 dart run build_runner build
 
-# 테스트 실행
+# 테스트 실행 (전체 164개)
 flutter test
 
-# 단일 테스트 실행
-flutter test test/widget_test.dart
+# 레이어별 테스트 실행
+flutter test test/core/              # formatters
+flutter test test/data/              # models (Counter, Project, AppSettings)
+flutter test test/presentation/providers/  # Provider (ProjectsNotifier, AppSettingsNotifier 등)
+flutter test test/presentation/screens/    # Widget (ProjectListScreen, ProjectCard)
+flutter test test/presentation/widgets/    # Widget (ProgressIndicatorBar)
 ```
 
 ## Architecture Overview
@@ -159,6 +163,29 @@ cd android
 - 네이밍: `NN_description_ko_framed.png` (프레임 포함 최종본)
 - 현재 4장: counter, projects, memo, settings
 - `keyword.strings` / `title.strings`도 스크린샷과 함께 갱신
+
+## Test Infrastructure
+
+```
+test/
+├── helpers/
+│   ├── test_helpers.dart    # 팩토리 (createTestProject, createTestCounter, fixedNow 등)
+│   ├── mocks.dart           # Mock 클래스 (mocktail) + registerFallbacks()
+│   └── pump_app.dart        # Widget test용 pumpApp() 하네스
+├── core/utils/              # formatters 테스트
+├── data/models/             # Counter, Project, AppSettings 모델 테스트
+└── presentation/
+    ├── providers/           # ProjectsNotifier, ActiveProjectCounterNotifier, AppSettingsNotifier
+    ├── screens/projects/    # ProjectListScreen, ProjectCard
+    └── widgets/             # ProgressIndicatorBar
+```
+
+**테스트 작성 시 규칙**:
+- Mock: `mocktail` 사용 (코드 생성 불필요), `setUpAll(() => registerFallbacks())`
+- ID: Counter/Project 생성 시 `id >= 1` (ObjectBox ToMany id=0 문제 방지)
+- 시간: `fixedNow` 등 고정 DateTime 상수 사용 (flaky 방지)
+- Widget: `pumpApp(tester, widget, overrides: [...])` 패턴 사용
+- Provider: `ProviderContainer` + `addTearDown(container.dispose)`
 
 ## Dev Notes
 
