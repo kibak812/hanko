@@ -11,6 +11,7 @@ ObjectBox 데이터 모델 (Entity)
 | `counter.dart` | Counter | 단/코/패턴 카운터 |
 | `row_memo.dart` | RowMemo | 특정 단에 메모 |
 | `app_settings.dart` | AppSettings | 앱 설정 (테마, 햅틱, 화면유지 등) |
+| `backup_serialization.dart` | - | Counter/RowMemo/Project 백업 직렬화 extension + fromBackupJson 헬퍼 |
 | `models.dart` | - | 모든 모델 export |
 
 ## Project Model

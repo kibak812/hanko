@@ -4,6 +4,7 @@ import '../../data/datasources/local_storage.dart';
 import '../../data/datasources/objectbox_database.dart';
 import '../../data/repositories/project_repository.dart';
 import '../../domain/services/ad_service.dart';
+import '../../domain/services/backup_service.dart';
 
 /// SharedPreferences Provider
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
@@ -125,4 +126,11 @@ class VoiceUsageNotifier extends StateNotifier<int> {
 final onboardingCompletedProvider = StateProvider<bool>((ref) {
   final localStorage = ref.watch(localStorageProvider);
   return localStorage.isOnboardingCompleted();
+});
+
+/// Backup Service Provider
+final backupServiceProvider = Provider<BackupService>((ref) {
+  final db = ref.watch(objectBoxDatabaseProvider);
+  final localStorage = ref.watch(localStorageProvider);
+  return BackupService(db, localStorage);
 });

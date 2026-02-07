@@ -5,6 +5,17 @@
 ## [Unreleased]
 
 ### Added
+- **데이터 백업/복원 기능**: 설정 화면에서 JSON 파일 기반 수동 백업/복원 지원
+  - `BackupService`: 전체 데이터 JSON 직렬화, 파일 생성, 유효성 검증, 복원
+  - `backup_serialization.dart`: Counter/RowMemo/Project extension 메서드로 직렬화/역직렬화
+  - 백업 내보내기: 시스템 공유 시트(share_plus)로 JSON 파일 공유
+  - 백업 가져오기: 파일 선택(file_picker) → 검증 → 확인 다이얼로그 → 전체 덮어쓰기 복원
+  - 10MB 파일 크기 제한, 스키마 버전 검증, enum 범위 보정
+  - 복원 시 counterHistoryJson 초기화 (ID 불일치 방지), timerStartedAt 세션 합산 후 제외
+- `share_plus`, `file_picker` 의존성 추가
+- `backupServiceProvider` Provider 추가
+- 백업/복원 관련 AppStrings 상수 13개 추가
+- **백업/복원 단위 테스트 41개**: 직렬화 round-trip, 검증 로직, enum 범위 보정 등
 - **테스트 인프라 구축**: 164개 테스트로 핵심 비즈니스 로직 안전망 확보
   - `test/helpers/` - 테스트 팩토리, Mock 클래스, Widget test 공통 하네스
   - `test/core/utils/formatters_test.dart` - 시간/날짜 포맷팅 함수 테스트 (12개)

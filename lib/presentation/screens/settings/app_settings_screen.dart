@@ -1,11 +1,16 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../router/app_routes.dart';
 import '../../providers/app_providers.dart';
+import '../../providers/project_provider.dart';
 import '../../providers/tutorial_provider.dart';
 import '../../widgets/ad_banner_widget.dart';
 
@@ -19,6 +24,8 @@ class AppSettingsScreen extends ConsumerStatefulWidget {
 
 class _AppSettingsScreenState extends ConsumerState<AppSettingsScreen> {
   String _appVersion = '';
+  bool _isBackingUp = false;
+  bool _isRestoring = false;
 
   @override
   void initState() {
@@ -132,6 +139,61 @@ class _AppSettingsScreenState extends ConsumerState<AppSettingsScreen> {
 
                 const SizedBox(height: 24),
 
+                // 데이터 관리 섹션
+                _buildSectionHeader(context, AppStrings.dataManagementSection),
+                ListTile(
+                  leading: Icon(
+                    Icons.backup_outlined,
+                    color: context.textSecondary,
+                  ),
+                  title: const Text(AppStrings.backupData),
+                  subtitle: Text(
+                    AppStrings.backupDataDesc,
+                    style: TextStyle(
+                      color: context.textSecondary,
+                      fontSize: 12,
+                    ),
+                  ),
+                  trailing: _isBackingUp
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Icon(
+                          Icons.chevron_right,
+                          color: context.textSecondary,
+                        ),
+                  onTap: _isBackingUp ? null : _handleBackup,
+                ),
+                ListTile(
+                  leading: Icon(
+                    Icons.restore,
+                    color: context.textSecondary,
+                  ),
+                  title: const Text(AppStrings.restoreData),
+                  subtitle: Text(
+                    AppStrings.restoreDataDesc,
+                    style: TextStyle(
+                      color: context.textSecondary,
+                      fontSize: 12,
+                    ),
+                  ),
+                  trailing: _isRestoring
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Icon(
+                          Icons.chevron_right,
+                          color: context.textSecondary,
+                        ),
+                  onTap: _isRestoring ? null : _handleRestore,
+                ),
+
+                const SizedBox(height: 24),
+
                 // 앱 정보 섹션
                 _buildSectionHeader(context, AppStrings.about),
                 ListTile(
@@ -152,6 +214,105 @@ class _AppSettingsScreenState extends ConsumerState<AppSettingsScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _handleBackup() async {
+    setState(() => _isBackingUp = true);
+    try {
+      final backupService = ref.read(backupServiceProvider);
+      final file = await backupService.createBackupFile();
+      await Share.shareXFiles([XFile(file.path)], subject: 'Hanko Backup');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text(AppStrings.backupSuccess)),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${AppStrings.errorOccurred}: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isBackingUp = false);
+    }
+  }
+
+  Future<void> _handleRestore() async {
+    final result = await FilePicker.platform.pickFiles(type: FileType.any);
+    if (result == null || result.files.single.path == null) return;
+
+    final file = File(result.files.single.path!);
+    final fileSize = await file.length();
+    if (fileSize > 10 * 1024 * 1024) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text(AppStrings.backupFileTooLarge)),
+        );
+      }
+      return;
+    }
+
+    final jsonString = await file.readAsString();
+    final backupService = ref.read(backupServiceProvider);
+    final meta = backupService.validateBackup(jsonString);
+    if (meta == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text(AppStrings.invalidBackupFile)),
+        );
+      }
+      return;
+    }
+
+    if (!mounted) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(AppStrings.restoreConfirmTitle),
+        content: Text(
+          '${AppStrings.restoreConfirmBody}\n\n${AppStrings.restoreConfirmDetail(meta.projectCount, meta.createdAt)}',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text(AppStrings.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(
+              AppStrings.confirm,
+              style: const TextStyle(color: AppColors.error),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    setState(() => _isRestoring = true);
+    try {
+      backupService.restoreFromJson(jsonString);
+      ref.invalidate(projectsProvider);
+      ref.invalidate(activeProjectIdProvider);
+      ref.invalidate(activeProjectCounterProvider);
+      ref.invalidate(appSettingsProvider);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text(AppStrings.restoreSuccess)),
+        );
+        context.go(AppRoutes.projects);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${AppStrings.errorOccurred}: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isRestoring = false);
+    }
   }
 
   Widget _buildSectionHeader(BuildContext context, String title) {

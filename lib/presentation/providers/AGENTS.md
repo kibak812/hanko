@@ -29,6 +29,9 @@ activeProjectCounterProvider // 카운터 상태 (단/코/패턴)
 // 음성
 voiceStateProvider          // VoiceState (idle/listening/...)
 
+// 백업
+backupServiceProvider       // BackupService 인스턴스
+
 // 튜토리얼
 tutorialProvider            // TutorialState (currentStep, isActive, demoProjectId)
 tutorialCompletedProvider   // 튜토리얼 완료 여부

@@ -14,9 +14,11 @@
 
 설정 항목:
 - 햅틱 피드백 (Switch)
-- 음성 피드백 (Switch)
 - 화면 유지 (Switch)
 - 테마 (SegmentedButton: 라이트/다크/시스템)
+- 튜토리얼 다시 보기
+- 데이터 백업 (JSON 파일 공유)
+- 데이터 복원 (파일 선택 → 검증 → 확인 → 덮어쓰기)
 - 앱 정보 (버전)
 
 ## ProjectSettingsScreen

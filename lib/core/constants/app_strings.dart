@@ -207,4 +207,23 @@ class AppStrings {
   static const String completedDateInfo = '완료일을 설정하면 프로젝트가 완료 상태로 변경됩니다.';
   static const String resetWorkTime = '작업 시간 리셋';
   static const String resetWorkTimeConfirm = '누적 작업 시간을 0으로 리셋할까요?';
+
+  // ============ 데이터 관리 ============
+  static const String dataManagementSection = '데이터 관리';
+  static const String backupData = '데이터 백업';
+  static const String backupDataDesc = '모든 프로젝트와 설정을 파일로 저장';
+  static const String restoreData = '데이터 복원';
+  static const String restoreDataDesc = '백업 파일에서 데이터를 복원';
+  static const String backupSuccess = '백업 파일이 생성되었습니다.';
+  static const String restoreSuccess = '데이터가 복원되었습니다.';
+  static const String restoreConfirmTitle = '데이터를 복원할까요?';
+  static const String restoreConfirmBody =
+      '현재 데이터가 모두 삭제되고 백업 데이터로 대체됩니다.\n이 작업은 되돌릴 수 없습니다.';
+  static const String invalidBackupFile = '유효하지 않은 백업 파일입니다.';
+  static const String backupVersionTooNew =
+      '이 백업은 더 새로운 버전의 앱에서 생성되었습니다.\n앱을 업데이트해주세요.';
+  static const String backupFileTooLarge = '백업 파일이 너무 큽니다. (최대 10MB)';
+
+  static String restoreConfirmDetail(int count, String date) =>
+      '이 백업에는 $count개의 프로젝트가 포함되어 있습니다.\n($date에 생성됨)';
 }
