@@ -221,7 +221,15 @@ class _AppSettingsScreenState extends ConsumerState<AppSettingsScreen> {
     try {
       final backupService = ref.read(backupServiceProvider);
       final file = await backupService.createBackupFile();
-      await Share.shareXFiles([XFile(file.path)], subject: 'Hanko Backup');
+      final box = context.findRenderObject() as RenderBox?;
+      final origin = box != null
+          ? box.localToGlobal(Offset.zero) & box.size
+          : Rect.zero;
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        subject: 'Hanko Backup',
+        sharePositionOrigin: origin,
+      );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text(AppStrings.backupSuccess)),
@@ -302,7 +310,8 @@ class _AppSettingsScreenState extends ConsumerState<AppSettingsScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text(AppStrings.restoreSuccess)),
         );
-        context.go(AppRoutes.projects);
+        // 루트(카운터 화면)로 이동하여 네비게이션 스택을 정상 초기화
+        context.go(AppRoutes.counter);
       }
     } catch (e) {
       if (mounted) {

@@ -6,6 +6,9 @@
 
 ### Fixed
 - **앱 표시 이름 수정**: iOS/Android 홈 화면 이름이 "Hanko Hanko"/"hanko_hanko"로 표시되던 문제를 "한코한코"로 수정
+- **백업 공유 시 iOS 크래시 수정**: `Share.shareXFiles` 호출 시 `sharePositionOrigin` 미전달로 발생하던 에러 수정
+- **복원 후 네비게이션 불가 수정**: 복원 후 GoRouter 스택이 교체되어 `context.pop()` 시 에러 발생하던 문제 수정 (루트 화면으로 이동하도록 변경)
+- **프로젝트 목록 뒤로가기 방어 처리**: `context.pop()` 호출 전 `canPop()` 확인, 스택 없으면 카운터 화면으로 이동
 
 ### Added
 - **데이터 백업/복원 기능**: 설정 화면에서 JSON 파일 기반 수동 백업/복원 지원

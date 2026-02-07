@@ -35,7 +35,13 @@ class _ProjectListScreenState extends ConsumerState<ProjectListScreen> {
         title: const Text(AppStrings.myProjects),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go(AppRoutes.counter);
+            }
+          },
         ),
       ),
       body: Column(
@@ -62,7 +68,11 @@ class _ProjectListScreenState extends ConsumerState<ProjectListScreen> {
                             // 프로젝트 선택 시 전면 광고 표시
                             await ref.read(interstitialAdControllerProvider).tryShowAd();
                             if (context.mounted) {
-                              context.pop();
+                              if (context.canPop()) {
+                                context.pop();
+                              } else {
+                                context.go(AppRoutes.counter);
+                              }
                             }
                           },
                           onEdit: () {
