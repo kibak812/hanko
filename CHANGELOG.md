@@ -4,6 +4,9 @@
 
 ## [Unreleased]
 
+### Fixed
+- **앱 표시 이름 수정**: iOS/Android 홈 화면 이름이 "Hanko Hanko"/"hanko_hanko"로 표시되던 문제를 "한코한코"로 수정
+
 ### Added
 - **데이터 백업/복원 기능**: 설정 화면에서 JSON 파일 기반 수동 백업/복원 지원
   - `BackupService`: 전체 데이터 JSON 직렬화, 파일 생성, 유효성 검증, 복원
