@@ -5,6 +5,14 @@
 ## [Unreleased]
 
 ### Added
+- **테스트 인프라 구축**: 164개 테스트로 핵심 비즈니스 로직 안전망 확보
+  - `test/helpers/` - 테스트 팩토리, Mock 클래스, Widget test 공통 하네스
+  - `test/core/utils/formatters_test.dart` - 시간/날짜 포맷팅 함수 테스트 (12개)
+  - `test/data/models/` - Counter, Project, AppSettings 모델 테스트 (68개)
+  - `test/presentation/providers/` - ProjectsNotifier, ActiveProjectCounterNotifier, AppSettingsNotifier 테스트 (61개)
+  - `test/presentation/screens/` - ProjectListScreen, ProjectCard 위젯 테스트 (16개)
+  - `test/presentation/widgets/` - ProgressIndicatorBar 위젯 테스트 (7개)
+- `mocktail` 테스트 의존성 추가 (코드 생성 불필요 mock 라이브러리)
 - **ProgressIndicatorBar 공통 위젯**: ProgressHeader와 ProjectCard에서 공유하는 진행률 바 위젯 추출
 - **formatters.dart 공통 유틸**: 날짜/시간 포맷팅 함수 3개 (`formatDuration`, `formatDateFull`, `formatDateCompact`)
 - **AppSettings 모델 분리**: `local_storage.dart`에서 `AppSettings` 클래스를 독립 파일로 분리
