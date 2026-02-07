@@ -5,19 +5,159 @@ default_platform(:ios)
 
 platform :ios do
 
-  # ==================== 빌드 전 공통 작업 ====================
+  # ==================== 공통 헬퍼 ====================
 
-  before_all do
-    # Flutter 빌드
+  private_lane :app_identifier_value do
+    "com.hankohanko.hankoHanko"
+  end
+
+  private_lane :required_privacy_keys do
+    {
+      "NSMicrophoneUsageDescription" => "마이크 접근 사유",
+      "NSSpeechRecognitionUsageDescription" => "음성 인식 사용 사유",
+      "NSPhotoLibraryUsageDescription" => "사진 보관함 접근 사유",
+      "NSPhotoLibraryAddUsageDescription" => "사진 보관함 저장 사유"
+    }
+  end
+
+  private_lane :app_store_api_key do
+    app_store_connect_api_key(
+      key_id: ENV["APP_STORE_CONNECT_API_KEY_ID"],
+      issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
+      key_filepath: ENV["APP_STORE_CONNECT_API_KEY_PATH"],
+      in_house: false
+    )
+  end
+
+  private_lane :ensure_flutter_dependencies do
     Dir.chdir("..") do
       sh("cd .. && flutter pub get")
     end
+  end
+
+  private_lane :build_flutter_ios_release do
+    ensure_flutter_dependencies
+
+    Dir.chdir("..") do
+      sh("cd .. && flutter build ios --release " \
+           "--dart-define=IOS_INTERSTITIAL_ID=#{ENV['IOS_INTERSTITIAL_ID']} " \
+           "--dart-define=IOS_REWARDED_ID=#{ENV['IOS_REWARDED_ID']} " \
+           "--dart-define=IOS_BANNER_ID=#{ENV['IOS_BANNER_ID']}")
+    end
+  end
+
+  private_lane :pubspec_version_info do
+    pubspec_path = File.expand_path("../../pubspec.yaml", __dir__)
+    version_line = File.readlines(pubspec_path).find { |line| line.strip.start_with?("version:") }
+    UI.user_error!("pubspec.yaml에 version 항목이 없습니다.") unless version_line
+
+    raw = version_line.split(":", 2).last.strip
+    match = raw.match(/\A(\d+\.\d+\.\d+)\+(\d+)\z/)
+    UI.user_error!("pubspec version 형식은 X.Y.Z+N 이어야 합니다. 현재: #{raw}") unless match
+
+    {
+      raw: raw,
+      version: match[1],
+      build: match[2].to_i
+    }
+  end
+
+  private_lane :assert_required_privacy_strings do
+    plist_path = File.expand_path("../Runner/Info.plist", __dir__)
+    sh("plutil -lint #{plist_path}")
+
+    missing_keys = required_privacy_keys.keys.select do |key|
+      begin
+        value = get_info_plist_value(path: plist_path, key: key)
+        value.to_s.strip.empty?
+      rescue
+        true
+      end
+    end
+
+    unless missing_keys.empty?
+      messages = missing_keys.map { |key| "#{key} (#{required_privacy_keys[key]})" }
+      UI.user_error!("Info.plist 필수 privacy key 누락: #{messages.join(', ')}")
+    end
+  end
+
+  private_lane :assert_flutter_build_number_binding do
+    expected = "$(FLUTTER_BUILD_NUMBER)"
+    plist_path = File.expand_path("../Runner/Info.plist", __dir__)
+    actual = get_info_plist_value(path: plist_path, key: "CFBundleVersion")
+
+    unless actual.to_s == expected
+      UI.user_error!("Runner/Info.plist의 CFBundleVersion은 #{expected} 이어야 합니다. 현재: #{actual}")
+    end
+  end
+
+  private_lane :assert_build_number_is_new do |options|
+    latest_build = nil
+
+    begin
+      latest_build = latest_testflight_build_number(
+        app_identifier: app_identifier_value,
+        version: options[:version],
+        api_key: options[:api_key],
+        live: false
+      )
+    rescue => e
+      no_previous_build = e.message.include?("Could not find") || e.message.include?("Couldn't find")
+      if no_previous_build
+        UI.message("App Store Connect에 #{options[:version]} 기존 빌드가 없어 빌드 번호 검증을 건너뜁니다.")
+      else
+        raise
+      end
+    end
+
+    if !latest_build.nil? && options[:build] <= latest_build.to_i
+      UI.user_error!(
+        "pubspec build 번호(#{options[:build]})는 App Store Connect 최신 빌드(#{latest_build})보다 커야 합니다."
+      )
+    end
+  end
+
+  # ==================== 배포 전 점검 ====================
+
+  desc "iOS 배포 전 점검 (Info.plist, 버전/빌드, App Store Connect 빌드 번호)"
+  lane :preflight do |options|
+    info = pubspec_version_info
+    target_version = options[:app_version] || info[:version]
+
+    if target_version != info[:version]
+      UI.user_error!("app_version=#{target_version} 이 pubspec 버전 #{info[:version]}과 다릅니다.")
+    end
+
+    assert_required_privacy_strings
+    assert_flutter_build_number_binding
+
+    api_env_ready = %w[
+      APP_STORE_CONNECT_API_KEY_ID
+      APP_STORE_CONNECT_ISSUER_ID
+      APP_STORE_CONNECT_API_KEY_PATH
+    ].all? { |key| !ENV[key].to_s.empty? }
+
+    if options[:skip_remote_build_check] == true
+      UI.important("skip_remote_build_check=true 이므로 원격 빌드 번호 검증을 건너뜁니다.")
+    elsif api_env_ready
+      assert_build_number_is_new(
+        version: info[:version],
+        build: info[:build],
+        api_key: app_store_api_key
+      )
+    else
+      UI.important("App Store API 환경변수가 없어 원격 빌드 번호 검증은 건너뜁니다.")
+    end
+
+    UI.success("Preflight 통과: #{info[:version]}+#{info[:build]}")
   end
 
   # ==================== 테스트 ====================
 
   desc "테스트 실행"
   lane :test do
+    ensure_flutter_dependencies
+
     Dir.chdir("..") do
       sh("cd .. && flutter test")
     end
@@ -51,28 +191,10 @@ platform :ios do
 
   desc "TestFlight에 베타 버전 배포"
   lane :beta do
-    # API 키 설정
-    api_key = app_store_connect_api_key(
-      key_id: ENV["APP_STORE_CONNECT_API_KEY_ID"],
-      issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
-      key_filepath: ENV["APP_STORE_CONNECT_API_KEY_PATH"],
-      in_house: false
-    )
+    api_key = app_store_api_key
 
-    # 빌드 번호 증가
-    increment_build_number(
-      xcodeproj: "Runner.xcodeproj"
-    )
+    build_flutter_ios_release
 
-    # Flutter iOS 빌드
-    Dir.chdir("..") do
-      sh("cd .. && flutter build ios --release " \
-           "--dart-define=IOS_INTERSTITIAL_ID=#{ENV['IOS_INTERSTITIAL_ID']} " \
-           "--dart-define=IOS_REWARDED_ID=#{ENV['IOS_REWARDED_ID']} " \
-           "--dart-define=IOS_BANNER_ID=#{ENV['IOS_BANNER_ID']}")
-    end
-
-    # 앱 빌드
     build_app(
       workspace: "Runner.xcworkspace",
       scheme: "Runner",
@@ -82,45 +204,23 @@ platform :ios do
       export_xcargs: "-allowProvisioningUpdates"
     )
 
-    # TestFlight 업로드
     upload_to_testflight(
       api_key: api_key,
       skip_waiting_for_build_processing: true
     )
-
-    # 슬랙 알림 (선택사항 - 설정 시 주석 해제)
-    # slack(
-    #   message: "한코한코 베타 버전이 TestFlight에 업로드되었습니다!",
-    #   success: true
-    # )
   end
 
   # ==================== 프로덕션 배포 (App Store) ====================
 
-  desc "App Store에 프로덕션 버전 배포"
-  lane :release do
-    # API 키 설정
-    api_key = app_store_connect_api_key(
-      key_id: ENV["APP_STORE_CONNECT_API_KEY_ID"],
-      issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
-      key_filepath: ENV["APP_STORE_CONNECT_API_KEY_PATH"],
-      in_house: false
-    )
+  desc "App Store에 프로덕션 버전 배포 (기본: metadata 업로드 생략)"
+  lane :release do |options|
+    preflight(app_version: options[:app_version]) unless options[:skip_preflight] == true
 
-    # 빌드 번호 증가
-    increment_build_number(
-      xcodeproj: "Runner.xcodeproj"
-    )
+    api_key = app_store_api_key
+    skip_metadata_upload = options[:skip_metadata] != false
 
-    # Flutter iOS 빌드
-    Dir.chdir("..") do
-      sh("cd .. && flutter build ios --release " \
-           "--dart-define=IOS_INTERSTITIAL_ID=#{ENV['IOS_INTERSTITIAL_ID']} " \
-           "--dart-define=IOS_REWARDED_ID=#{ENV['IOS_REWARDED_ID']} " \
-           "--dart-define=IOS_BANNER_ID=#{ENV['IOS_BANNER_ID']}")
-    end
+    build_flutter_ios_release
 
-    # 앱 빌드
     build_app(
       workspace: "Runner.xcworkspace",
       scheme: "Runner",
@@ -130,25 +230,36 @@ platform :ios do
       export_xcargs: "-allowProvisioningUpdates"
     )
 
-    # App Store 업로드
     upload_to_app_store(
       api_key: api_key,
+      app_version: options[:app_version],
       skip_screenshots: true,
-      skip_metadata: false,
-      submit_for_review: false,  # 자동 심사 제출 원하면 true
-      automatic_release: false,  # 자동 릴리즈 원하면 true
-      force: true  # HTML 리포트 스킵
+      skip_metadata: skip_metadata_upload,
+      submit_for_review: false,
+      automatic_release: false,
+      force: true,
+      run_precheck_before_submit: false,
+      precheck_include_in_app_purchases: false
     )
+  end
+
+  desc "업로드 + 심사 제출까지 한 번에 실행"
+  lane :release_submit do |options|
+    info = pubspec_version_info
+    target_version = options[:app_version] || info[:version]
+
+    preflight(app_version: target_version)
+    release(
+      app_version: target_version,
+      skip_metadata: options[:skip_metadata],
+      skip_preflight: true
+    )
+    submit_review(app_version: target_version)
   end
 
   desc "App Store에 스크린샷만 업로드"
   lane :upload_screenshots do |options|
-    api_key = app_store_connect_api_key(
-      key_id: ENV["APP_STORE_CONNECT_API_KEY_ID"],
-      issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
-      key_filepath: ENV["APP_STORE_CONNECT_API_KEY_PATH"],
-      in_house: false
-    )
+    api_key = app_store_api_key
 
     deliver(
       api_key: api_key,
@@ -162,8 +273,12 @@ platform :ios do
   end
 
   desc "App Store에 메타데이터만 업로드"
-  lane :upload_metadata do
+  lane :upload_metadata do |options|
+    api_key = app_store_api_key
+
     deliver(
+      api_key: api_key,
+      app_version: options[:app_version],
       skip_binary_upload: true,
       skip_screenshots: true,
       force: true
@@ -172,28 +287,30 @@ platform :ios do
 
   desc "App Store 심사 제출"
   lane :submit_review do |options|
-    api_key = app_store_connect_api_key(
-      key_id: ENV["APP_STORE_CONNECT_API_KEY_ID"],
-      issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
-      key_filepath: ENV["APP_STORE_CONNECT_API_KEY_PATH"],
-      in_house: false
-    )
+    api_key = app_store_api_key
 
-    deliver(
-      api_key: api_key,
-      skip_binary_upload: true,
-      skip_screenshots: true,
-      skip_metadata: true,
-      submit_for_review: true,
-      force: true,
-      app_version: options[:app_version],
-      run_precheck_before_submit: false,
-      submission_information: {
-        add_id_info_uses_idfa: false,
-        export_compliance_uses_encryption: false,
-        content_rights_contains_third_party_content: false
-      }
-    )
+    begin
+      deliver(
+        api_key: api_key,
+        skip_binary_upload: true,
+        skip_screenshots: true,
+        skip_metadata: true,
+        submit_for_review: true,
+        force: true,
+        app_version: options[:app_version],
+        run_precheck_before_submit: false,
+        submission_information: {
+          add_id_info_uses_idfa: false,
+          export_compliance_uses_encryption: false,
+          content_rights_contains_third_party_content: false
+        }
+      )
+    rescue => e
+      already_in_progress = e.message.include?("A review submission is already in progress")
+      raise unless already_in_progress
+
+      UI.important("이미 심사 제출이 진행 중입니다. 현재 상태를 성공으로 처리합니다.")
+    end
   end
 
   # ==================== 인증서 관리 ====================
@@ -235,22 +352,13 @@ platform :ios do
 
   desc "App Store Connect API 키 설정 확인"
   lane :check_api_key do
-    app_store_connect_api_key(
-      key_id: ENV["APP_STORE_CONNECT_API_KEY_ID"],
-      issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
-      key_filepath: ENV["APP_STORE_CONNECT_API_KEY_PATH"],
-      in_house: false
-    )
+    app_store_api_key
     UI.success("API 키 설정 완료!")
   end
 
   # ==================== 에러 핸들링 ====================
 
   error do |lane, exception|
-    # 슬랙 알림 (선택사항)
-    # slack(
-    #   message: "에러 발생: #{exception.message}",
-    #   success: false
-    # )
+    UI.error("Lane '#{lane}' 실패: #{exception.message}")
   end
 end

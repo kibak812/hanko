@@ -15,6 +15,14 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 
 ## iOS
 
+### ios preflight
+
+```sh
+[bundle exec] fastlane ios preflight
+```
+
+iOS 배포 전 점검 (Info.plist, 버전/빌드, App Store Connect 빌드 번호)
+
 ### ios test
 
 ```sh
@@ -61,7 +69,15 @@ TestFlight에 베타 버전 배포
 [bundle exec] fastlane ios release
 ```
 
-App Store에 프로덕션 버전 배포
+App Store에 프로덕션 버전 배포 (기본: metadata 업로드 생략)
+
+### ios release_submit
+
+```sh
+[bundle exec] fastlane ios release_submit
+```
+
+업로드 + 심사 제출까지 한 번에 실행
 
 ### ios upload_screenshots
 
