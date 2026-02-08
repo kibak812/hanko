@@ -8,7 +8,7 @@
 | 파일 | 서비스 | 역할 |
 |------|--------|------|
 | `voice_service.dart` | VoiceService | 음성 인식 + TTS |
-| `ad_service.dart` | AdService | Google AdMob (광고 ID는 `--dart-define`으로 주입) |
+| `ad_service.dart` | AdService | Google AdMob (`kReleaseMode`로 프로덕션/테스트 ID 자동 전환) |
 | `premium_service.dart` | PremiumService | RevenueCat 구독 |
 | `backup_service.dart` | BackupService | 데이터 백업 생성/검증/복원 (JSON 파일 기반) |
 

@@ -143,10 +143,12 @@ cd android
 ### iOS 배포 시 주의사항
 
 1. **버전 확인 필수**: 배포 전 App Store Connect의 현재 라이브 버전을 확인하고, 그보다 높은 버전으로 `pubspec.yaml`을 업데이트해야 함. 낮은 버전으로 업로드하면 `CFBundleShortVersionString` 에러 발생.
-2. **`release` lane 실패 시 수동 업로드**: `release` lane이 `upload_to_app_store` 단계에서 실패해도 IPA는 이미 빌드됨. `xcrun altool --upload-app`으로 수동 업로드 가능.
-3. **`xcrun altool` API Key 경로**: `~/.private_keys/AuthKey_*.p8`에 키 파일이 있어야 함. 없으면 복사 필요: `cp ~/.flutter-deploy/credentials/ios/AuthKey_*.p8 ~/.private_keys/`
-4. **스크린샷 크기**: App Store iPhone 6.7" 기준 `1290x2796` 필수. 다른 크기면 `sips -z 2796 1290`으로 리사이즈.
-5. **버전 생성 타이밍**: 바이너리 업로드만으로는 App Store Connect에 새 버전이 자동 생성되지 않음. `deliver`에 `app_version` 명시 필요.
+2. **빌드 번호는 pubspec.yaml에서만 관리**: `increment_build_number` 사용 금지. Info.plist의 `CFBundleVersion`은 `$(FLUTTER_BUILD_NUMBER)` 변수를 참조해야 함. 하드코딩하면 Flutter와 충돌.
+3. **빌드 번호 충돌 주의**: App Store Connect API로 기존 최대 빌드 번호를 확인하고 그보다 높게 설정. 중복 빌드 번호는 Apple이 silent reject함 (업로드 성공 메시지는 나오지만 처리 안됨).
+4. **`release` lane 실패 시 수동 업로드**: `release` lane이 `upload_to_app_store` 단계에서 실패해도 IPA는 이미 빌드됨. `xcrun altool --upload-app`으로 수동 업로드 가능.
+5. **`xcrun altool` API Key 경로**: `~/.private_keys/AuthKey_*.p8`에 키 파일이 있어야 함. 없으면 복사 필요: `cp ~/.flutter-deploy/credentials/ios/AuthKey_*.p8 ~/.private_keys/`
+6. **스크린샷 크기**: App Store iPhone 6.7" 기준 `1290x2796` 필수. 다른 크기면 `sips -z 2796 1290`으로 리사이즈.
+7. **버전 생성 타이밍**: 바이너리 업로드만으로는 App Store Connect에 새 버전이 자동 생성되지 않음. `deliver`에 `app_version` 명시 필요.
 
 ### 필요한 인증 파일
 

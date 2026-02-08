@@ -4,6 +4,20 @@
 
 ## [Unreleased]
 
+## [1.0.4] - 긴급 수정
+
+### Fixed
+- **앱 실행 시 빈 화면 수정**: AdMob 앱 ID가 테스트 ID로 설정되어 있어 광고 SDK 초기화 실패 시 앱이 빈 화면으로 표시되던 치명적 버그 수정
+- **AdMob 초기화 비차단 처리**: 광고 SDK 초기화를 `runApp()` 이후 비동기로 이동하여 광고 실패가 앱 실행을 차단하지 않도록 변경
+- **초기화 실패 시 fallback UI**: 앱 초기화 실패 시 빈 화면 대신 에러 메시지를 표시
+
+### Changed
+- **광고 ID 관리 방식 변경**: `--dart-define` 환경변수 주입 방식에서 `kReleaseMode` 기반 자동 전환으로 변경 (환경변수 미설정 시 빈 문자열이 전달되는 버그 방지)
+- **GADApplicationIdentifier 프로덕션 ID 적용**: iOS Info.plist, Android AndroidManifest.xml에 프로덕션 AdMob 앱 ID 설정
+- **Fastlane dart-define 제거**: iOS/Android Fastfile에서 불필요해진 광고 ID dart-define 파라미터 제거
+
+## [1.0.3] - 안정성 개선 및 백업 기능
+
 ### Fixed
 - **앱 표시 이름 수정**: iOS/Android 홈 화면 이름이 "Hanko Hanko"/"hanko_hanko"로 표시되던 문제를 "한코한코"로 수정
 - **백업 공유 시 iOS 크래시 수정**: `Share.shareXFiles` 호출 시 `sharePositionOrigin` 미전달로 발생하던 에러 수정

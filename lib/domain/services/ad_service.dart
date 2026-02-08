@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 /// 광고 서비스
@@ -17,49 +18,38 @@ class AdService {
   Timer? _interstitialRetryTimer;
   Timer? _rewardedRetryTimer;
 
-  // 광고 ID (--dart-define으로 주입, 기본값은 테스트 ID)
-  static const String _androidInterstitialId = String.fromEnvironment(
-    'ANDROID_INTERSTITIAL_ID',
-    defaultValue: 'ca-app-pub-3940256099942544/1033173712',
-  );
-  static const String _androidRewardedId = String.fromEnvironment(
-    'ANDROID_REWARDED_ID',
-    defaultValue: 'ca-app-pub-3940256099942544/5224354917',
-  );
-  static const String _androidBannerId = String.fromEnvironment(
-    'ANDROID_BANNER_ID',
-    defaultValue: 'ca-app-pub-3940256099942544/6300978111',
-  );
-  static const String _iosInterstitialId = String.fromEnvironment(
-    'IOS_INTERSTITIAL_ID',
-    defaultValue: 'ca-app-pub-3940256099942544/4411468910',
-  );
-  static const String _iosRewardedId = String.fromEnvironment(
-    'IOS_REWARDED_ID',
-    defaultValue: 'ca-app-pub-3940256099942544/1712485313',
-  );
-  static const String _iosBannerId = String.fromEnvironment(
-    'IOS_BANNER_ID',
-    defaultValue: 'ca-app-pub-3940256099942544/2934735716',
-  );
-
-  static String get _interstitialAdUnitId {
-    if (Platform.isAndroid) return _androidInterstitialId;
-    if (Platform.isIOS) return _iosInterstitialId;
+  // 광고 ID (kReleaseMode로 프로덕션/테스트 자동 전환)
+  static String _adUnitId({
+    required String androidRelease,
+    required String androidTest,
+    required String iosRelease,
+    required String iosTest,
+  }) {
+    if (Platform.isAndroid) return kReleaseMode ? androidRelease : androidTest;
+    if (Platform.isIOS) return kReleaseMode ? iosRelease : iosTest;
     throw UnsupportedError('Unsupported platform');
   }
 
-  static String get _rewardedAdUnitId {
-    if (Platform.isAndroid) return _androidRewardedId;
-    if (Platform.isIOS) return _iosRewardedId;
-    throw UnsupportedError('Unsupported platform');
-  }
+  static String get _interstitialAdUnitId => _adUnitId(
+    androidRelease: 'ca-app-pub-1068771440265964/4299582826',
+    androidTest: 'ca-app-pub-3940256099942544/1033173712',
+    iosRelease: 'ca-app-pub-1068771440265964/8238827831',
+    iosTest: 'ca-app-pub-3940256099942544/4411468910',
+  );
 
-  static String get _bannerAdUnitId {
-    if (Platform.isAndroid) return _androidBannerId;
-    if (Platform.isIOS) return _iosBannerId;
-    throw UnsupportedError('Unsupported platform');
-  }
+  static String get _rewardedAdUnitId => _adUnitId(
+    androidRelease: 'ca-app-pub-1068771440265964/8398609933',
+    androidTest: 'ca-app-pub-3940256099942544/5224354917',
+    iosRelease: 'ca-app-pub-1068771440265964/7616845458',
+    iosTest: 'ca-app-pub-3940256099942544/1712485313',
+  );
+
+  static String get _bannerAdUnitId => _adUnitId(
+    androidRelease: 'ca-app-pub-1068771440265964/1599259688',
+    androidTest: 'ca-app-pub-3940256099942544/6300978111',
+    iosRelease: 'ca-app-pub-1068771440265964/8394740507',
+    iosTest: 'ca-app-pub-3940256099942544/2934735716',
+  );
 
   /// 광고 SDK 초기화
   Future<void> initialize() async {

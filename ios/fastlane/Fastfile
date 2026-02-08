@@ -39,10 +39,7 @@ platform :ios do
     ensure_flutter_dependencies
 
     Dir.chdir("..") do
-      sh("cd .. && flutter build ios --release " \
-           "--dart-define=IOS_INTERSTITIAL_ID=#{ENV['IOS_INTERSTITIAL_ID']} " \
-           "--dart-define=IOS_REWARDED_ID=#{ENV['IOS_REWARDED_ID']} " \
-           "--dart-define=IOS_BANNER_ID=#{ENV['IOS_BANNER_ID']}")
+      sh("cd .. && flutter build ios --release")
     end
   end
 

@@ -54,7 +54,7 @@
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>이미지를 저장하거나 공유하기 위해 사진 보관함에 저장 권한이 필요합니다.</string>
 	<key>GADApplicationIdentifier</key>
-	<string>ca-app-pub-3940256099942544~1458002511</string>
+	<string>ca-app-pub-1068771440265964~5690547930</string>
 	<key>SKAdNetworkItems</key>
 	<array>
 		<dict>
